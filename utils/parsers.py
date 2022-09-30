@@ -1,6 +1,14 @@
 from utils.formatters import query_to_string, string_to_query
 
 
+def boolean_to_option(boolean: bool) -> str:
+    return f"-{boolean=}".split("=")[0] if boolean else ""
+
+
+def boolean_to_literal(boolean: bool) -> str:
+    return "1" if boolean else "0"
+
+
 def query_list_to_dict(keys_values: list[str]) -> dict:
     response_dict = dict()
 
@@ -17,4 +25,7 @@ def query_list_to_dict(keys_values: list[str]) -> dict:
 
 
 def dict_to_query_parameters(parameters: dict) -> list[str]:
-    return [f"{key}={string_to_query(value)}" for key, value in parameters.items()]
+    return [
+        f"{key}={boolean_to_literal(value) if isinstance(value, bool) else string_to_query(value)}"
+        for key, value in parameters.items()
+    ]
