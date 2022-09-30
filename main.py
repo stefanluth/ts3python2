@@ -2,13 +2,10 @@ import logging
 import os
 import time
 
-from query.command import QueryCmd
+from query.definitions import NotifyRegisterTypes
 from query.ts3query import TS3Query
 
 credentials_py_exists = os.path.isfile("credentials.py")
-
-if credentials_py_exists:
-    import credentials
 
 
 logger = logging.getLogger("main")
@@ -20,6 +17,8 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 if credentials_py_exists:
+    import credentials
+
     logger.info("Using credentials from credentials.py")
     SERVER_IP = credentials.SERVER_IP
     SERVER_PORT = credentials.SERVER_PORT
@@ -47,7 +46,7 @@ def main():
     query.commands.use(port=SERVER_PORT)
 
     # Receive private messages
-    query.send(QueryCmd("servernotifyregister", kwargs={"event": "textprivate"}))
+    query.commands.servernotifyregister(event=NotifyRegisterTypes.TEXTPRIVATE)
     query.start_polling_messages(polling_rate=0.5)
     time.sleep(10)
     for message in query._messages:
