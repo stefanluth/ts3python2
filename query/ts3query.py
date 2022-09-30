@@ -1,11 +1,13 @@
 import logging
-import telnetlib
 import threading
+from telnetlib import Telnet
+from types import TracebackType
 
 from classes.message import Message
-from query.command import QueryCmd
-from query.response import QueryResponse
 from utils import patterns
+
+from query.command import CommandsWrapper, QueryCmd
+from query.response import QueryResponse
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -15,7 +17,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
-class TS3Query(telnetlib.Telnet):
+class TS3Query(Telnet):
     """A class for interacting with the TeamSpeak 3 ServerQuery interface.
 
     Args:
@@ -56,11 +58,13 @@ class TS3Query(telnetlib.Telnet):
         logger.name = f"{self.__class__.__name__}({host}:{port})"
 
         self.timeout = timeout
+        self.commands = CommandsWrapper(self)
 
         self._skip_greeting()
 
         if login and password:
-            self.login(login, password)
+            logger.info("Logging in")
+            self.commands.login(login, password)
         else:
             logger.info("No login and/or password provided")
 
@@ -77,28 +81,8 @@ class TS3Query(telnetlib.Telnet):
     def exit(self) -> None:
         logger.info("Exiting")
         self.stop_polling_messages()
-        self.logout()
-        self.quit()
-
-    def logout(self) -> QueryResponse:
-        logger.info("Logging out")
-        return self.send(QueryCmd("logout"))
-
-    def quit(self) -> QueryResponse:
-        logger.info("Quitting")
-        return self.send(QueryCmd("quit"))
-
-    def login(self, login: str, password: str):
-        logger.info("Logging in")
-        return self.send(QueryCmd("login", values=[login, password]))
-
-    def use(self, server_id: int = None, port: int = None) -> QueryResponse:
-        if server_id:
-            logger.info(f"Using server with id {server_id}")
-            return self.send(QueryCmd("use", args={"sid": server_id}))
-
-        logger.info(f"Using server with port {port or self.port}")
-        return self.send(QueryCmd("use", args={"port": port or self.port}))
+        self.commands.logout()
+        self.commands.quit()
 
     def send(self, command: QueryCmd) -> QueryResponse:
         with self._lock:
