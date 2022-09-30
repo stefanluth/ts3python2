@@ -44,10 +44,10 @@ def main():
     query = TS3Query(SERVER_IP, TELNET_PORT, TELNET_LOGIN, TELNET_PW, timeout=10)
 
     # Connect to the server
-    query.use(port=SERVER_PORT)
+    query.commands.use(port=SERVER_PORT)
 
     # Receive private messages
-    query.send(QueryCmd("servernotifyregister", args={"event": "textprivate"}))
+    query.send(QueryCmd("servernotifyregister", kwargs={"event": "textprivate"}))
     query.start_polling_messages(polling_rate=0.5)
     time.sleep(10)
     for message in query._messages:
