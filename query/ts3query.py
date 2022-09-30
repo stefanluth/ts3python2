@@ -1,13 +1,11 @@
 import logging
 import threading
 from telnetlib import Telnet
-from types import TracebackType
 
 from classes.message import Message
-from utils import patterns
-
 from query.command import CommandsWrapper, QueryCmd
 from query.response import QueryResponse
+from utils import patterns
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)

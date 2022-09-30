@@ -2,11 +2,10 @@ from dataclasses import dataclass, field
 from telnetlib import Telnet
 from typing import Literal, Optional
 
-from utils import parsers
-
 from query.definitions import *
 from query.properties import *
 from query.response import QueryResponse
+from utils import parsers
 
 
 @dataclass
