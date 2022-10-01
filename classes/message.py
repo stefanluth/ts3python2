@@ -1,13 +1,7 @@
 from dataclasses import dataclass, field
-from enum import Enum
 
+from query.definitions import TargetMode
 from utils.formatters import query_to_string
-
-
-class MessageSource(Enum):
-    PRIVATE = 1
-    CHANNEL = 2
-    SERVER = 3
 
 
 @dataclass
@@ -20,7 +14,7 @@ class Message:
     invokeruid: str
     used: bool = field(default=False, init=False)
     content: str = field(init=False)
-    source = property(lambda self: MessageSource(self.targetmode))
+    source = property(lambda self: TargetMode(self.targetmode))
 
     def __post_init__(self):
         self.content = query_to_string(self.msg)
