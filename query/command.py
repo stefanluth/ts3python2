@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import logging
 from telnetlib import Telnet
 from typing import Literal, Optional
 
@@ -6,6 +7,14 @@ from query.definitions import *
 from query.properties import *
 from query.response import QueryResponse
 from utils import parsers
+
+
+logger = logging.getLogger("commands")
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler = logging.FileHandler("ts3python2.log")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 
 @dataclass
@@ -47,6 +56,8 @@ class CommandsWrapper:
         return self.query.send(QueryCmd("help"))
 
     def quit(self) -> QueryResponse:
+        logger.debug("Quitting")
+
         return self.query.send(QueryCmd("quit"))
 
     def login(
@@ -56,6 +67,7 @@ class CommandsWrapper:
         Authenticates with the TeamSpeak 3 Server instance using given ServerQuery
         login credentials.
         """
+        logger.debug("Logging in")
 
         return self.query.send(
             QueryCmd(
@@ -71,6 +83,7 @@ class CommandsWrapper:
         """
         Deselects the active virtual server and logs out from the server instance.
         """
+        logger.debug("Logging out")
 
         return self.query.send(QueryCmd("logout"))
 
@@ -109,7 +122,7 @@ class CommandsWrapper:
 
         return self.query.send(QueryCmd("instanceedit", args=args, kwargs=kwargs))
 
-    def bindinglist(self, subsystem: Optional[Subsystem]) -> QueryResponse:
+    def bindinglist(self, subsystem: Optional[Subsystem] = None) -> QueryResponse:
         """
         Displays a list of IP addresses used by the server instance on multi-homed
         machines. If no subsystem is specified, "voice" is used by default.
@@ -134,6 +147,7 @@ class CommandsWrapper:
         data. If your database contains multiple virtual servers using the same UDP
         port, use will select a random virtual server using the specified port.
         """
+        logger.debug("Selecting server")
 
         return self.query.send(
             QueryCmd("use", args=(virtual,), kwargs={"sid": sid, "port": port})
@@ -307,7 +321,7 @@ class CommandsWrapper:
         return self.query.send(QueryCmd("servergrouplist"))
 
     def servergroupadd(
-        self, name: str, type: Optional[PermissionGroupDatabaseTypes]
+        self, name: str, type: Optional[PermissionGroupDatabaseTypes] = None
     ) -> QueryResponse:
         """
         Creates a new server group using the name specified with name and displays its
@@ -380,8 +394,8 @@ class CommandsWrapper:
         self,
         sgid: int,
         permvalue: int,
-        permid: Optional[int],
-        permsid: Optional[str],
+        permid: Optional[int] = None,
+        permsid: Optional[str] = None,
         permnegated: bool = False,
         permskip: bool = False,
     ) -> QueryResponse:
@@ -406,7 +420,7 @@ class CommandsWrapper:
         )
 
     def servergroupdelperm(
-        self, sgid: int, permid: Optional[int], permsid: Optional[str]
+        self, sgid: int, permid: Optional[int] = None, permsid: Optional[str] = None
     ) -> QueryResponse:
         """
         Removes a set of specified permissions from the server group specified with
@@ -465,9 +479,9 @@ class CommandsWrapper:
     def servergroupautoaddperm(
         self,
         sgtype: ServerGroupType,
-        permid: Optional[int],
-        permsid: Optional[str],
         permvalue: int,
+        permid: Optional[int] = None,
+        permsid: Optional[str] = None,
         permnegated: bool = False,
         permskip: bool = False,
     ) -> QueryResponse:
@@ -496,7 +510,10 @@ class CommandsWrapper:
         )
 
     def servergroupautodelperm(
-        self, sgtype: ServerGroupType, permid: Optional[int], permsid: Optional[str]
+        self,
+        sgtype: ServerGroupType,
+        permid: Optional[int] = None,
+        permsid: Optional[str] = None,
     ) -> QueryResponse:
         """
         Removes a set of specified permissions from *ALL* regular server groups on all
@@ -548,7 +565,7 @@ class CommandsWrapper:
         )
 
     def servernotifyregister(
-        self, event: NotifyRegisterTypes, id: Optional[int]
+        self, event: NotifyRegisterTypes, id: Optional[int] = None
     ) -> QueryResponse:
         """
         Registers for a specified category of events on a virtual server to receive
@@ -560,7 +577,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("servernotifyregister", kwargs={"event": event, "id": id})
+            QueryCmd("servernotifyregister", kwargs={"event": event.value, "id": id})
         )
 
     def servernotifyunregister(self) -> QueryResponse:
@@ -590,7 +607,7 @@ class CommandsWrapper:
 
     def logview(
         self,
-        lines: Optional[int],
+        lines: Optional[int] = None,
         reverse: bool = False,
         instance: bool = False,
         begin_pos: Optional[int] = None,
@@ -668,7 +685,9 @@ class CommandsWrapper:
 
         return self.query.send(QueryCmd("channelfind", kwargs={"pattern": pattern}))
 
-    def channelmove(self, cid: int, cpid: int, order: Optional[int]) -> QueryResponse:
+    def channelmove(
+        self, cid: int, cpid: int, order: Optional[int] = None
+    ) -> QueryResponse:
         """
         Moves a channel to a new parent channel with the ID cpid. If order is specified,
         the channel will be sorted right under the channel with the specified ID. If
@@ -676,7 +695,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("channelmove", kwargs={"cid": cid, "cpid": cpid})
+            QueryCmd("channelmove", kwargs={"cid": cid, "cpid": cpid, "order": order})
         )
 
     def channelcreate(self, channel_name: str, **kwargs) -> QueryResponse:
@@ -724,7 +743,7 @@ class CommandsWrapper:
         return self.query.send(QueryCmd("channelgrouplist"))
 
     def channelgroupadd(
-        self, name: str, type: Optional[PermissionGroupDatabaseTypes]
+        self, name: str, type: Optional[PermissionGroupDatabaseTypes] = None
     ) -> QueryResponse:
         """
         Creates a new channel group using a given name and displays its ID. The optional
@@ -782,7 +801,11 @@ class CommandsWrapper:
         )
 
     def channelgroupaddperm(
-        self, cgid: int, permid: Optional[int], permsid: Optional[str], permvalue: int
+        self,
+        cgid: int,
+        permvalue: int,
+        permid: Optional[int] = None,
+        permsid: Optional[str] = None,
     ) -> QueryResponse:
         """
         Adds a set of specified permissions to a channel group. Multiple permissions can
@@ -814,7 +837,7 @@ class CommandsWrapper:
         )
 
     def channelgroupdelperm(
-        self, cgid: int, permid: Optional[int], permsid: Optional[str]
+        self, cgid: int, permid: Optional[int] = None, permsid: Optional[str] = None
     ) -> QueryResponse:
         """
         Removes a set of specified permissions from the channel group. Multiple
@@ -830,7 +853,10 @@ class CommandsWrapper:
         )
 
     def channelgroupclientlist(
-        self, cid: Optional[int], cldbid: Optional[int], cgid: Optional[int]
+        self,
+        cid: Optional[int] = None,
+        cldbid: Optional[int] = None,
+        cgid: Optional[int] = None,
     ) -> QueryResponse:
         """
         Displays all the client and/or channel IDs currently assigned to channel groups.
@@ -862,8 +888,8 @@ class CommandsWrapper:
         tokentype: Literal[0, 1],
         tokenid1: int,
         tokenid2: int,
-        tokendescription: Optional[str],
-        tokencustomset: Optional[str],
+        tokendescription: Optional[str] = None,
+        tokencustomset: Optional[str] = None,
     ) -> QueryResponse:
         """
         Alias for privilegekeyadd.
@@ -913,7 +939,11 @@ class CommandsWrapper:
         )
 
     def channeladdperm(
-        self, cid: int, permid: Optional[int], permsid: Optional[str], permvalue: int
+        self,
+        cid: int,
+        permvalue: int,
+        permid: Optional[int] = None,
+        permsid: Optional[str] = None,
     ) -> QueryResponse:
         """
         Adds a set of specified permissions to a channel. Multiple permissions can be
@@ -934,7 +964,7 @@ class CommandsWrapper:
         )
 
     def channeldelperm(
-        self, cid: int, permid: Optional[int], permsid: Optional[str]
+        self, cid: int, permid: Optional[int] = None, permsid: Optional[str] = None
     ) -> QueryResponse:
         """
         Removes a set of specified permissions from a channel. Multiple permissions can
@@ -1000,7 +1030,10 @@ class CommandsWrapper:
         return self.query.send(QueryCmd("clientedit", kwargs={"clid": clid, **kwargs}))
 
     def clientdblist(
-        self, start: Optional[int], duration: Optional[int], count: bool = False
+        self,
+        start: Optional[int] = None,
+        duration: Optional[int] = None,
+        count: bool = False,
     ) -> QueryResponse:
         """
         Displays a list of client identities known by the server including their
@@ -1120,7 +1153,9 @@ class CommandsWrapper:
 
         return self.query.send(QueryCmd("clientupdate", kwargs=kwargs))
 
-    def clientmove(self, clid: int, cid: int, cpw: Optional[str]) -> QueryResponse:
+    def clientmove(
+        self, clid: int, cid: int, cpw: Optional[str] = None
+    ) -> QueryResponse:
         """
         Moves one or more clients specified with clid to the channel with ID cid. If the
         target channel has a password, it needs to be specified with cpw. If the channel
@@ -1132,7 +1167,7 @@ class CommandsWrapper:
         )
 
     def clientkick(
-        self, clid: int, reasonid: ReasonIdentifier, reasonmsg: Optional[str]
+        self, clid: int, reasonid: ReasonIdentifier, reasonmsg: Optional[str] = None
     ) -> QueryResponse:
         """
         Kicks one or more clients specified with clid from their currently joined
@@ -1174,9 +1209,9 @@ class CommandsWrapper:
     def clientaddperm(
         self,
         cldbid: int,
-        permid: Optional[int],
-        permsid: Optional[str],
         permvalue: int,
+        permid: Optional[int] = None,
+        permsid: Optional[str] = None,
         permskip: bool = False,
     ) -> QueryResponse:
         """
@@ -1199,7 +1234,7 @@ class CommandsWrapper:
         )
 
     def clientdelperm(
-        self, cldbid: int, permid: Optional[int], permsid: Optional[str]
+        self, cldbid: int, permsid: Optional[str], permid: Optional[int] = None
     ) -> QueryResponse:
         """
         Removes a set of specified permissions from a client. Multiple permissions can
@@ -1232,9 +1267,9 @@ class CommandsWrapper:
         self,
         cid: int,
         cldbid: int,
-        permid: Optional[int],
-        permsid: Optional[str],
         permvalue: int,
+        permid: Optional[int] = None,
+        permsid: Optional[str] = None,
     ) -> QueryResponse:
         """
         Adds a set of specified permissions to a client in a specific channel. Multiple
@@ -1256,7 +1291,11 @@ class CommandsWrapper:
         )
 
     def channelclientdelperm(
-        self, cid: int, cldbid: int, permid: Optional[int], permsid: Optional[str]
+        self,
+        cid: int,
+        cldbid: int,
+        permsid: Optional[str],
+        permid: Optional[int] = None,
     ) -> QueryResponse:
         """
         Removes a set of specified permissions from a client in a specific channel.
@@ -1292,7 +1331,11 @@ class CommandsWrapper:
         return self.query.send(QueryCmd("permidgetbyname", kwargs={"permsid": permsid}))
 
     def permoverview(
-        self, cid: int, cldbid: int, permid: Optional[int], permsid: Optional[str]
+        self,
+        cid: int,
+        cldbid: int,
+        permsid: Optional[str],
+        permid: Optional[int] = None,
     ) -> QueryResponse:
         """
         Displays detailed information about all assignments of the permission specified
@@ -1313,7 +1356,9 @@ class CommandsWrapper:
             )
         )
 
-    def permget(self, permid: Optional[int], permsid: Optional[str]) -> QueryResponse:
+    def permget(
+        self, permid: Optional[int] = None, permsid: Optional[str] = None
+    ) -> QueryResponse:
         """
         Displays detailed information about all assignments of the permission specified
         with permid. The output is similar to permoverview which includes the type and
@@ -1325,7 +1370,9 @@ class CommandsWrapper:
             QueryCmd("permget", kwargs={"permid": permid, "permsid": permsid})
         )
 
-    def permfind(self, permid: Optional[int], permsid: Optional[str]) -> QueryResponse:
+    def permfind(
+        self, permid: Optional[int] = None, permsid: Optional[str] = None
+    ) -> QueryResponse:
         """
         Displays detailed information about all assignments of the permission specified
         with permid. The output is similar to permoverview which includes the type and
@@ -1364,8 +1411,8 @@ class CommandsWrapper:
         tokentype: Literal[0, 1],
         tokenid1: int,
         tokenid2: int,
-        tokendescription: Optional[str],
-        tokencustomset: Optional[str],
+        tokendescription: Optional[str] = None,
+        tokencustomset: Optional[str] = None,
     ) -> QueryResponse:
         """
         Create a new token. If tokentype is set to 0, the ID specified with tokenid1
@@ -1483,7 +1530,7 @@ class CommandsWrapper:
         )
 
     def banclient(
-        self, clid: int, time: Optional[int], banreason: Optional[str]
+        self, clid: int, time: Optional[int] = None, banreason: Optional[str] = None
     ) -> QueryResponse:
         """
         Bans the client specified with ID clid from the server. Please note that this
@@ -1506,11 +1553,11 @@ class CommandsWrapper:
 
     def banadd(
         self,
-        ip: Optional[str],
-        name: Optional[str],
-        uid: Optional[str],
-        time: Optional[int],
-        banreason: Optional[str],
+        ip: Optional[str] = None,
+        name: Optional[str] = None,
+        uid: Optional[str] = None,
+        time: Optional[int] = None,
+        banreason: Optional[str] = None,
     ) -> QueryResponse:
         """
         Adds a new ban rule on the selected virtual server. All parameters are optional
@@ -1678,10 +1725,10 @@ class CommandsWrapper:
         self,
         cid: int,
         cpw: str,
-        tcid: Optional[int],
-        tcpw: Optional[str],
         oldname: str,
         newname: str,
+        tcid: Optional[int] = None,
+        tcpw: Optional[str] = None,
     ) -> QueryResponse:
         """
         Renames a file in a channels file repository. If the two parameters tcid and
@@ -1741,7 +1788,7 @@ def _validate_server_instance_kwargs(args: dict) -> None:
     _validate_kwargs(args)
 
     for key in args.keys():
-        if key not in ChangeableServerInstanceProperties.keys():
+        if str(key).upper() not in ChangeableServerInstanceProperties.keys():
             raise ValueError(
                 f"Invalid argument: {key}\n\
                 \rValid arguments: {ChangeableServerInstanceProperties.keys()}"
@@ -1755,7 +1802,7 @@ def _validate_channel_kwargs(args: dict) -> None:
     _validate_kwargs(args)
 
     for key in args.keys():
-        if key not in ChangeableChannelProperties.keys():
+        if str(key).upper() not in ChangeableChannelProperties.keys():
             raise ValueError(
                 f"Invalid argument: {key}\n\
                 \rValid arguments: {ChangeableChannelProperties.keys()}"
@@ -1769,7 +1816,7 @@ def _validate_client_kwargs(args: dict) -> None:
     _validate_kwargs(args)
 
     for key in args.keys():
-        if key not in ChangeableClientProperties.keys():
+        if str(key).upper() not in ChangeableClientProperties.keys():
             raise ValueError(
                 f"Invalid argument: {key}\n\
                 \rValid arguments: {ChangeableClientProperties.keys()}"
@@ -1783,7 +1830,7 @@ def _validate_virtual_server_kwargs(args: dict) -> None:
     _validate_kwargs(args)
 
     for key in args.keys():
-        if key not in ChangeableVirtualServerProperties.keys():
+        if str(key).upper() not in ChangeableVirtualServerProperties.keys():
             raise ValueError(
                 f"Invalid argument: {key}\n\
                 \rValid arguments: {ChangeableVirtualServerProperties.keys()}"
