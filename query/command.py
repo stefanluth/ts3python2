@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
 import logging
+from dataclasses import dataclass, field
 from telnetlib import Telnet
 from typing import Literal, Optional
 
@@ -7,14 +7,6 @@ from query.definitions import *
 from query.properties import *
 from query.response import QueryResponse
 from utils import parsers
-
-
-logger = logging.getLogger("commands")
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler = logging.FileHandler("ts3python2.log")
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
 
 
 @dataclass
@@ -56,7 +48,6 @@ class CommandsWrapper:
         return self.query.send(QueryCmd("help"))
 
     def quit(self) -> QueryResponse:
-        logger.debug("Quitting")
 
         return self.query.send(QueryCmd("quit"))
 
@@ -67,7 +58,6 @@ class CommandsWrapper:
         Authenticates with the TeamSpeak 3 Server instance using given ServerQuery
         login credentials.
         """
-        logger.debug("Logging in")
 
         return self.query.send(
             QueryCmd(
@@ -83,7 +73,6 @@ class CommandsWrapper:
         """
         Deselects the active virtual server and logs out from the server instance.
         """
-        logger.debug("Logging out")
 
         return self.query.send(QueryCmd("logout"))
 
@@ -147,7 +136,6 @@ class CommandsWrapper:
         data. If your database contains multiple virtual servers using the same UDP
         port, use will select a random virtual server using the specified port.
         """
-        logger.debug("Selecting server")
 
         return self.query.send(
             QueryCmd("use", args=(virtual,), kwargs={"sid": sid, "port": port})
@@ -321,7 +309,7 @@ class CommandsWrapper:
         return self.query.send(QueryCmd("servergrouplist"))
 
     def servergroupadd(
-        self, name: str, type: Optional[PermissionGroupDatabaseTypes] = None
+        self, name: str, type: Optional[PermissionGroupDatabaseType] = None
     ) -> QueryResponse:
         """
         Creates a new server group using the name specified with name and displays its
@@ -347,7 +335,7 @@ class CommandsWrapper:
         )
 
     def servergroupcopy(
-        self, ssgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseTypes
+        self, ssgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType
     ) -> QueryResponse:
         """
         Creates a copy of the server group specified with ssgid. If tsgid is set to 0,
@@ -565,7 +553,7 @@ class CommandsWrapper:
         )
 
     def servernotifyregister(
-        self, event: NotifyRegisterTypes, id: Optional[int] = None
+        self, event: NotifyRegisterType, id: Optional[int] = None
     ) -> QueryResponse:
         """
         Registers for a specified category of events on a virtual server to receive
@@ -743,7 +731,7 @@ class CommandsWrapper:
         return self.query.send(QueryCmd("channelgrouplist"))
 
     def channelgroupadd(
-        self, name: str, type: Optional[PermissionGroupDatabaseTypes] = None
+        self, name: str, type: Optional[PermissionGroupDatabaseType] = None
     ) -> QueryResponse:
         """
         Creates a new channel group using a given name and displays its ID. The optional
@@ -769,7 +757,7 @@ class CommandsWrapper:
         )
 
     def channelgroupcopy(
-        self, scgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseTypes
+        self, scgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType
     ) -> QueryResponse:
         """
         Creates a copy of the channel group specified with scgid. If tcgid is set to 0,
