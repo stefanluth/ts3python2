@@ -45,13 +45,13 @@ class ReasonIdentifier(Enum):
     REASON_KICK_SERVER = 5  # kick client from server
 
 
-class PermissionGroupDatabaseTypes(Enum):
+class PermissionGroupDatabaseType(Enum):
     PermGroupDBTypeTemplate = 0  # template group (used for new virtual servers)
     PermGroupDBTypeRegular = 1  # regular group (used for regular clients)
     PermGroupDBTypeQuery = 2  # global query group (used for ServerQuery clients)
 
 
-class PermissionGroupTypes(Enum):
+class PermissionGroupType(Enum):
     PermGroupTypeServerGroup = 0  # server group permission
     PermGroupTypeGlobalClient = 1  # client specific permission
     PermGroupTypeChannel = 2  # channel specific permission
@@ -76,7 +76,7 @@ class ServerGroupType(Enum):
     QueryAdmin = 50
 
 
-class NotifyRegisterTypes(Enum):
+class NotifyRegisterType(Enum):
     SERVER = "server"
     CHANNEL = "channel"
     TEXTSERVER = "textserver"
@@ -94,3 +94,16 @@ class Subsystem(Enum):
     VOICE = "voice"
     QUERY = "query"
     FILETRANSFER = "filetransfer"
+
+
+class EventType(Enum):
+    ChannelCreated = "channelcreated"
+    ChannelDeleted = "channeldeleted"
+    ChannelDescriptionChanged = "channeldescriptionchanged"
+    ChannelEdited = "channeledited"
+    ChannelMoved = "channelmoved"
+    ChannelPasswordChanged = "channelpasswordchanged"
+    ClientEnterView = "cliententerview"
+    ClientLeftView = "clientleftview"
+    ClientMoved = "clientmoved"
+    ServerEdited = "serveredited"
