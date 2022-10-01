@@ -71,7 +71,7 @@ class TS3Query(Telnet):
 
         try:
             self.exit()
-        except EOFError as e:
+        except (EOFError, OSError) as e:
             logger.debug("Connection already closed")
 
         super().__del__()
