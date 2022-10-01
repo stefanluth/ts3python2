@@ -1,6 +1,9 @@
 from re import compile
 
-RESPONSE = compile(rb"error id=(?P<id>\d+) msg=(?P<msg>\S+)\n\r")
-TEXT_MSG = compile(
+RESPONSE_END = compile(rb"(\n\r)?error id=(?P<id>\d+) msg=(?P<msg>\S+)\n\r")
+MESSAGE = compile(
     r"notifytextmessage targetmode=(?P<targetmode>\d) msg=(?P<msg>\S+) target=(?P<target>\d+) invokerid=(?P<invokerid>\d+) invokername=(?P<invokername>\S+) invokeruid=(?P<invokeruid>\S+)\n\r"
+)
+EVENT = compile(
+    r"notify(?P<event>(cliententerview|clientleftview|clientmoved|serveredited|channeldescriptionchanged|channeledited|channelcreated|channeldeleted|channelmoved|channelpasswordchanged)) ((\S+)=(\S+) ?)+\n\r"
 )

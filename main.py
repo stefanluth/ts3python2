@@ -2,7 +2,7 @@ import logging
 import os
 import time
 
-from query.definitions import NotifyRegisterTypes
+from query.definitions import NotifyRegisterType
 from query.ts3query import TS3Query
 
 credentials_py_exists = os.path.isfile("credentials.py")
@@ -45,10 +45,18 @@ def main():
     # Connect to the server
     query.commands.use(port=SERVER_PORT)
 
-    # Receive private messages
-    query.commands.servernotifyregister(event=NotifyRegisterTypes.TEXTPRIVATE)
-    query.start_polling_messages(polling_rate=0.5)
-    time.sleep(10)
+    channel_id = query.commands.whoami().data.get("client_channel_id")
+
+    query.commands.servernotifyregister(event=NotifyRegisterType.SERVER)
+    query.commands.servernotifyregister(event=NotifyRegisterType.CHANNEL, id=channel_id)
+    query.commands.servernotifyregister(event=NotifyRegisterType.TEXTPRIVATE)
+    query.commands.servernotifyregister(event=NotifyRegisterType.TEXTCHANNEL)
+    query.commands.servernotifyregister(event=NotifyRegisterType.TEXTSERVER)
+
+    time.sleep(30)
+    for event in query._events:
+        print(event)
+
     for message in query._messages:
         print(message.content)
 

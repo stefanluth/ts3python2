@@ -2,6 +2,7 @@ import logging
 import threading
 from telnetlib import Telnet
 
+from classes.event import Event
 from classes.message import Message
 from query.command import CommandsWrapper, QueryCmd
 from query.response import QueryResponse
@@ -32,10 +33,12 @@ class TS3Query(Telnet):
 
     _lock = threading.Lock()
 
+    _events: list[Event] = []
+    _events_limit: int = 1000
     _messages: list[Message] = []
     _messages_limit: int = 1000
-    _messages_thread: threading.Thread = None
-    _messages_thread_stop = threading.Event()
+    _polling_thread: threading.Thread = None
+    _polling_thread_stop = threading.Event()
 
     def __init__(
         self,
@@ -78,7 +81,7 @@ class TS3Query(Telnet):
 
     def exit(self) -> None:
         logger.info("Exiting")
-        self.stop_polling_messages()
+        self.stop_polling()
         self.commands.logout()
         self.commands.quit()
 
@@ -91,49 +94,53 @@ class TS3Query(Telnet):
         return response
 
     def _receive(self) -> QueryResponse:
-        response = self.expect([patterns.RESPONSE], self.timeout)
+        response = self.expect([patterns.RESPONSE_END], self.timeout)
         response = QueryResponse(*response)
         logger.debug(f"Received response: {response.response}")
+
+        if len(self._events) > self._events_limit:
+            self._events = self._events[-self._events_limit :]
 
         if len(self._messages) > self._messages_limit:
             self._messages = self._messages[-self._messages_limit :]
 
+        self._events.extend(response.events)
         self._messages.extend(response.messages)
 
         return response
 
-    def start_polling_messages(self, polling_rate: float = 1) -> None:
-        logger.info("Starting polling messages")
-        if self._messages_thread and self._messages_thread.is_alive():
-            logger.debug("Messages thread is already running")
+    def start_polling(self, polling_rate: float = 1) -> None:
+        logger.info("Starting polling")
+        if self._polling_thread and self._polling_thread.is_alive():
+            logger.debug("Polling thread is already running")
             return
 
-        logger.debug("Creating messages thread")
-        self._messages_thread = threading.Thread(
-            target=self._poll_messages,
-            args=(self._messages_thread_stop, polling_rate),
+        logger.debug("Creating polling thread")
+        self._polling_thread = threading.Thread(
+            target=self._poll,
+            args=(self._polling_thread_stop, polling_rate),
         )
-        self._messages_thread.start()
+        self._polling_thread.start()
 
-    def stop_polling_messages(self) -> None:
-        logger.info("Stopping polling messages")
+    def stop_polling(self) -> None:
+        logger.info("Stopping polling")
 
-        if not self._messages_thread or not self._messages_thread.is_alive():
-            logger.debug("Messages thread is not running")
+        if not self._polling_thread or not self._polling_thread.is_alive():
+            logger.debug("Polling thread is not running")
             return
 
-        if self._messages_thread_stop.is_set():
-            logger.debug("Messages thread is already stopped")
+        if self._polling_thread_stop.is_set():
+            logger.debug("Polling thread is already stopped")
             return
 
-        self._messages_thread_stop.set()
-        self._messages_thread.join()
-        self._messages_thread_stop.clear()
-        self._messages_thread = None
+        self._polling_thread_stop.set()
+        self._polling_thread.join()
+        self._polling_thread_stop.clear()
+        self._polling_thread = None
 
-    def _poll_messages(self, stop: threading.Event, polling_rate: float) -> None:
+    def _poll(self, stop: threading.Event, polling_rate: float) -> None:
         while not stop.isSet():
-            self.send(QueryCmd("version"))
+            self.commands.version()
             stop.wait(polling_rate)
 
     def set_messages_limit(self, limit: int) -> None:
