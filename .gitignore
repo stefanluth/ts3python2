@@ -47,3 +47,4 @@ venv.bak/
 credentials.py
 configuration.py
 *.log
+.vscode
