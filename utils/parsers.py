@@ -1,6 +1,19 @@
 import re
 
-from classes.event import ChannelCreatedEvent, ClientMovedEvent, Event
+from classes.event import (
+    ChannelCreatedEvent,
+    ChannelDeletedEvent,
+    ChannelDescriptionChangedEvent,
+    ChannelEditedEvent,
+    ChannelMovedEvent,
+    ChannelPasswordChangedEvent,
+    ClientEnterViewEvent,
+    ClientLeftViewEvent,
+    ClientMovedEvent,
+    Event,
+    ServerEditedEvent,
+    TokenUsedEvent,
+)
 from classes.message import Message
 from query.definitions import EventType
 from utils.formatters import query_to_string, string_to_query
@@ -50,10 +63,28 @@ def parse_event_match(match: re.Match[str]) -> Event:
     data = response_to_dict(match.group()[match.group().index(" ") + 1 :])
 
     match event_type:
-        case EventType.ClientMoved:
-            return ClientMovedEvent(**data)
-        case EventType.ChannelCreated:
+        case EventType.CHANNEL_CREATED:
             return ChannelCreatedEvent(**data)
+        case EventType.CHANNEL_DELETED:
+            return ChannelDeletedEvent(**data)
+        case EventType.CHANNEL_DESCRIPTION_CHANGED:
+            return ChannelDescriptionChangedEvent(**data)
+        case EventType.CHANNEL_EDITED:
+            return ChannelEditedEvent(**data)
+        case EventType.CHANNEL_MOVED:
+            return ChannelMovedEvent(**data)
+        case EventType.CHANNEL_PASSWORD_CHANGED:
+            return ChannelPasswordChangedEvent(**data)
+        case EventType.CLIENT_ENTERVIEW:
+            return ClientEnterViewEvent(**data)
+        case EventType.CLIENT_LEFTVIEW:
+            return ClientLeftViewEvent(**data)
+        case EventType.CLIENT_MOVED:
+            return ClientMovedEvent(**data)
+        case EventType.SERVER_EDITED:
+            return ServerEditedEvent(**data)
+        case EventType.TOKEN_USED:
+            return TokenUsedEvent(**data)
         case _:
             return Event()
 

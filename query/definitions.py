@@ -2,86 +2,93 @@ from enum import Enum
 
 
 class HostMessageMode(Enum):
-    HostMessageMode_NONE = 0  # don't display anything
-    HostMessageMode_LOG = 1  # display message in chatlog
-    HostMessageMode_MODAL = 2  # display message in modal dialog
-    HostMessageMode_MODALQUIT = 3  # display message in modal dialog & close connection
+    HOST_MESSAGE_MODE_NONE = 0
+    HOST_MESSAGE_MODE_LOG = 1
+    HOST_MESSAGE_MODE_MODAL = 2
+    HOST_MESSAGE_MODE_MODALQUIT = 3
 
 
 class HostBannerMode(Enum):
-    HostBannerMode_NOADJUST = 0  # do not adjust
-    HostBannerMode_IGNOREASPECT = 1  # adjust but ignore aspect ratio (like TeamSpeak 2)
-    HostBannerMode_KEEPASPECT = 2  # adjust & keep aspect ratio
+    HOST_BANNER_MODE_NOADJUST = 0
+    HOST_BANNER_MODE_IGNOREASPECT = 1
+    HOST_BANNER_MODE_KEEPASPECT = 2
 
 
 class Codec(Enum):
-    CODEC_SPEEX_NARROWBAND = 0  # speex narrowband (mono, 16bit, 8kHz)
-    CODEC_SPEEX_WIDEBAND = 1  # speex wideband (mono, 16bit, 16kHz)
-    CODEC_SPEEX_ULTRAWIDEBAND = 2  # speex ultra-wideband (mono, 16bit, 32kHz)
-    CODEC_CELT_MONO = 3  # celt mono (mono, 16bit, 48kHz)
+    CODEC_SPEEX_NARROWBAND = 0
+    CODEC_SPEEX_WIDEBAND = 1
+    CODEC_SPEEX_ULTRAWIDEBAND = 2
+    CODEC_CELT_MONO = 3
 
 
 class CodecEncryptionMode(Enum):
-    CODEC_CRYPT_INDIVIDUAL = 0  # configure per channel
-    CODEC_CRYPT_DISABLED = 1  # globally disabled
-    CODEC_CRYPT_ENABLED = 2  # globally enabled
+    CODEC_CRYPT_INDIVIDUAL = 0
+    CODEC_CRYPT_DISABLED = 1
+    CODEC_CRYPT_ENABLED = 2
 
 
 class TextMessageTargetMode(Enum):
-    TextMessageTarget_CLIENT = 1  # target is a client
-    TextMessageTarget_CHANNEL = 2  # target is a channel
-    TextMessageTarget_SERVER = 3  # target is a virtual server
+    TEXT_MESSAGE_TARGET_CLIENT = 1
+    TEXT_MESSAGE_TARGET_CHANNEL = 2
+    TEXT_MESSAGE_TARGET_SERVER = 3
 
 
 class LogLevel(Enum):
-    LogLevel_ERROR = 1  # everything that is really bad
-    LogLevel_WARNING = 2  # everything that might be bad
-    LogLevel_DEBUG = 3  # output that might help find a problem
-    LogLevel_INFO = 4  # informational output
+    LOGLEVEL_ERROR = 1
+    LOGLEVEL_WARNING = 2
+    LOGLEVEL_DEBUG = 3
+    LOGLEVEL_INFO = 4
 
 
 class ReasonIdentifier(Enum):
-    REASON_KICK_CHANNEL = 4  # kick client from channel
-    REASON_KICK_SERVER = 5  # kick client from server
+    JOIN_SERVER_OR_CHANGE_CHANNEL = 0
+    MOVE_CLIENT__OR_CHANNEL = 1
+    TIMEOUT = 3
+    REASON_KICK_CHANNEL = 4
+    REASON_KICK_SERVER = 5
+    BAN = 6
+    LEAVE_SERVER = 8
+    EDIT_CHANNEL_OR_SERVER = 10
+    SHUTDOWN_SERVER = 11
 
 
 class PermissionGroupDatabaseType(Enum):
-    PermGroupDBTypeTemplate = 0  # template group (used for new virtual servers)
-    PermGroupDBTypeRegular = 1  # regular group (used for regular clients)
-    PermGroupDBTypeQuery = 2  # global query group (used for ServerQuery clients)
+    PERMGROUP_DB_TYPE_TEMPLATE = 0
+    PERMGROUP_DB_TYPE_REGULAR = 1
+    PERMGROUP_DB_TYPE_QUERY = 2
 
 
 class PermissionGroupType(Enum):
-    PermGroupTypeServerGroup = 0  # server group permission
-    PermGroupTypeGlobalClient = 1  # client specific permission
-    PermGroupTypeChannel = 2  # channel specific permission
-    PermGroupTypeChannelGroup = 3  # channel group permission
-    PermGroupTypeChannelClient = 4  # channel-client specific permission
+    PERMGROUP_TYPE_SERVER_GROUP = 0
+    PERMGROUP_TYPE_GLOBALCLIENT = 1
+    PERMGROUP_TYPE_CHANNEL = 2
+    PERMGROUP_TYPE_CHANNEL_GROUP = 3
+    PERMGROUP_TYPE_CHANNEL_CLIENT = 4
 
 
 class TokenType(Enum):
-    TokenServerGroup = 0  # server group token (id1={groupID} id2=0)
-    TokenChannelGroup = 1  # channel group token (id1={groupID} id2={channelID})
+    TOKEN_SERVER_GROUP = 0
+    TOKEN_CHANNEL_GROUP = 1
 
 
 class ServerGroupType(Enum):
-    ChannelGuest = 10
-    ServerGuest = 15
-    QueryGuest = 20
-    ChannelVoice = 25
-    ServerNormal = 30
-    ChannelOperator = 35
-    ChannelAdmin = 40
-    ServerAdmin = 45
-    QueryAdmin = 50
+    CHANNEL_GUEST = 10
+    SERVER_GUEST = 15
+    QUERY_GUEST = 20
+    CHANNEL_VOICE = 25
+    SERVER_NORMAL = 30
+    CHANNEL_OPERATOR = 35
+    CHANNEL_ADMIN = 40
+    SERVER_ADMIN = 45
+    QUERY_ADMIN = 50
 
 
 class NotifyRegisterType(Enum):
     SERVER = "server"
     CHANNEL = "channel"
-    TEXTSERVER = "textserver"
-    TEXTCHANNEL = "textchannel"
-    TEXTPRIVATE = "textprivate"
+    TEXT_SERVER = "textserver"
+    TEXT_CHANNEL = "textchannel"
+    TEXT_PRIVATE = "textprivate"
 
 
 class TargetMode(Enum):
@@ -93,17 +100,18 @@ class TargetMode(Enum):
 class Subsystem(Enum):
     VOICE = "voice"
     QUERY = "query"
-    FILETRANSFER = "filetransfer"
+    FILE_TRANSFER = "filetransfer"
 
 
 class EventType(Enum):
-    ChannelCreated = "channelcreated"
-    ChannelDeleted = "channeldeleted"
-    ChannelDescriptionChanged = "channeldescriptionchanged"
-    ChannelEdited = "channeledited"
-    ChannelMoved = "channelmoved"
-    ChannelPasswordChanged = "channelpasswordchanged"
-    ClientEnterView = "cliententerview"
-    ClientLeftView = "clientleftview"
-    ClientMoved = "clientmoved"
-    ServerEdited = "serveredited"
+    CHANNEL_CREATED = "channelcreated"
+    CHANNEL_DELETED = "channeldeleted"
+    CHANNEL_DESCRIPTION_CHANGED = "channeldescriptionchanged"
+    CHANNEL_EDITED = "channeledited"
+    CHANNEL_MOVED = "channelmoved"
+    CHANNEL_PASSWORD_CHANGED = "channelpasswordchanged"
+    CLIENT_ENTERVIEW = "cliententerview"
+    CLIENT_LEFTVIEW = "clientleftview"
+    CLIENT_MOVED = "clientmoved"
+    SERVER_EDITED = "serveredited"
+    TOKEN_USED = "tokenused"
