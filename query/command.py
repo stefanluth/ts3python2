@@ -36,6 +36,13 @@ class QueryCmd:
 
 
 class CommandsWrapper:
+    """
+    Provides a wrapper for all commands that can be sent to a TeamSpeak 3 Server
+    instance using the ServerQuery interface. For more information, see the
+    ServerQuery documentation.
+
+    :param query: A Telnet object that is connected to a TeamSpeak 3 Server instance.
+    """
     def __init__(self, query: Telnet) -> None:
         self.query = query
 
@@ -48,7 +55,6 @@ class CommandsWrapper:
         return self.query.send(QueryCmd("help"))
 
     def quit(self) -> QueryResponse:
-
         return self.query.send(QueryCmd("quit"))
 
     def login(
