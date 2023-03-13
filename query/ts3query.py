@@ -1,4 +1,3 @@
-import logging
 import threading
 from telnetlib import Telnet
 
@@ -7,13 +6,9 @@ from classes.message import Message
 from query.command import CommandsWrapper, QueryCommand
 from query.response import QueryResponse
 from utils import patterns
+from utils.logger import get_logger
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler = logging.FileHandler("ts3python2.log")
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+logger = get_logger("main")
 
 
 class TS3Query(Telnet):
