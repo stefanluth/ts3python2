@@ -14,10 +14,10 @@ class Message:
     invokeruid: str
     used: bool = field(default=False, init=False)
     content: str = field(init=False)
-    source = property(lambda self: TargetMode(self.targetmode))
 
     def __post_init__(self):
         self.content = query_to_string(self.msg)
+        self.source = TargetMode(self.targetmode)
 
     def mark_as_used(self):
         self.used = True
