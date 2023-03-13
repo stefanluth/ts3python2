@@ -4,7 +4,7 @@ import time
 from dotenv import load_dotenv
 
 import config
-from query.definitions import NotifyRegisterType
+from constants import NotifyRegisterType
 from query.ts3query import TS3Query
 from utils.logger import create_logger
 

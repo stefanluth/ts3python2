@@ -15,7 +15,7 @@ from classes.event import (
     TokenUsedEvent,
 )
 from classes.message import Message
-from query.definitions import EventType
+from constants import EventType
 from utils import patterns
 from utils.formatters import query_to_string, string_to_query
 

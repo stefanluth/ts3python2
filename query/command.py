@@ -3,8 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Optional
 
-from query.definitions import *
-from query.properties import *
+from constants import *
 from utils import parsers
 
 if TYPE_CHECKING:

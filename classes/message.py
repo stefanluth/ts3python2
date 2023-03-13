@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from query.definitions import TargetMode
+from constants import TargetMode
 from utils.formatters import query_to_string
 
 
