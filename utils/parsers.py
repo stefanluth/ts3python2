@@ -17,10 +17,11 @@ from classes.event import (
 from classes.message import Message
 from query.definitions import EventType
 from utils.formatters import query_to_string, string_to_query
+from utils import patterns
 
 
-def boolean_to_option(boolean: bool) -> str:
-    return f"-{boolean=}".split("=")[0] if boolean else ""
+def boolean_to_option(option: str, value: bool) -> str:
+    return f"-{option}" if value else ""
 
 
 def boolean_to_literal(boolean: bool) -> str:
@@ -28,34 +29,59 @@ def boolean_to_literal(boolean: bool) -> str:
 
 
 def response_to_dict(response: str) -> dict:
-    r_dict = dict()
+    """
+    Converts a query response to a dict.
+    """
+    response_dict = dict()
 
     for key_value_pair in response.split():
         key = key_value_pair.split("=")[0]
         value = key_value_pair[len(key) + 1 :]
 
         try:
-            r_dict[key] = int(value)
+            response_dict[key] = int(value)
         except ValueError:
-            r_dict[key] = query_to_string(value)
+            response_dict[key] = query_to_string(value)
 
-    return r_dict
+    return response_dict
 
 
-def dict_to_query_parameters(parameters: dict) -> list[str]:
+def dict_to_query_kwargs(parameters: dict) -> list[str]:
+    """
+    Converts a dict to a list of query kwargs.
+    """
     return [
         f"{key}={boolean_to_literal(value) if isinstance(value, bool) else string_to_query(value)}"
         for key, value in parameters.items()
     ]
 
 
-def parse_response_match(response: bytes) -> dict:
-    response = response.decode()
+def parse_response(response: bytes) -> tuple[dict, list[Event], list[Message]]:
+    """
+    Parses a query response to a dict, a list of events and a list of messages.
+    """
+    events = []
+    messages = []
+    response_str = response.decode()
 
-    if response.find("|"):
-        return [response_to_dict(r) for r in response.split("|")]
+    response_str = re.sub(patterns.RESPONSE_END, "", response_str)
+
+    for match in re.finditer(patterns.MESSAGE, response_str):
+        messages.append(parse_message_match(match))
+        response_str = response_str.replace(match.group(), "")
+
+    for match in re.finditer(patterns.EVENT, response_str):
+        events.append(parse_event_match(match))
+        response_str = response_str.replace(match.group(), "")
+
+    if "|" not in response_str:
+        data = response_to_dict(response_str)
     else:
-        return [response_to_dict(response)]
+        data = {
+            i: response_to_dict(data) for i, data in enumerate(response_str.split("|"))
+        }
+
+    return data, events, messages
 
 
 def parse_event_match(match: re.Match[str]) -> Event:
