@@ -16,8 +16,8 @@ from classes.event import (
 )
 from classes.message import Message
 from query.definitions import EventType
-from utils.formatters import query_to_string, string_to_query
 from utils import patterns
+from utils.formatters import query_to_string, string_to_query
 
 
 def boolean_to_option(option: str, value: bool) -> str:

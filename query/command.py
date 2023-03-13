@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, Literal, Optional
 
 from query.definitions import *
 from query.properties import *
-from query.response import QueryResponse
 from utils import parsers
 
 if TYPE_CHECKING:
+    from query.response import QueryResponse
     from query.ts3query import TS3Query
 
 
