@@ -1,4 +1,3 @@
-import logging
 import os
 import time
 
@@ -6,9 +5,21 @@ from dotenv import load_dotenv
 
 from query.definitions import NotifyRegisterType
 from query.ts3query import TS3Query
+from utils.logger import create_logger
+import config
 
 
 def main():
+    logger = create_logger("main", "main.log")
+
+    load_dotenv()
+
+    SERVER_IP = os.getenv(config.ENV_VAR_NAME__TS3_SERVER_IP)
+    SERVER_PORT = int(os.getenv(config.ENV_VAR_NAME__TS3_SERVER_PORT))
+    TELNET_LOGIN = os.getenv(config.ENV_VAR_NAME__TS3_TELNET_LOGIN)
+    TELNET_PW = os.getenv(config.ENV_VAR_NAME__TS3_TELNET_PASSWORD)
+    TELNET_PORT = int(os.getenv(config.ENV_VAR_NAME__TS3_TELNET_PORT))
+
     if None in (SERVER_IP, SERVER_PORT, TELNET_LOGIN, TELNET_PW, TELNET_PORT):
         logger.error("Missing credentials.")
         return
@@ -43,20 +54,4 @@ def main():
 
 
 if __name__ == "__main__":
-    logger = logging.getLogger("main")
-    logger.setLevel(logging.DEBUG)
-    logger.propagate = False
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    file_handler = logging.FileHandler("ts3python2.log")
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
-    load_dotenv()
-    SERVER_IP = os.getenv("TS3_SERVER_IP")
-    SERVER_PORT = int(os.getenv("TS3_SERVER_PORT"))
-    TELNET_LOGIN = os.getenv("TS3_TELNET_LOGIN")
-    TELNET_PW = os.getenv("TS3_TELNET_PASSWORD")
-    TELNET_PORT = int(os.getenv("TS3_TELNET_PORT"))
     main()
