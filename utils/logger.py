@@ -13,3 +13,7 @@ def create_logger(name: str, file: str, level: int = logging.DEBUG):
     logger.addHandler(file_handler)
 
     return logger
+
+
+def get_logger(name: str):
+    return logging.getLogger(name)
