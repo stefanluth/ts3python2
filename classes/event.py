@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 class Event:
@@ -6,167 +7,165 @@ class Event:
     Represents a TeamSpeak event.
     """
 
-    pass
-
 
 @dataclass
 class ChannelCreatedEvent(Event):
-    channel_topic: str
-    cid: int
-    invokerid: int
-    invokername: str
-    invokeruid: str
-    reasonid: int
+    channel_topic: Optional[str] = None
+    cid: Optional[int] = None
+    invokerid: Optional[int] = None
+    invokername: Optional[str] = None
+    invokeruid: Optional[str] = None
+    reasonid: Optional[int] = None
 
 
 @dataclass
 class ChannelDeletedEvent(Event):
-    cid: int
-    invokerid: int
-    invokername: str
-    invokeruid: str
-    reasonid: int
+    cid: Optional[int] = None
+    invokerid: Optional[int] = None
+    invokername: Optional[str] = None
+    invokeruid: Optional[str] = None
+    reasonid: Optional[int] = None
 
 
 @dataclass
 class ChannelDescriptionChangedEvent(Event):
-    cid: int
+    cid: Optional[int] = None
 
 
 @dataclass
 class ChannelEditedEvent(Event):
-    cid: int
-    invokerid: int
-    invokername: str
-    invokeruid: str
-    reasonid: int
-    channel_codec_is_unencrypted: bool
-    channel_codec_latency_factor: int
-    channel_codec_quality: int
-    channel_codec: int
-    channel_delete_delay: int
-    channel_flag_default: bool
-    channel_flag_maxclients_unlimited: bool
-    channel_flag_maxfamilyclients_inherited: bool
-    channel_flag_maxfamilyclients_unlimited: bool
-    channel_flag_password: bool
-    channel_flag_permanent: bool
-    channel_flag_semi_permanent: bool
-    channel_icon_id: int
-    channel_maxclients: int
-    channel_maxfamilyclients: int
-    channel_name_phonetic: str
-    channel_name: str
-    channel_needed_talk_power: int
-    channel_order: int
-    channel_topic: str
+    cid: Optional[int] = None
+    invokerid: Optional[int] = None
+    invokername: Optional[str] = None
+    invokeruid: Optional[str] = None
+    reasonid: Optional[int] = None
+    channel_codec_is_unencrypted: Optional[bool] = None
+    channel_codec_latency_factor: Optional[int] = None
+    channel_codec_quality: Optional[int] = None
+    channel_codec: Optional[int] = None
+    channel_delete_delay: Optional[int] = None
+    channel_flag_default: Optional[bool] = None
+    channel_flag_maxclients_unlimited: Optional[bool] = None
+    channel_flag_maxfamilyclients_inherited: Optional[bool] = None
+    channel_flag_maxfamilyclients_unlimited: Optional[bool] = None
+    channel_flag_password: Optional[bool] = None
+    channel_flag_permanent: Optional[bool] = None
+    channel_flag_semi_permanent: Optional[bool] = None
+    channel_icon_id: Optional[int] = None
+    channel_maxclients: Optional[int] = None
+    channel_maxfamilyclients: Optional[int] = None
+    channel_name_phonetic: Optional[str] = None
+    channel_name: Optional[str] = None
+    channel_needed_talk_power: Optional[int] = None
+    channel_order: Optional[int] = None
+    channel_topic: Optional[str] = None
 
 
 @dataclass
 class ChannelMovedEvent(Event):
-    cid: int
-    cpid: int
-    order: int
-    invokerid: int
-    invokername: str
-    invokeruid: str
+    cid: Optional[int] = None
+    cpid: Optional[int] = None
+    order: Optional[int] = None
+    invokerid: Optional[int] = None
+    invokername: Optional[str] = None
+    invokeruid: Optional[str] = None
 
 
 @dataclass
 class ChannelPasswordChangedEvent(Event):
-    cid: int
+    cid: Optional[int] = None
 
 
 @dataclass
 class ClientEnterViewEvent(Event):
-    cfid: int
-    clid: int
-    client_away_message: str
-    client_away: int
-    client_badges: str
-    client_channel_group_id: int
-    client_channel_group_inherited_channel_id: int
-    client_country: str
-    client_database_id: int
-    client_description: str
-    client_flag_avatar: str
-    client_icon_id: int
-    client_input_hardware: int
-    client_input_muted: int
-    client_is_channel_commander: int
-    client_is_priority_speaker: int
-    client_is_recording: int
-    client_is_talker: int
-    client_meta_data: str
-    client_needed_serverquery_view_power: int
-    client_nickname_phonetic: str
-    client_nickname: str
-    client_output_hardware: int
-    client_output_muted: int
-    client_outputonly_muted: int
-    client_servergroups: str
-    client_talk_power: int
-    client_talk_request_msg: str
-    client_talk_request: int
-    client_type: int
-    client_unique_identifier: str
-    client_unread_messages: int
-    ctid: int
-    reasonid: int
+    cfid: Optional[int] = None
+    clid: Optional[int] = None
+    client_away_message: Optional[str] = None
+    client_away: Optional[int] = None
+    client_badges: Optional[str] = None
+    client_channel_group_id: Optional[int] = None
+    client_channel_group_inherited_channel_id: Optional[int] = None
+    client_country: Optional[str] = None
+    client_database_id: Optional[int] = None
+    client_description: Optional[str] = None
+    client_flag_avatar: Optional[str] = None
+    client_icon_id: Optional[int] = None
+    client_input_hardware: Optional[int] = None
+    client_input_muted: Optional[int] = None
+    client_is_channel_commander: Optional[int] = None
+    client_is_priority_speaker: Optional[int] = None
+    client_is_recording: Optional[int] = None
+    client_is_talker: Optional[int] = None
+    client_meta_data: Optional[str] = None
+    client_needed_serverquery_view_power: Optional[int] = None
+    client_nickname_phonetic: Optional[str] = None
+    client_nickname: Optional[str] = None
+    client_output_hardware: Optional[int] = None
+    client_output_muted: Optional[int] = None
+    client_outputonly_muted: Optional[int] = None
+    client_servergroups: Optional[str] = None
+    client_talk_power: Optional[int] = None
+    client_talk_request_msg: Optional[str] = None
+    client_talk_request: Optional[int] = None
+    client_type: Optional[int] = None
+    client_unique_identifier: Optional[str] = None
+    client_unread_messages: Optional[int] = None
+    ctid: Optional[int] = None
+    reasonid: Optional[int] = None
 
 
 @dataclass
 class ClientLeftViewEvent(Event):
-    bantime: int
-    cfid: int
-    clid: int
-    ctid: int
-    invokerid: int
-    invokername: str
-    invokeruid: str
-    reasonid: int
-    reasonmsg: str
+    bantime: Optional[int] = None
+    cfid: Optional[int] = None
+    clid: Optional[int] = None
+    ctid: Optional[int] = None
+    invokerid: Optional[int] = None
+    invokername: Optional[str] = None
+    invokeruid: Optional[str] = None
+    reasonid: Optional[int] = None
+    reasonmsg: Optional[str] = None
 
 
 @dataclass
 class ClientMovedEvent(Event):
-    clid: int
-    ctid: int
-    invokerid: int
-    invokername: str
-    invokeruid: str
-    reasonid: int
+    clid: Optional[int] = None
+    ctid: Optional[int] = None
+    reasonid: Optional[int] = None
+    invokerid: Optional[int] = None
+    invokername: Optional[str] = None
+    invokeruid: Optional[str] = None
 
 
 @dataclass
 class ServerEditedEvent(Event):
-    invokerid: int
-    invokername: str
-    invokeruid: str
-    reasonid: int
-    virtualserver_channel_temp_delete_delay_default: int
-    virtualserver_codec_encryption_mode: int
-    virtualserver_default_channel_group: int
-    virtualserver_default_server_group: int
-    virtualserver_hostbanner_gfx_interval: int
-    virtualserver_hostbanner_gfx_url: str
-    virtualserver_hostbanner_mode: int
-    virtualserver_hostbanner_url: str
-    virtualserver_hostbutton_gfx_url: str
-    virtualserver_hostbutton_tooltip: str
-    virtualserver_hostbutton_url: str
-    virtualserver_icon_id: int
-    virtualserver_name_phonetic: str
-    virtualserver_name: str
-    virtualserver_priority_speaker_dimm_modificator: int
+    invokerid: Optional[int] = None
+    invokername: Optional[str] = None
+    invokeruid: Optional[str] = None
+    reasonid: Optional[int] = None
+    virtualserver_channel_temp_delete_delay_default: Optional[int] = None
+    virtualserver_codec_encryption_mode: Optional[int] = None
+    virtualserver_default_channel_group: Optional[int] = None
+    virtualserver_default_server_group: Optional[int] = None
+    virtualserver_hostbanner_gfx_interval: Optional[int] = None
+    virtualserver_hostbanner_gfx_url: Optional[str] = None
+    virtualserver_hostbanner_mode: Optional[int] = None
+    virtualserver_hostbanner_url: Optional[str] = None
+    virtualserver_hostbutton_gfx_url: Optional[str] = None
+    virtualserver_hostbutton_tooltip: Optional[str] = None
+    virtualserver_hostbutton_url: Optional[str] = None
+    virtualserver_icon_id: Optional[int] = None
+    virtualserver_name_phonetic: Optional[str] = None
+    virtualserver_name: Optional[str] = None
+    virtualserver_priority_speaker_dimm_modificator: Optional[int] = None
 
 
 @dataclass
 class TokenUsedEvent(Event):
-    clid: int
-    cldbid: int
-    cluid: str
-    token: str
-    tokencustomset: str
-    token1: str
-    token2: str
+    clid: Optional[int] = None
+    cldbid: Optional[int] = None
+    cluid: Optional[str] = None
+    token: Optional[str] = None
+    tokencustomset: Optional[str] = None
+    token1: Optional[str] = None
+    token2: Optional[str] = None
