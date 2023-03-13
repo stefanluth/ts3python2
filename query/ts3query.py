@@ -4,7 +4,7 @@ from telnetlib import Telnet
 
 from classes.event import Event
 from classes.message import Message
-from query.command import CommandsWrapper, QueryCmd
+from query.command import CommandsWrapper, QueryCommand
 from query.response import QueryResponse
 from utils import patterns
 
@@ -19,19 +19,21 @@ logger.addHandler(file_handler)
 class TS3Query(Telnet):
     """A class for interacting with the TeamSpeak 3 ServerQuery interface.
 
-    Args:
-        host (`str`): The host to connect to.
-        port (`int`): The port to connect to.
-        login (`str`, optional): The login to use. Defaults to `None`.
-        password (`str`, optional): The password to use. Defaults to `None`.
-        timeout (`int`, optional): The timeout to use. Defaults to 10.
-        logger (`logging.Logger`, optional): The logger to use. Defaults to `None`.
-
-    Returns:
-        The TS3Query instance.
+    :param host: The host of the TeamSpeak 3 server.
+    :type host: str
+    :param port: The port of the TeamSpeak 3 server.
+    :type port: int
+    :param login: The login of the TeamSpeak 3 server.
+    :type login: str
+    :param password: The password of the TeamSpeak 3 server.
+    :type password: str
+    :param timeout: The timeout of the TeamSpeak 3 server.
+    :type timeout: int
     """
 
     _lock = threading.Lock()
+
+    _exited = True
 
     _events: list[Event] = []
     _events_limit: int = 1000
@@ -52,6 +54,7 @@ class TS3Query(Telnet):
         logger.info(f"Connecting to {host}:{port}")
         try:
             super().__init__(host, port, timeout)
+            self._exited = False
         except AttributeError as e:
             logger.error(e)
             logger.error("Invalid host and/or port")
@@ -71,22 +74,32 @@ class TS3Query(Telnet):
 
     def __del__(self) -> None:
         logger.info("Deleting instance")
-
-        try:
-            self.exit()
-        except (EOFError, OSError) as e:
-            logger.debug("Connection already closed")
-
+        self.exit()
         super().__del__()
 
     def exit(self) -> None:
-        logger.info("Exiting")
-        self.stop_polling()
-        self.commands.logout()
-        self.commands.quit()
+        """Exits the server, closes the connection and stops polling."""
 
-    def send(self, command: QueryCmd) -> QueryResponse:
+        if self._polling_thread and self._polling_thread.is_alive():
+            self.stop_polling()
+
+        if not self._exited:
+            logger.info("Exiting")
+            self.commands.quit()
+            self.close()
+            self._exited = True
+
+    def send(self, command: QueryCommand) -> QueryResponse:
+        """Sends a command to the server.
+
+        :param command: The command to send
+        :type command: QueryCommand
+        :return: The response from the server
+        :rtype: QueryResponse
+        """
+        logger.debug(f"Aquiring lock...")
         with self._lock:
+            logger.debug(f"Lock aquired")
             logger.debug(f"Sending command: {command.command}")
             self.write(command.encoded)
             response = self._receive()
@@ -94,23 +107,41 @@ class TS3Query(Telnet):
         return response
 
     def _receive(self) -> QueryResponse:
-        response = self.expect([patterns.RESPONSE_END], self.timeout)
+        logger.debug("Receiving response...")
+        response = self.expect([patterns.RESPONSE_END_BYTES], self.timeout)
         response = QueryResponse(*response)
         logger.debug(f"Received response: {response.response}")
 
-        if len(self._events) > self._events_limit:
-            self._events = self._events[-self._events_limit :]
+        self._add_events(response.events, self._events_limit)
+        self._add_messages(response.messages, self._messages_limit)
 
-        if len(self._messages) > self._messages_limit:
-            self._messages = self._messages[-self._messages_limit :]
-
-        self._events.extend(response.events)
-        self._messages.extend(response.messages)
+        logger.debug(f"Received data: {response.data}")
 
         return response
 
+    def _add_events(self, events: list[Event], limit: int):
+        logger.debug(f"Adding events: {events}")
+        self._events.extend(events)
+
+        if len(self._events) > limit:
+            logger.debug("Events limit reached, trimming events")
+            self._events = self._events[-limit:]
+
+    def _add_messages(self, messages: list[Message], limit: int):
+        logger.debug(f"Adding messages: {messages}")
+        self._messages.extend(messages)
+
+        if len(self._messages) > limit:
+            logger.debug("Messages limit reached, trimming messages")
+            self._messages = self._messages[-limit:]
+
     def start_polling(self, polling_rate: float = 1) -> None:
-        logger.info("Starting polling")
+        """Starts polling the server for events and messages.
+
+        :param polling_rate: The rate at which to poll the server, defaults to 1
+        :type polling_rate: float, optional
+        """
+        logger.debug("Starting polling...")
         if self._polling_thread and self._polling_thread.is_alive():
             logger.debug("Polling thread is already running")
             return
@@ -120,10 +151,12 @@ class TS3Query(Telnet):
             target=self._poll,
             args=(self._polling_thread_stop, polling_rate),
         )
+        logger.info("Starting polling thread")
         self._polling_thread.start()
 
     def stop_polling(self) -> None:
-        logger.info("Stopping polling")
+        """Stops polling the server for events and messages."""
+        logger.debug("Stopping polling...")
 
         if not self._polling_thread or not self._polling_thread.is_alive():
             logger.debug("Polling thread is not running")
@@ -133,15 +166,18 @@ class TS3Query(Telnet):
             logger.debug("Polling thread is already stopped")
             return
 
+        logger.info("Stopping polling thread")
         self._polling_thread_stop.set()
         self._polling_thread.join()
         self._polling_thread_stop.clear()
         self._polling_thread = None
 
     def _poll(self, stop: threading.Event, polling_rate: float) -> None:
+        logger.debug("Polling...")
         while not stop.isSet():
             self.commands.version()
             stop.wait(polling_rate)
+        logger.debug("Polling stopped")
 
     def set_messages_limit(self, limit: int) -> None:
         logger.info(f"Setting messages limit to {limit}")
