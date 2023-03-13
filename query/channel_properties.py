@@ -1,3 +1,7 @@
+"""
+Parsed from the TeamSpeak 3 Server Query documentation
+"""
+
 CHANNEL_PROPERTIES = {
     "CHANNEL_NAME": {
         "description": "Name of the channel",

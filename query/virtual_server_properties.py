@@ -1,3 +1,7 @@
+"""
+Parsed from the TeamSpeak 3 Server Query documentation
+"""
+
 VIRTUAL_SERVER_PROPERTIES = {
     "VIRTUALSERVER_NAME": {
         "description": "Name of the virtual server",

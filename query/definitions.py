@@ -1,5 +1,9 @@
 from enum import Enum
 
+"""
+Parsed from the TeamSpeak 3 Server Query documentation
+"""
+
 
 class HostMessageMode(Enum):
     HOST_MESSAGE_MODE_NONE = 0

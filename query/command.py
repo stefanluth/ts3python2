@@ -39,7 +39,7 @@ class CommandsWrapper:
     """
     Provides a wrapper for all commands that can be sent to a TeamSpeak 3 Server
     instance using the ServerQuery interface. For more information, see the
-    ServerQuery documentation.
+    TeamSpeak 3 Server ServerQuery documentation.
 
     :param query: A Telnet object that is connected to a TeamSpeak 3 Server instance.
     """
@@ -108,7 +108,7 @@ class CommandsWrapper:
 
         return self.query.send(QueryCommand("instanceinfo"))
 
-    def instanceedit(self, *args, **kwargs) -> QueryResponse:
+    def instanceedit(self, **kwargs) -> QueryResponse:
         """
         Changes the server instance configuration using given properties. For detailed
         information, see Server Instance Properties.
@@ -116,7 +116,7 @@ class CommandsWrapper:
 
         _validate_server_instance_kwargs(kwargs)
 
-        return self.query.send(QueryCommand("instanceedit", args=args, kwargs=kwargs))
+        return self.query.send(QueryCommand("instanceedit", kwargs=kwargs))
 
     def bindinglist(self, subsystem: Optional[Subsystem] = None) -> QueryResponse:
         """
@@ -205,7 +205,7 @@ class CommandsWrapper:
 
         return self.query.send(QueryCommand("serverdelete", kwargs={"sid": sid}))
 
-    def servercreate(self, virtualserver_name: str, **kwargs) -> QueryResponse:
+    def servercreate(self, **kwargs) -> QueryResponse:
         """
         Creates a new virtual server using the given properties and displays its ID,
         port and initial administrator privilege key. If virtualserver_port is not
@@ -217,12 +217,7 @@ class CommandsWrapper:
 
         _validate_virtual_server_kwargs(kwargs)
 
-        return self.query.send(
-            QueryCommand(
-                "servercreate",
-                kwargs={"virtualserver_name": virtualserver_name, **kwargs},
-            )
-        )
+        return self.query.send(QueryCommand("servercreate", kwargs={**kwargs}))
 
     def serverstart(self, sid: int) -> QueryResponse:
         """
@@ -570,8 +565,6 @@ class CommandsWrapper:
         NOT check for necessary permissions while deploying a snapshot so the command
         could be abused to gain additional privileges.
         """
-
-        _validate_virtual_server_kwargs(kwargs)
 
         return self.query.send(
             QueryCommand(
@@ -1852,13 +1845,22 @@ class CommandsWrapper:
 
 
 def _validate_kwargs(args: dict) -> None:
+    """Validates the arguments passed to a query command.
+
+    :param args: Arguments to validate.
+    :type args: dict
+    :raises ValueError: Raised if any argument value is not a string, integer or float.
+    """
     if not all([isinstance(arg, (str, int, float)) for arg in args.values()]):
         raise ValueError("All argument values must be strings, integers or floats.")
 
 
 def _validate_server_instance_kwargs(args: dict) -> None:
-    """
-    Validates the given arguments and returns a dictionary with the valid arguments
+    """Validates the arguments passed to a server instance query command.
+
+    :param args: Arguments to validate.
+    :type args: dict
+    :raises ValueError: Raised if any argument is not a valid changeable server instance property.
     """
     _validate_kwargs(args)
 
@@ -1871,8 +1873,11 @@ def _validate_server_instance_kwargs(args: dict) -> None:
 
 
 def _validate_channel_kwargs(args: dict) -> None:
-    """
-    Validates the given arguments and returns a dictionary with the valid arguments
+    """Validates the arguments passed to a channel query command.
+
+    :param args: Arguments to validate.
+    :type args: dict
+    :raises ValueError: Raised if any argument is not a valid changeable channel property.
     """
     _validate_kwargs(args)
 
@@ -1885,8 +1890,11 @@ def _validate_channel_kwargs(args: dict) -> None:
 
 
 def _validate_client_kwargs(args: dict) -> None:
-    """
-    Validates the given arguments and returns a dictionary with the valid arguments
+    """Validates the arguments passed to a client query command.
+
+    :param args: Arguments to validate.
+    :type args: dict
+    :raises ValueError: Raised if any argument is not a valid changeable client property.
     """
     _validate_kwargs(args)
 
@@ -1899,8 +1907,11 @@ def _validate_client_kwargs(args: dict) -> None:
 
 
 def _validate_virtual_server_kwargs(args: dict) -> None:
-    """
-    Validates the given arguments and returns a dictionary with the valid arguments
+    """Validates the arguments passed to a virtual server query command.
+
+    :param args: Arguments to validate.
+    :type args: dict
+    :raises ValueError: Raised if any argument is not a valid changeable virtual server property.
     """
     _validate_kwargs(args)
 

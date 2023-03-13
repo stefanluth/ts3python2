@@ -1,3 +1,7 @@
+"""
+Parsed from the TeamSpeak 3 Server Query documentation
+"""
+
 SERVER_INSTANCE_PROPERTIES = {
     "INSTANCE_UPTIME": {
         "description": "Uptime in seconds",

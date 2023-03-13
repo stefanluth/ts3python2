@@ -1,3 +1,7 @@
+"""
+Parsed from the TeamSpeak 3 Server Query documentation
+"""
+
 CLIENT_PROPERTIES = {
     "CLIENT_UNIQUE_IDENTIFIER": {
         "description": "Unique ID of the client",
