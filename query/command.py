@@ -1,26 +1,26 @@
-import logging
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from telnetlib import Telnet
-from typing import Literal, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 
 from query.definitions import *
 from query.properties import *
 from query.response import QueryResponse
 from utils import parsers
 
+if TYPE_CHECKING:
+    from query.ts3query import TS3Query
+
 
 @dataclass
-class QueryCmd:
+class QueryCommand:
     command: str
-    args: Optional[tuple] = field(default_factory=tuple)
+    args: Optional[tuple[tuple[str, bool]]] = field(default_factory=tuple)
     kwargs: Optional[dict] = field(default_factory=dict)
     encoded: bytes = field(init=False)
 
     def __post_init__(self):
-        args = [
-            parsers.boolean_to_option(arg) if isinstance(arg, bool) else arg
-            for arg in self.args
-        ]
+        args = [parsers.boolean_to_option(option, value) for option, value in self.args]
 
         kwargs = {k: v for k, v in self.kwargs.items() if v is not None}
 
@@ -28,7 +28,7 @@ class QueryCmd:
             [
                 self.command,
                 *args,
-                *parsers.dict_to_query_parameters(kwargs),
+                *parsers.dict_to_query_kwargs(kwargs),
             ]
         )
 
@@ -43,7 +43,8 @@ class CommandsWrapper:
 
     :param query: A Telnet object that is connected to a TeamSpeak 3 Server instance.
     """
-    def __init__(self, query: Telnet) -> None:
+
+    def __init__(self, query: TS3Query) -> None:
         self.query = query
 
     def help(self) -> QueryResponse:
@@ -52,10 +53,10 @@ class CommandsWrapper:
         help lists and briefly describes every command.
         """
 
-        return self.query.send(QueryCmd("help"))
+        return self.query.send(QueryCommand("help"))
 
     def quit(self) -> QueryResponse:
-        return self.query.send(QueryCmd("quit"))
+        return self.query.send(QueryCommand("quit"))
 
     def login(
         self, client_login_name: str, client_login_password: str
@@ -66,7 +67,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "login",
                 kwargs={
                     "client_login_name": client_login_name,
@@ -80,14 +81,14 @@ class CommandsWrapper:
         Deselects the active virtual server and logs out from the server instance.
         """
 
-        return self.query.send(QueryCmd("logout"))
+        return self.query.send(QueryCommand("logout"))
 
     def version(self) -> QueryResponse:
         """
         Displays the servers version information including platform and build number.
         """
 
-        return self.query.send(QueryCmd("version"))
+        return self.query.send(QueryCommand("version"))
 
     def hostinfo(self) -> QueryResponse:
         """
@@ -96,7 +97,7 @@ class CommandsWrapper:
         information, see Server Instance Properties.
         """
 
-        return self.query.send(QueryCmd("hostinfo"))
+        return self.query.send(QueryCommand("hostinfo"))
 
     def instanceinfo(self) -> QueryResponse:
         """
@@ -105,7 +106,7 @@ class CommandsWrapper:
         Server Instance Properties.
         """
 
-        return self.query.send(QueryCmd("instanceinfo"))
+        return self.query.send(QueryCommand("instanceinfo"))
 
     def instanceedit(self, *args, **kwargs) -> QueryResponse:
         """
@@ -115,7 +116,7 @@ class CommandsWrapper:
 
         _validate_server_instance_kwargs(kwargs)
 
-        return self.query.send(QueryCmd("instanceedit", args=args, kwargs=kwargs))
+        return self.query.send(QueryCommand("instanceedit", args=args, kwargs=kwargs))
 
     def bindinglist(self, subsystem: Optional[Subsystem] = None) -> QueryResponse:
         """
@@ -124,7 +125,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "bindinglist", kwargs={"subsystem": subsystem.value or Subsystem.VOICE}
             )
         )
@@ -144,7 +145,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("use", args=(virtual,), kwargs={"sid": sid, "port": port})
+            QueryCommand(
+                "use", args=(("virtual", virtual),), kwargs={"sid": sid, "port": port}
+            )
         )
 
     def serverlist(
@@ -171,7 +174,15 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("serverlist", args=(uid, short, all, onlyoffline))
+            QueryCommand(
+                "serverlist",
+                args=(
+                    ("uid", uid),
+                    ("short", short),
+                    ("all", all),
+                    ("onlyoffline", onlyoffline),
+                ),
+            )
         )
 
     def serveridgetbyport(self, virtualserver_port: int) -> QueryResponse:
@@ -181,7 +192,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "serveridgetbyport", kwargs={"virtualserver_port": virtualserver_port}
             )
         )
@@ -192,7 +203,7 @@ class CommandsWrapper:
         servers in stopped state can be deleted.
         """
 
-        return self.query.send(QueryCmd("serverdelete", kwargs={"sid": sid}))
+        return self.query.send(QueryCommand("serverdelete", kwargs={"sid": sid}))
 
     def servercreate(self, virtualserver_name: str, **kwargs) -> QueryResponse:
         """
@@ -207,7 +218,7 @@ class CommandsWrapper:
         _validate_virtual_server_kwargs(kwargs)
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "servercreate",
                 kwargs={"virtualserver_name": virtualserver_name, **kwargs},
             )
@@ -220,7 +231,7 @@ class CommandsWrapper:
         in the server instance.
         """
 
-        return self.query.send(QueryCmd("serverstart", kwargs={"sid": sid}))
+        return self.query.send(QueryCommand("serverstart", kwargs={"sid": sid}))
 
     def serverstop(self, sid: int) -> QueryResponse:
         """
@@ -229,14 +240,14 @@ class CommandsWrapper:
         in the server instance.
         """
 
-        return self.query.send(QueryCmd("serverstop", kwargs={"sid": sid}))
+        return self.query.send(QueryCommand("serverstop", kwargs={"sid": sid}))
 
     def serverprocessstop(self) -> QueryResponse:
         """
         Stops the entire TeamSpeak 3 Server instance by shutting down the process.
         """
 
-        return self.query.send(QueryCmd("serverprocessstop"))
+        return self.query.send(QueryCommand("serverprocessstop"))
 
     def serverinfo(self) -> QueryResponse:
         """
@@ -245,7 +256,7 @@ class CommandsWrapper:
         information, see Virtual Server Properties.
         """
 
-        return self.query.send(QueryCmd("serverinfo"))
+        return self.query.send(QueryCommand("serverinfo"))
 
     def serverrequestconnectioninfo(self) -> QueryResponse:
         """
@@ -253,7 +264,7 @@ class CommandsWrapper:
         including uptime, traffic information, etc.
         """
 
-        return self.query.send(QueryCmd("serverrequestconnectioninfo"))
+        return self.query.send(QueryCommand("serverrequestconnectioninfo"))
 
     def servertemppasswordadd(
         self, pw: str, desc: str, duration: int, tcid: int, tcpw: str
@@ -266,7 +277,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "servertemppasswordadd",
                 kwargs={
                     "pw": pw,
@@ -283,7 +294,7 @@ class CommandsWrapper:
         Deletes the temporary server password specified with pw.
         """
 
-        return self.query.send(QueryCmd("servertemppassworddel", kwargs={"pw": pw}))
+        return self.query.send(QueryCommand("servertemppassworddel", kwargs={"pw": pw}))
 
     def servertemppasswordlist(self) -> QueryResponse:
         """
@@ -292,7 +303,7 @@ class CommandsWrapper:
         clear-text password, the nickname and unique identifier of the creating client.
         """
 
-        return self.query.send(QueryCmd("servertemppasswordlist"))
+        return self.query.send(QueryCommand("servertemppasswordlist"))
 
     def serveredit(self, **kwargs) -> QueryResponse:
         """
@@ -304,7 +315,7 @@ class CommandsWrapper:
 
         _validate_virtual_server_kwargs(kwargs)
 
-        return self.query.send(QueryCmd("serveredit", kwargs=kwargs))
+        return self.query.send(QueryCommand("serveredit", kwargs=kwargs))
 
     def servergrouplist(self) -> QueryResponse:
         """
@@ -312,7 +323,7 @@ class CommandsWrapper:
         the output may also contain global ServerQuery groups and template groups.
         """
 
-        return self.query.send(QueryCmd("servergrouplist"))
+        return self.query.send(QueryCommand("servergrouplist"))
 
     def servergroupadd(
         self, name: str, type: Optional[PermissionGroupDatabaseType] = None
@@ -324,7 +335,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "servergroupadd",
                 kwargs={"name": name, "type": type.value if type else None},
             )
@@ -337,7 +348,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("servergroupdel", kwargs={"sgid": sgid, "force": force})
+            QueryCommand("servergroupdel", kwargs={"sgid": sgid, "force": force})
         )
 
     def servergroupcopy(
@@ -353,7 +364,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "servergroupcopy",
                 kwargs={
                     "ssgid": ssgid,
@@ -370,7 +381,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("servergrouprename", kwargs={"sgid": sgid, "name": name})
+            QueryCommand("servergrouprename", kwargs={"sgid": sgid, "name": name})
         )
 
     def servergrouppermlist(self, sgid: int, permsid: bool = False) -> QueryResponse:
@@ -381,7 +392,11 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("servergrouppermlist", args=(permsid,), kwargs={"sgid": sgid})
+            QueryCommand(
+                "servergrouppermlist",
+                args=(("permsid", permsid),),
+                kwargs={"sgid": sgid},
+            )
         )
 
     def servergroupaddperm(
@@ -400,7 +415,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "servergroupaddperm",
                 kwargs={
                     "sgid": sgid,
@@ -423,7 +438,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "servergroupdelperm",
                 kwargs={"sgid": sgid, "permid": permid, "permsid": permsid},
             )
@@ -436,7 +451,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("servergroupaddclient", kwargs={"sgid": sgid, "cldbid": cldbid})
+            QueryCommand(
+                "servergroupaddclient", kwargs={"sgid": sgid, "cldbid": cldbid}
+            )
         )
 
     def servergroupdelclient(self, sgid: int, cldbid: int) -> QueryResponse:
@@ -446,7 +463,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("servergroupdelclient", kwargs={"sgid": sgid, "cldbid": cldbid})
+            QueryCommand(
+                "servergroupdelclient", kwargs={"sgid": sgid, "cldbid": cldbid}
+            )
         )
 
     def servergroupclientlist(self, sgid: int, names: bool = False) -> QueryResponse:
@@ -457,7 +476,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("servergroupclientlist", args=(names,), kwargs={"sgid": sgid})
+            QueryCommand(
+                "servergroupclientlist", args=(("names", names),), kwargs={"sgid": sgid}
+            )
         )
 
     def servergroupsbyclientid(self, cldbid: int) -> QueryResponse:
@@ -467,7 +488,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("servergroupsbyclientid", kwargs={"cldbid": cldbid})
+            QueryCommand("servergroupsbyclientid", kwargs={"cldbid": cldbid})
         )
 
     def servergroupautoaddperm(
@@ -490,7 +511,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "servergroupautoaddperm",
                 kwargs={
                     "sgtype": sgtype.value,
@@ -520,7 +541,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "servergroupautodelperm",
                 kwargs={
                     "sgtype": sgtype.value,
@@ -538,7 +559,7 @@ class CommandsWrapper:
         serversnapshotdeploy command.
         """
 
-        return self.query.send(QueryCmd("serversnapshotcreate"))
+        return self.query.send(QueryCommand("serversnapshotcreate"))
 
     def serversnapshotdeploy(
         self, hash: str, mapping: bool = False, **kwargs
@@ -553,8 +574,10 @@ class CommandsWrapper:
         _validate_virtual_server_kwargs(kwargs)
 
         return self.query.send(
-            QueryCmd(
-                "serversnapshotdeploy", args=(mapping,), kwargs={"hash": hash, **kwargs}
+            QueryCommand(
+                "serversnapshotdeploy",
+                args=(("mapping", mapping),),
+                kwargs={"hash": hash, **kwargs},
             )
         )
 
@@ -571,7 +594,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("servernotifyregister", kwargs={"event": event.value, "id": id})
+            QueryCommand(
+                "servernotifyregister", kwargs={"event": event.value, "id": id}
+            )
         )
 
     def servernotifyunregister(self) -> QueryResponse:
@@ -580,7 +605,7 @@ class CommandsWrapper:
         will no longer receive notification messages.
         """
 
-        return self.query.send(QueryCmd("servernotifyunregister"))
+        return self.query.send(QueryCommand("servernotifyunregister"))
 
     def sendtextmessage(
         self, targetmode: TargetMode, target: int, msg: str
@@ -593,7 +618,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "sendtextmessage",
                 kwargs={"targetmode": targetmode.value, "target": target, "msg": msg},
             )
@@ -613,7 +638,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "logview",
                 kwargs={
                     "lines": lines,
@@ -633,7 +658,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("logadd", kwargs={"loglevel": loglevel.value, "logmsg": logmsg})
+            QueryCommand(
+                "logadd", kwargs={"loglevel": loglevel.value, "logmsg": logmsg}
+            )
         )
 
     def gm(self, msg: str) -> QueryResponse:
@@ -642,7 +669,7 @@ class CommandsWrapper:
         Server instance.
         """
 
-        return self.query.send(QueryCmd("gm", kwargs={"msg": msg}))
+        return self.query.send(QueryCommand("gm", kwargs={"msg": msg}))
 
     def channellist(
         self,
@@ -659,8 +686,16 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
-                "channellist", args=(topic, flags, voice, limits, icon, secondsempty)
+            QueryCommand(
+                "channellist",
+                args=(
+                    ("topic", topic),
+                    ("flags", flags),
+                    ("voice", voice),
+                    ("limits", limits),
+                    ("icon", icon),
+                    ("secondsempty", secondsempty),
+                ),
             )
         )
 
@@ -670,14 +705,14 @@ class CommandsWrapper:
         description, etc. For detailed information, see Channel Properties.
         """
 
-        return self.query.send(QueryCmd("channelinfo", kwargs={"cid": cid}))
+        return self.query.send(QueryCommand("channelinfo", kwargs={"cid": cid}))
 
     def channelfind(self, pattern: str) -> QueryResponse:
         """
         Displays a list of channels matching a given name pattern.
         """
 
-        return self.query.send(QueryCmd("channelfind", kwargs={"pattern": pattern}))
+        return self.query.send(QueryCommand("channelfind", kwargs={"pattern": pattern}))
 
     def channelmove(
         self, cid: int, cpid: int, order: Optional[int] = None
@@ -689,7 +724,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("channelmove", kwargs={"cid": cid, "cpid": cpid, "order": order})
+            QueryCommand(
+                "channelmove", kwargs={"cid": cid, "cpid": cpid, "order": order}
+            )
         )
 
     def channelcreate(self, channel_name: str, **kwargs) -> QueryResponse:
@@ -703,7 +740,9 @@ class CommandsWrapper:
         _validate_channel_kwargs(kwargs)
 
         return self.query.send(
-            QueryCmd("channelcreate", kwargs={"channel_name": channel_name, **kwargs})
+            QueryCommand(
+                "channelcreate", kwargs={"channel_name": channel_name, **kwargs}
+            )
         )
 
     def channeldelete(self, cid: int, force: bool = False) -> QueryResponse:
@@ -714,7 +753,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("channeldelete", kwargs={"cid": cid, "force": force})
+            QueryCommand("channeldelete", kwargs={"cid": cid, "force": force})
         )
 
     def channeledit(self, cid: int, **kwargs) -> QueryResponse:
@@ -727,14 +766,16 @@ class CommandsWrapper:
 
         _validate_channel_kwargs(kwargs)
 
-        return self.query.send(QueryCmd("channeledit", kwargs={"cid": cid, **kwargs}))
+        return self.query.send(
+            QueryCommand("channeledit", kwargs={"cid": cid, **kwargs})
+        )
 
     def channelgrouplist(self) -> QueryResponse:
         """
         Displays a list of channel groups available on the selected virtual server.
         """
 
-        return self.query.send(QueryCmd("channelgrouplist"))
+        return self.query.send(QueryCommand("channelgrouplist"))
 
     def channelgroupadd(
         self, name: str, type: Optional[PermissionGroupDatabaseType] = None
@@ -746,7 +787,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channelgroupadd",
                 kwargs={"name": name, "type": type.value if type else None},
             )
@@ -759,7 +800,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("channelgroupdel", kwargs={"cgid": cgid, "force": force})
+            QueryCommand("channelgroupdel", kwargs={"cgid": cgid, "force": force})
         )
 
     def channelgroupcopy(
@@ -774,7 +815,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channelgroupcopy",
                 kwargs={
                     "scgid": scgid,
@@ -791,7 +832,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("channelgrouprename", kwargs={"cgid": cgid, "name": name})
+            QueryCommand("channelgrouprename", kwargs={"cgid": cgid, "name": name})
         )
 
     def channelgroupaddperm(
@@ -808,7 +849,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channelgroupaddperm",
                 kwargs={
                     "cgid": cgid,
@@ -827,7 +868,11 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("channelgrouppermlist", args=(permsid,), kwargs={"cgid": cgid})
+            QueryCommand(
+                "channelgrouppermlist",
+                args=(("permsid", permsid),),
+                kwargs={"cgid": cgid},
+            )
         )
 
     def channelgroupdelperm(
@@ -840,7 +885,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channelgroupdelperm",
                 kwargs={"cgid": cgid, "permid": permid, "permsid": permsid},
             )
@@ -859,7 +904,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channelgroupclientlist",
                 kwargs={"cid": cid, "cldbid": cldbid, "cgid": cgid},
             )
@@ -871,7 +916,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "setclientchannelgroup",
                 kwargs={"cgid": cgid, "cid": cid, "cldbid": cldbid},
             )
@@ -890,7 +935,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "tokenadd",
                 kwargs={
                     "tokentype": tokentype,
@@ -907,21 +952,21 @@ class CommandsWrapper:
         Alias for privilegekeydelete
         """
 
-        return self.query.send(QueryCmd("tokendelete", kwargs={"token": token}))
+        return self.query.send(QueryCommand("tokendelete", kwargs={"token": token}))
 
     def tokenlist(self) -> QueryResponse:
         """
         Alias for privilegekeylist.
         """
 
-        return self.query.send(QueryCmd("tokenlist"))
+        return self.query.send(QueryCommand("tokenlist"))
 
     def tokenuse(self, token: str) -> QueryResponse:
         """
         Alias for privilegekeyuse.
         """
 
-        return self.query.send(QueryCmd("tokenuse", kwargs={"token": token}))
+        return self.query.send(QueryCommand("tokenuse", kwargs={"token": token}))
 
     def channelpermlist(self, cid: int, permsid: bool = False) -> QueryResponse:
         """
@@ -929,7 +974,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("channelpermlist", args=(permsid,), kwargs={"cid": cid})
+            QueryCommand(
+                "channelpermlist", args=(("permsid", permsid),), kwargs={"cid": cid}
+            )
         )
 
     def channeladdperm(
@@ -946,7 +993,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channeladdperm",
                 kwargs={
                     "cid": cid,
@@ -966,7 +1013,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channeldelperm",
                 kwargs={"cid": cid, "permid": permid, "permsid": permsid},
             )
@@ -992,9 +1039,19 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "clientlist",
-                args=(uid, away, voice, times, groups, info, country, ip, badge),
+                args=(
+                    ("uid", uid),
+                    ("away", away),
+                    ("voice", voice),
+                    ("times", times),
+                    ("groups", groups),
+                    ("info", info),
+                    ("country", country),
+                    ("ip", ip),
+                    ("badge", badge),
+                ),
             )
         )
 
@@ -1004,14 +1061,14 @@ class CommandsWrapper:
         nickname, client version, etc.
         """
 
-        return self.query.send(QueryCmd("clientinfo", kwargs={"clid": clid}))
+        return self.query.send(QueryCommand("clientinfo", kwargs={"clid": clid}))
 
     def clientfind(self, pattern: str) -> QueryResponse:
         """
         Displays a list of clients matching a given name pattern.
         """
 
-        return self.query.send(QueryCmd("clientfind", kwargs={"pattern": pattern}))
+        return self.query.send(QueryCommand("clientfind", kwargs={"pattern": pattern}))
 
     def clientedit(self, clid: int, **kwargs) -> QueryResponse:
         """
@@ -1021,7 +1078,9 @@ class CommandsWrapper:
 
         _validate_client_kwargs(kwargs)
 
-        return self.query.send(QueryCmd("clientedit", kwargs={"clid": clid, **kwargs}))
+        return self.query.send(
+            QueryCommand("clientedit", kwargs={"clid": clid, **kwargs})
+        )
 
     def clientdblist(
         self,
@@ -1035,9 +1094,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "clientdblist",
-                args=(count,),
+                args=(("count", count),),
                 kwargs={"start": start, "duration": duration},
             )
         )
@@ -1048,7 +1107,7 @@ class CommandsWrapper:
         creation date, etc.
         """
 
-        return self.query.send(QueryCmd("clientdbinfo", kwargs={"cldbid": cldbid}))
+        return self.query.send(QueryCommand("clientdbinfo", kwargs={"cldbid": cldbid}))
 
     def clientdbfind(self, pattern: str, uid: bool = False) -> QueryResponse:
         """
@@ -1059,7 +1118,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("clientdbfind", args=(uid,), kwargs={"pattern": pattern})
+            QueryCommand(
+                "clientdbfind", args=(("uid", uid),), kwargs={"pattern": pattern}
+            )
         )
 
     def clientdbedit(self, cldbid: int, **kwargs) -> QueryResponse:
@@ -1071,7 +1132,7 @@ class CommandsWrapper:
         _validate_client_kwargs(kwargs)
 
         return self.query.send(
-            QueryCmd("clientdbedit", kwargs={"cldbid": cldbid, **kwargs})
+            QueryCommand("clientdbedit", kwargs={"cldbid": cldbid, **kwargs})
         )
 
     def clientdbdelete(self, cldbid: int) -> QueryResponse:
@@ -1079,14 +1140,16 @@ class CommandsWrapper:
         Deletes a clients properties from the database.
         """
 
-        return self.query.send(QueryCmd("clientdbdelete", kwargs={"cldbid": cldbid}))
+        return self.query.send(
+            QueryCommand("clientdbdelete", kwargs={"cldbid": cldbid})
+        )
 
     def clientgetids(self, cluid: str) -> QueryResponse:
         """
         Displays all client IDs matching the unique identifier specified by cluid.
         """
 
-        return self.query.send(QueryCmd("clientgetids", kwargs={"cluid": cluid}))
+        return self.query.send(QueryCommand("clientgetids", kwargs={"cluid": cluid}))
 
     def clientgetdbidfromuid(self, cluid: str) -> QueryResponse:
         """
@@ -1094,7 +1157,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("clientgetdbidfromuid", kwargs={"cluid": cluid})
+            QueryCommand("clientgetdbidfromuid", kwargs={"cluid": cluid})
         )
 
     def clientgetnamefromuid(self, cluid: str) -> QueryResponse:
@@ -1104,7 +1167,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("clientgetnamefromuid", kwargs={"cluid": cluid})
+            QueryCommand("clientgetnamefromuid", kwargs={"cluid": cluid})
         )
 
     def clientgetuidfromclid(self, clid: int) -> QueryResponse:
@@ -1112,7 +1175,9 @@ class CommandsWrapper:
         Displays the unique identifier matching the clientID specified by clid.
         """
 
-        return self.query.send(QueryCmd("clientgetuidfromclid", kwargs={"clid": clid}))
+        return self.query.send(
+            QueryCommand("clientgetuidfromclid", kwargs={"clid": clid})
+        )
 
     def clientgetnamefromdbid(self, cldbid: int) -> QueryResponse:
         """
@@ -1121,7 +1186,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("clientgetnamefromdbid", kwargs={"cldbid": cldbid})
+            QueryCommand("clientgetnamefromdbid", kwargs={"cldbid": cldbid})
         )
 
     def clientsetserverquerylogin(self, client_login_name: str) -> QueryResponse:
@@ -1131,7 +1196,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "clientsetserverquerylogin",
                 kwargs={"client_login_name": client_login_name},
             )
@@ -1145,7 +1210,7 @@ class CommandsWrapper:
 
         _validate_client_kwargs(kwargs)
 
-        return self.query.send(QueryCmd("clientupdate", kwargs=kwargs))
+        return self.query.send(QueryCommand("clientupdate", kwargs=kwargs))
 
     def clientmove(
         self, clid: int, cid: int, cpw: Optional[str] = None
@@ -1157,7 +1222,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("clientmove", kwargs={"clid": clid, "cid": cid, "cpw": cpw})
+            QueryCommand("clientmove", kwargs={"clid": clid, "cid": cid, "cpw": cpw})
         )
 
     def clientkick(
@@ -1172,7 +1237,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "clientkick",
                 kwargs={
                     "clid": clid,
@@ -1188,7 +1253,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("clientpoke", kwargs={"clid": clid, "msg": msg})
+            QueryCommand("clientpoke", kwargs={"clid": clid, "msg": msg})
         )
 
     def clientpermlist(self, cldbid: int, permsid: bool = False) -> QueryResponse:
@@ -1197,7 +1262,11 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("clientpermlist", args=(permsid,), kwargs={"cldbid": cldbid})
+            QueryCommand(
+                "clientpermlist",
+                args=(("permsid", permsid),),
+                kwargs={"cldbid": cldbid},
+            )
         )
 
     def clientaddperm(
@@ -1215,7 +1284,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "clientaddperm",
                 kwargs={
                     "cldbid": cldbid,
@@ -1236,7 +1305,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "clientdelperm",
                 kwargs={"cldbid": cldbid, "permid": permid, "permsid": permsid},
             )
@@ -1250,9 +1319,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channelclientpermlist",
-                args=(permsid,),
+                args=(("permsid", permsid),),
                 kwargs={"cid": cid, "cldbid": cldbid},
             )
         )
@@ -1272,7 +1341,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channelclientaddperm",
                 kwargs={
                     "cid": cid,
@@ -1298,7 +1367,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "channelclientdelperm",
                 kwargs={
                     "cid": cid,
@@ -1315,14 +1384,16 @@ class CommandsWrapper:
         name and description.
         """
 
-        return self.query.send(QueryCmd("permissionlist"))
+        return self.query.send(QueryCommand("permissionlist"))
 
     def permidgetbyname(self, permsid: str) -> QueryResponse:
         """
         Displays the database ID of one or more permissions specified by permsid.
         """
 
-        return self.query.send(QueryCmd("permidgetbyname", kwargs={"permsid": permsid}))
+        return self.query.send(
+            QueryCommand("permidgetbyname", kwargs={"permsid": permsid})
+        )
 
     def permoverview(
         self,
@@ -1339,7 +1410,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "permoverview",
                 kwargs={
                     "cid": cid,
@@ -1361,7 +1432,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("permget", kwargs={"permid": permid, "permsid": permsid})
+            QueryCommand("permget", kwargs={"permid": permid, "permsid": permsid})
         )
 
     def permfind(
@@ -1375,7 +1446,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("permfind", kwargs={"permid": permid, "permsid": permsid})
+            QueryCommand("permfind", kwargs={"permid": permid, "permsid": permsid})
         )
 
     def permreset(self) -> QueryResponse:
@@ -1386,7 +1457,7 @@ class CommandsWrapper:
         corrupted - the virtual server will be deleted from the database.
         """
 
-        return self.query.send(QueryCmd("permreset"))
+        return self.query.send(QueryCommand("permreset"))
 
     def privilegekeylist(self) -> QueryResponse:
         """
@@ -1398,7 +1469,7 @@ class CommandsWrapper:
         string that can be used as a ticket into a specific server group.
         """
 
-        return self.query.send(QueryCmd("privilegekeylist"))
+        return self.query.send(QueryCommand("privilegekeylist"))
 
     def privilegekeyadd(
         self,
@@ -1420,7 +1491,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "privilegekeyadd",
                 kwargs={
                     "tokentype": tokentype,
@@ -1437,7 +1508,9 @@ class CommandsWrapper:
         Deletes an existing token matching the token key specified with token.
         """
 
-        return self.query.send(QueryCmd("privilegekeydelete", kwargs={"token": token}))
+        return self.query.send(
+            QueryCommand("privilegekeydelete", kwargs={"token": token})
+        )
 
     def privilegekeyuse(self, token: str) -> QueryResponse:
         """
@@ -1445,7 +1518,7 @@ class CommandsWrapper:
         server will automatically delete the token after it has been used.
         """
 
-        return self.query.send(QueryCmd("privilegekeyuse", kwargs={"token": token}))
+        return self.query.send(QueryCommand("privilegekeyuse", kwargs={"token": token}))
 
     def messagelist(self) -> QueryResponse:
         """
@@ -1453,21 +1526,21 @@ class CommandsWrapper:
         senders unique identifier, the messages subject, etc.
         """
 
-        return self.query.send(QueryCmd("messagelist"))
+        return self.query.send(QueryCommand("messagelist"))
 
     def messageadd(self) -> QueryResponse:
         """
         Sends an offline message to the client specified by cluid.
         """
 
-        return self.query.send(QueryCmd("messageadd"))
+        return self.query.send(QueryCommand("messageadd"))
 
     def messagedel(self, msgid: int) -> QueryResponse:
         """
         Deletes an existing offline message with ID msgid from your inbox.
         """
 
-        return self.query.send(QueryCmd("messagedel", kwargs={"msgid": msgid}))
+        return self.query.send(QueryCommand("messagedel", kwargs={"msgid": msgid}))
 
     def messageget(self, msgid: int) -> QueryResponse:
         """
@@ -1475,7 +1548,7 @@ class CommandsWrapper:
         that this does not automatically set the flag_read property of the message.
         """
 
-        return self.query.send(QueryCmd("messageget", kwargs={"msgid": msgid}))
+        return self.query.send(QueryCommand("messageget", kwargs={"msgid": msgid}))
 
     def messageupdateflag(self, msgid: int, flag: bool) -> QueryResponse:
         """
@@ -1484,7 +1557,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("messageupdateflag", kwargs={"msgid": msgid, "flag": flag})
+            QueryCommand("messageupdateflag", kwargs={"msgid": msgid, "flag": flag})
         )
 
     def complainlist(self, tcldbid: Optional[int]) -> QueryResponse:
@@ -1493,7 +1566,9 @@ class CommandsWrapper:
         specified, only complaints about the targeted client will be shown.
         """
 
-        return self.query.send(QueryCmd("complainlist", kwargs={"tcldbid": tcldbid}))
+        return self.query.send(
+            QueryCommand("complainlist", kwargs={"tcldbid": tcldbid})
+        )
 
     def complainadd(self, tcldbid: int, message: str) -> QueryResponse:
         """
@@ -1502,7 +1577,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("complainadd", kwargs={"tcldbid": tcldbid, "message": message})
+            QueryCommand("complainadd", kwargs={"tcldbid": tcldbid, "message": message})
         )
 
     def complaindelall(self, tcldbid: int) -> QueryResponse:
@@ -1511,7 +1586,9 @@ class CommandsWrapper:
         server.
         """
 
-        return self.query.send(QueryCmd("complaindelall", kwargs={"tcldbid": tcldbid}))
+        return self.query.send(
+            QueryCommand("complaindelall", kwargs={"tcldbid": tcldbid})
+        )
 
     def complaindel(self, tcldbid: int, fcldbid: int) -> QueryResponse:
         """
@@ -1520,7 +1597,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("complaindel", kwargs={"tcldbid": tcldbid, "fcldbid": fcldbid})
+            QueryCommand("complaindel", kwargs={"tcldbid": tcldbid, "fcldbid": fcldbid})
         )
 
     def banclient(
@@ -1533,7 +1610,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "banclient", kwargs={"clid": clid, "time": time, "banreason": banreason}
             )
         )
@@ -1543,7 +1620,7 @@ class CommandsWrapper:
         Displays a list of active bans on the selected virtual server.
         """
 
-        return self.query.send(QueryCmd("banlist"))
+        return self.query.send(QueryCommand("banlist"))
 
     def banadd(
         self,
@@ -1559,7 +1636,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "banadd",
                 kwargs={
                     "ip": ip,
@@ -1576,14 +1653,14 @@ class CommandsWrapper:
         Deletes the ban rule with ID banid from the server.
         """
 
-        return self.query.send(QueryCmd("bandel", kwargs={"banid": banid}))
+        return self.query.send(QueryCommand("bandel", kwargs={"banid": banid}))
 
     def bandelall(self) -> QueryResponse:
         """
         Deletes all active ban rules from the server.
         """
 
-        return self.query.send(QueryCmd("bandelall"))
+        return self.query.send(QueryCommand("bandelall"))
 
     def ftinitupload(
         self,
@@ -1609,7 +1686,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "ftinitupload",
                 kwargs={
                     "clientftfid": clientftfid,
@@ -1646,7 +1723,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "ftinitdownload",
                 kwargs={
                     "clientftfid": clientftfid,
@@ -1666,7 +1743,7 @@ class CommandsWrapper:
         rate in bytes per second, etc.
         """
 
-        return self.query.send(QueryCmd("ftlist"))
+        return self.query.send(QueryCommand("ftlist"))
 
     def ftgetfilelist(self, cid: int, cpw: str, path: str) -> QueryResponse:
         """
@@ -1675,7 +1752,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("ftgetfilelist", kwargs={"cid": cid, "cpw": cpw, "path": path})
+            QueryCommand("ftgetfilelist", kwargs={"cid": cid, "cpw": cpw, "path": path})
         )
 
     def ftgetfileinfo(self, cid: int, cpw: str, name: str) -> QueryResponse:
@@ -1685,7 +1762,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("ftgetfileinfo", kwargs={"cid": cid, "cpw": cpw, "name": name})
+            QueryCommand("ftgetfileinfo", kwargs={"cid": cid, "cpw": cpw, "name": name})
         )
 
     def ftstop(self, serverftfid: int, delete: Optional[bool]) -> QueryResponse:
@@ -1694,7 +1771,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("ftstop", kwargs={"serverftfid": serverftfid, "delete": delete})
+            QueryCommand(
+                "ftstop", kwargs={"serverftfid": serverftfid, "delete": delete}
+            )
         )
 
     def ftdeletefile(self, cid: int, cpw: str, name: str) -> QueryResponse:
@@ -1703,7 +1782,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("ftdeletefile", kwargs={"cid": cid, "cpw": cpw, "name": name})
+            QueryCommand("ftdeletefile", kwargs={"cid": cid, "cpw": cpw, "name": name})
         )
 
     def ftcreatedir(self, cid: int, cpw: str, dirname: str) -> QueryResponse:
@@ -1712,7 +1791,9 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("ftcreatedir", kwargs={"cid": cid, "cpw": cpw, "dirname": dirname})
+            QueryCommand(
+                "ftcreatedir", kwargs={"cid": cid, "cpw": cpw, "dirname": dirname}
+            )
         )
 
     def ftrenamefile(
@@ -1731,7 +1812,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd(
+            QueryCommand(
                 "ftrenamefile",
                 kwargs={
                     "cid": cid,
@@ -1751,7 +1832,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCmd("customsearch", kwargs={"ident": ident, "value": value})
+            QueryCommand("customsearch", kwargs={"ident": ident, "value": value})
         )
 
     def custominfo(self, cldbid: int) -> QueryResponse:
@@ -1759,7 +1840,7 @@ class CommandsWrapper:
         Displays a list of custom properties for the client specified with cldbid.
         """
 
-        return self.query.send(QueryCmd("custominfo", kwargs={"cldbid": cldbid}))
+        return self.query.send(QueryCommand("custominfo", kwargs={"cldbid": cldbid}))
 
     def whoami(self) -> QueryResponse:
         """
@@ -1767,7 +1848,7 @@ class CommandsWrapper:
         loginname, etc.
         """
 
-        return self.query.send(QueryCmd("whoami"))
+        return self.query.send(QueryCommand("whoami"))
 
 
 def _validate_kwargs(args: dict) -> None:
