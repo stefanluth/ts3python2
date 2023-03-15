@@ -195,6 +195,22 @@ class TS3Query(Telnet):
     def unread_messages(self) -> list[Message]:
         return [message for message in self._messages if not message.used]
 
+    def set_events_limit(self, limit: int) -> None:
+        logger.info(f"Setting events limit to {limit}")
+        self._events_limit = limit
+
+    @property
+    def events_limit(self) -> int:
+        return self._events_limit
+
+    @property
+    def events(self) -> list[Event]:
+        return self._events
+
+    @property
+    def unread_events(self) -> list[Event]:
+        return [event for event in self._events if not event.used]
+
     def _skip_greeting(self) -> None:
         logger.debug("Skipping greeting")
         self.read_until(
