@@ -1,9 +1,9 @@
-from threading import Thread, Event
+from threading import Event, Thread
 
 from ts3client import TS3Client
 from utils.logger import get_logger
-from . import plugins
 
+from . import plugins
 
 logger = get_logger("main")
 

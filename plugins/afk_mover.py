@@ -1,7 +1,9 @@
 import time
-from .plugin import Plugin
+
 from ts3client import TS3Client
 from utils.logger import get_logger
+
+from .plugin import Plugin
 
 logger = get_logger("main")
 

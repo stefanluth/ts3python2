@@ -3,9 +3,9 @@ import os
 from dotenv import load_dotenv
 
 import config
+from plugins import PluginManager
 from ts3client import TS3Client
 from utils.logger import create_logger
-from plugins import PluginManager
 
 
 def main():
