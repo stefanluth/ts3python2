@@ -39,7 +39,7 @@ class QueryResponse:
 
     def __post_init__(self):
         self.error_id = int(self.match.group("id").decode())
-        self.msg = self.match.group("msg").decode().strip()
+        self.msg = parsers.query_to_string(self.match.group("msg").decode().strip())
         data, events, messages = parsers.parse_response(self.response)
         self.data = data
         self.events = events
