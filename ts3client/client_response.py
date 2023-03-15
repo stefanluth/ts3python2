@@ -32,7 +32,12 @@ class ClientResponse:
         del self.data[key]
 
     def __iter__(self) -> dict:
-        return iter(self.data.values())
+        # TODO This is a temporary fix for the issue of the client response
+        contains_multiple_results = all(str(i) == key for i, key in enumerate(self.data.keys()))
+        if contains_multiple_results:
+            return iter(self.data.values())
+
+        return iter({"0": self.data}.values())
 
     def __len__(self) -> int:
         return len(self.data)
