@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import config
 from ts3client import TS3Client
 from utils.logger import create_logger
+from plugins import PluginManager
 
 
 def main():
@@ -22,12 +23,12 @@ def main():
         logger.error("Missing credentials.")
         return
 
-    client = TS3Client()
-    client.connect(SERVER_IP, TELNET_PORT, TELNET_LOGIN, TELNET_PW)
-    client.select_server_by_port(SERVER_PORT)
-    print(client.set_name(config.BOT_CONFIG.get("name")))
-    print(client.get_clients())
-    print(client.server_name)
+    ts3_client = TS3Client()
+    ts3_client.connect(SERVER_IP, TELNET_PORT, TELNET_LOGIN, TELNET_PW)
+    ts3_client.select_server_by_port(SERVER_PORT)
+
+    plugin_manager = PluginManager(ts3_client, config.PLUGINS_CONFIG)
+    plugin_manager.run()
 
 
 if __name__ == "__main__":
