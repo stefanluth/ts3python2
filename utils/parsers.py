@@ -99,9 +99,9 @@ def parse_event_match(match: re.Match[str]) -> Event:
             return ChannelMovedEvent(**data)
         case EventType.CHANNEL_PASSWORD_CHANGED:
             return ChannelPasswordChangedEvent(**data)
-        case EventType.CLIENT_ENTERVIEW:
+        case EventType.CLIENT_ENTER_VIEW:
             return ClientEnterViewEvent(**data)
-        case EventType.CLIENT_LEFTVIEW:
+        case EventType.CLIENT_LEFT_VIEW:
             return ClientLeftViewEvent(**data)
         case EventType.CLIENT_MOVED:
             return ClientMovedEvent(**data)
