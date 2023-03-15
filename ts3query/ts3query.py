@@ -13,17 +13,19 @@ logger = get_logger("main")
 
 class TS3Query(Telnet):
     """A class for interacting with the TeamSpeak 3 ServerQuery interface.
+    If no login and password are provided, the query client will not be logged in.
+    You can login with the TS3Query.login() method after the TS3Query has been instantiated.
 
     :param host: The host of the TeamSpeak 3 server.
     :type host: str
     :param port: The port of the TeamSpeak 3 server.
     :type port: int
-    :param login: The login of the TeamSpeak 3 server.
-    :type login: str
-    :param password: The password of the TeamSpeak 3 server.
-    :type password: str
-    :param timeout: The timeout of the TeamSpeak 3 server.
-    :type timeout: int
+    :param login: The login of the TeamSpeak 3 server, defaults to None.
+    :type login: str, optional
+    :param password: The password of the TeamSpeak 3 server, defaults to None.
+    :type password: str, optional
+    :param timeout: The timeout of the TeamSpeak 3 server, defaults to 10.
+    :type timeout: int, optional
     """
 
     _lock = threading.Lock()
@@ -37,14 +39,7 @@ class TS3Query(Telnet):
     _polling_thread: threading.Thread = None
     _polling_thread_stop = threading.Event()
 
-    def __init__(
-        self,
-        host: str,
-        port: int,
-        login: str = None,
-        password: str = None,
-        timeout=10,
-    ) -> None:
+    def __init__(self, host: str, port: int, login: str = None, password: str = None, timeout=10) -> None:
         logger.name = f"{self.__class__.__name__}"
         logger.info(f"Connecting to {host}:{port}...")
         try:
@@ -174,7 +169,7 @@ class TS3Query(Telnet):
 
     def _poll(self, stop: threading.Event, polling_rate: float) -> None:
         logger.debug("Polling...")
-        while not stop.isSet():
+        while not stop.is_set():
             self.commands.version()
             stop.wait(polling_rate)
         logger.debug("Polling stopped")
