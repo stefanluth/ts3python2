@@ -1,5 +1,6 @@
 import os
-import time
+import signal
+import sys
 
 from dotenv import load_dotenv
 
@@ -30,10 +31,15 @@ def main():
     plugin_manager = PluginManager(ts3_client, config.PLUGINS_CONFIG)
     plugin_manager.run()
 
-    time.sleep(10)
+    def sigint_handler(sig, frame):
+        logger.info("Stopping...")
+        print("\nStopping...")
+        plugin_manager.stop()
+        ts3_client.disconnect()
+        logger.info("Stopped.")
 
-    plugin_manager.stop()
-    ts3_client.disconnect()
+    signal.signal(signal.SIGINT, sigint_handler)
+    print("Press Ctrl+C to exit")
 
 
 if __name__ == "__main__":
