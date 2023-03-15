@@ -77,9 +77,7 @@ def parse_response(response: bytes) -> tuple[dict, list[Event], list[Message]]:
     if "|" not in response_str:
         data = response_to_dict(response_str)
     else:
-        data = {
-            i: response_to_dict(data) for i, data in enumerate(response_str.split("|"))
-        }
+        data = {i: response_to_dict(data) for i, data in enumerate(response_str.split("|"))}
 
     return data, events, messages
 
@@ -124,3 +122,17 @@ def parse_message_match(match: re.Match[str]) -> Message:
         invokername=match.group("invokername"),
         invokeruid=match.group("invokeruid"),
     )
+
+
+def parse_help(help: bytes) -> tuple[dict, list[Event], list[Message]]:
+    """
+    Parses the help response to a dict.
+    """
+
+    _, events, messages = parse_response(help)
+    help_text = re.sub(patterns.RESPONSE_END, "", help.decode()).strip()
+    data = {
+        "help": help_text,
+    }
+
+    return (data, events, messages)
