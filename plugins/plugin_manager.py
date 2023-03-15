@@ -4,12 +4,13 @@ from ts3client import TS3Client
 from utils.logger import get_logger
 
 from . import plugins
+from .plugin import Plugin
 
 logger = get_logger("main")
 
 
 class PluginManager:
-    def __init__(self, client: TS3Client, plugins: dict):
+    def __init__(self, client: TS3Client, plugins: dict[str, dict]):
         self.plugins = plugins
         self.client = client
         self.threads: dict[int, tuple[Thread, Event]] = {}
@@ -21,7 +22,7 @@ class PluginManager:
                 continue
 
             stop = Event()
-            plugin = getattr(plugins, plugin_name)(stop)
+            plugin: Plugin = getattr(plugins, plugin_name)(stop)
 
             if not hasattr(plugin, "run"):
                 logger.info(f"Plugin {plugin_name} does not have a run method. Skipping...")
