@@ -1,10 +1,9 @@
 import os
-import time
 
 from dotenv import load_dotenv
 
 import config
-from client import TS3Client
+from ts3client import TS3Client
 from utils.logger import create_logger
 
 

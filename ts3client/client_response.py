@@ -1,4 +1,4 @@
-from query.response import QueryResponse
+from ts3query.query_response import QueryResponse
 from utils.logger import get_logger
 
 logger = get_logger("main")
@@ -18,6 +18,9 @@ class ClientResponse:
 
         if response.data == {}:
             self.data = {"msg": response.msg}
+
+    def __repr__(self) -> str:
+        return self.data.__repr__()
 
     def __getitem__(self, key: str) -> dict:
         return self.data[key]

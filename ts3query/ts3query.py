@@ -3,8 +3,8 @@ from telnetlib import Telnet
 
 from classes.event import Event
 from classes.message import Message
-from query.command import CommandsWrapper, QueryCommand
-from query.response import QueryResponse
+from ts3query.query_command import CommandsWrapper, QueryCommand
+from ts3query.query_response import QueryResponse
 from utils import patterns
 from utils.logger import get_logger
 

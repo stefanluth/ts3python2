@@ -1,8 +1,8 @@
 from classes.event import Event
 from classes.message import Message
-from client.response import ClientResponse
+from ts3client.client_response import ClientResponse
 from utils.logger import get_logger
-from query.ts3query import TS3Query
+from ts3query.ts3query import TS3Query
 
 logger = get_logger("main")
 

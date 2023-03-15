@@ -7,8 +7,8 @@ from constants import *
 from utils import parsers
 
 if TYPE_CHECKING:
-    from query.response import QueryResponse
-    from query.ts3query import TS3Query
+    from ts3query.query_response import QueryResponse
+    from ts3query.ts3query import TS3Query
 
 
 @dataclass
