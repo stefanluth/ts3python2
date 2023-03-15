@@ -5,6 +5,6 @@ dependencies:
 	python3 -m pip install -r requirements.dev.txt
 
 lint: dependencies
-	black .
+	black -l 120 .
 	isort --profile black .
 	autoflake -r -i --ignore-init-module-imports .
