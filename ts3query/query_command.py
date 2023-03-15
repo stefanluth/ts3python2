@@ -60,6 +60,7 @@ class CommandsWrapper:
         return response
 
     def quit(self) -> QueryResponse:
+        """Closes the ServerQuery connection to the TeamSpeak 3 Server instance."""
         return self.query.send(QueryCommand("quit"))
 
     def login(self, client_login_name: str, client_login_password: str) -> QueryResponse:
