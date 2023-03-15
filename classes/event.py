@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+from constants import EventType
 
 
 class Event:
@@ -7,11 +8,13 @@ class Event:
     Represents a TeamSpeak event.
     """
 
+    event_type: str = None
     used: bool = False
 
 
 @dataclass
 class ChannelCreatedEvent(Event):
+    event_type = EventType.CHANNEL_CREATED
     channel_topic: Optional[str] = None
     cid: Optional[int] = None
     invokerid: Optional[int] = None
@@ -22,6 +25,7 @@ class ChannelCreatedEvent(Event):
 
 @dataclass
 class ChannelDeletedEvent(Event):
+    event_type = EventType.CHANNEL_DELETED
     cid: Optional[int] = None
     invokerid: Optional[int] = None
     invokername: Optional[str] = None
@@ -31,11 +35,13 @@ class ChannelDeletedEvent(Event):
 
 @dataclass
 class ChannelDescriptionChangedEvent(Event):
+    event_type = EventType.CHANNEL_DESCRIPTION_CHANGED
     cid: Optional[int] = None
 
 
 @dataclass
 class ChannelEditedEvent(Event):
+    event_type = EventType.CHANNEL_EDITED
     cid: Optional[int] = None
     invokerid: Optional[int] = None
     invokername: Optional[str] = None
@@ -65,6 +71,7 @@ class ChannelEditedEvent(Event):
 
 @dataclass
 class ChannelMovedEvent(Event):
+    event_type = EventType.CHANNEL_MOVED
     cid: Optional[int] = None
     cpid: Optional[int] = None
     order: Optional[int] = None
@@ -75,11 +82,13 @@ class ChannelMovedEvent(Event):
 
 @dataclass
 class ChannelPasswordChangedEvent(Event):
+    event_type = EventType.CHANNEL_PASSWORD_CHANGED
     cid: Optional[int] = None
 
 
 @dataclass
 class ClientEnterViewEvent(Event):
+    event_type = EventType.CLIENT_ENTER_VIEW
     cfid: Optional[int] = None
     clid: Optional[int] = None
     client_away_message: Optional[str] = None
@@ -118,6 +127,7 @@ class ClientEnterViewEvent(Event):
 
 @dataclass
 class ClientLeftViewEvent(Event):
+    event_type = EventType.CLIENT_LEFT_VIEW
     bantime: Optional[int] = None
     cfid: Optional[int] = None
     clid: Optional[int] = None
@@ -131,6 +141,7 @@ class ClientLeftViewEvent(Event):
 
 @dataclass
 class ClientMovedEvent(Event):
+    event_type = EventType.CLIENT_MOVED
     clid: Optional[int] = None
     ctid: Optional[int] = None
     reasonid: Optional[int] = None
@@ -141,6 +152,7 @@ class ClientMovedEvent(Event):
 
 @dataclass
 class ServerEditedEvent(Event):
+    event_type = EventType.SERVER_EDITED
     invokerid: Optional[int] = None
     invokername: Optional[str] = None
     invokeruid: Optional[str] = None
@@ -164,6 +176,7 @@ class ServerEditedEvent(Event):
 
 @dataclass
 class TokenUsedEvent(Event):
+    event_type = EventType.TOKEN_USED
     clid: Optional[int] = None
     cldbid: Optional[int] = None
     cluid: Optional[str] = None
