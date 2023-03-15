@@ -9,3 +9,10 @@ ENV_VAR_NAME__TS3_TELNET_PORT = "TS3_TELNET_PORT"
 BOT_CONFIG = {
     "name": "TS3Bot",
 }
+
+PLUGINS_CONFIG = {
+    "afk_mover": {
+        "afk_channel_id": 357515,
+        "afk_time": 30 * 60,
+    },
+}
