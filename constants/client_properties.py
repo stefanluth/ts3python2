@@ -193,6 +193,4 @@ CLIENT_PROPERTIES = {
     },
 }
 
-CHANGEABLE_CLIENT_PROPERTIES = {
-    key: value for key, value in CLIENT_PROPERTIES.items() if value["changeable"]
-}
+CHANGEABLE_CLIENT_PROPERTIES = {key: value for key, value in CLIENT_PROPERTIES.items() if value["changeable"]}

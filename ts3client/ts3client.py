@@ -1,10 +1,11 @@
+from typing import Optional
+
 from classes.event import Event
 from classes.message import Message
-from constants import TargetMode, NotifyRegisterType, EventType, ReasonIdentifier
+from constants import EventType, NotifyRegisterType, ReasonIdentifier, TargetMode
 from ts3client.client_response import ClientResponse
-from utils.logger import get_logger
 from ts3query.ts3query import TS3Query
-from typing import Optional
+from utils.logger import get_logger
 
 logger = get_logger("main")
 
