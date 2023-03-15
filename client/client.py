@@ -1,4 +1,6 @@
-import types
+from classes.event import Event
+from classes.message import Message
+from client.response import ClientResponse
 from utils.logger import get_logger
 from query.ts3query import TS3Query
 
@@ -46,14 +48,49 @@ class TS3Client:
         """
         self.query.commands.use(port=port)
 
-    def get_clients(self) -> list[dict]:
-        return self.query.commands.clientlist(uid=True).data
+    def get_clients(self) -> ClientResponse:
+        return ClientResponse(self.query.commands.clientlist(uid=True))
 
-    def get_client(self, id: int) -> dict:
-        return self.query.commands.clientinfo(clid=id).data
+    def get_client(self, id: int) -> ClientResponse:
+        return ClientResponse(self.query.commands.clientinfo(clid=id))
 
-    def find_client(self, name: str) -> dict:
-        return self.query.commands.clientfind(pattern=name).data
+    def find_client(self, name: str) -> ClientResponse:
+        return ClientResponse(self.query.commands.clientfind(pattern=name))
 
-    def set_name(self, name: str) -> None:
-        self.query.commands.clientupdate(client_nickname=name)
+    def set_name(self, name: str) -> ClientResponse:
+        return ClientResponse(self.query.commands.clientupdate(client_nickname=name))
+
+    def send_message(self, message: str, id: int) -> ClientResponse:
+        return ClientResponse(self.query.commands.sendtextmessage(targetmode=1, target=id, msg=message))
+
+    @property
+    def messages(self) -> list[Message]:
+        return self.query.messages
+
+    @property
+    def unread_messages(self) -> list[Message]:
+        return self.query.unread_messages
+
+    @property
+    def events(self) -> list[Event]:
+        return self.query.events
+
+    @property
+    def unread_events(self) -> list[Event]:
+        return self.query.unread_events
+
+    @property
+    def server_id(self) -> int:
+        return self.query.commands.serverinfo().data.get("virtualserver_id")
+
+    @property
+    def server_unique_id(self) -> str:
+        return self.query.commands.serverinfo().data.get("virtualserver_unique_identifier")
+
+    @property
+    def server_name(self) -> str:
+        return self.query.commands.serverinfo().data.get("virtualserver_name")
+
+    @property
+    def server_port(self) -> int:
+        return self.query.commands.serverinfo().data.get("virtualserver_port")

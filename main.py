@@ -25,11 +25,10 @@ def main():
 
     client = TS3Client()
     client.connect(SERVER_IP, TELNET_PORT, TELNET_LOGIN, TELNET_PW)
-    # client.login(TELNET_LOGIN, TELNET_PW)
     client.select_server_by_port(SERVER_PORT)
-    client.set_name(config.BOT_CONFIG.get("name"))
-
+    print(client.set_name(config.BOT_CONFIG.get("name")))
     print(client.get_clients())
+    print(client.server_name)
 
 
 if __name__ == "__main__":
