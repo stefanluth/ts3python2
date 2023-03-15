@@ -52,14 +52,17 @@ class CommandsWrapper:
         help lists and briefly describes every command.
         """
 
-        return self.query.send(QueryCommand("help"))
+        response = self.query.send(QueryCommand("help"))
+        data, events, messages = parsers.parse_help(response.response)
+        response.data = data
+        response.events = events
+        response.messages = messages
+        return response
 
     def quit(self) -> QueryResponse:
         return self.query.send(QueryCommand("quit"))
 
-    def login(
-        self, client_login_name: str, client_login_password: str
-    ) -> QueryResponse:
+    def login(self, client_login_name: str, client_login_password: str) -> QueryResponse:
         """
         Authenticates with the TeamSpeak 3 Server instance using given ServerQuery
         login credentials.
@@ -123,11 +126,7 @@ class CommandsWrapper:
         machines. If no subsystem is specified, "voice" is used by default.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "bindinglist", kwargs={"subsystem": subsystem.value or Subsystem.VOICE}
-            )
-        )
+        return self.query.send(QueryCommand("bindinglist", kwargs={"subsystem": subsystem.value or Subsystem.VOICE}))
 
     def use(
         self,
@@ -143,11 +142,7 @@ class CommandsWrapper:
         port, use will select a random virtual server using the specified port.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "use", args=(("virtual", virtual),), kwargs={"sid": sid, "port": port}
-            )
-        )
+        return self.query.send(QueryCommand("use", args=(("virtual", virtual),), kwargs={"sid": sid, "port": port}))
 
     def serverlist(
         self,
@@ -190,11 +185,7 @@ class CommandsWrapper:
         by virtualserver_port.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "serveridgetbyport", kwargs={"virtualserver_port": virtualserver_port}
-            )
-        )
+        return self.query.send(QueryCommand("serveridgetbyport", kwargs={"virtualserver_port": virtualserver_port}))
 
     def serverdelete(self, sid: int) -> QueryResponse:
         """
@@ -260,9 +251,7 @@ class CommandsWrapper:
 
         return self.query.send(QueryCommand("serverrequestconnectioninfo"))
 
-    def servertemppasswordadd(
-        self, pw: str, desc: str, duration: int, tcid: int, tcpw: str
-    ) -> QueryResponse:
+    def servertemppasswordadd(self, pw: str, desc: str, duration: int, tcid: int, tcpw: str) -> QueryResponse:
         """
         Sets a new temporary server password specified with pw. The temporary password
         will be valid for the number of seconds specified with duration. The client
@@ -319,9 +308,7 @@ class CommandsWrapper:
 
         return self.query.send(QueryCommand("servergrouplist"))
 
-    def servergroupadd(
-        self, name: str, type: Optional[PermissionGroupDatabaseType] = None
-    ) -> QueryResponse:
+    def servergroupadd(self, name: str, type: Optional[PermissionGroupDatabaseType] = None) -> QueryResponse:
         """
         Creates a new server group using the name specified with name and displays its
         ID. The optional type parameter can be used to create ServerQuery groups and
@@ -341,13 +328,9 @@ class CommandsWrapper:
         group will be deleted even if there are clients within.
         """
 
-        return self.query.send(
-            QueryCommand("servergroupdel", kwargs={"sgid": sgid, "force": force})
-        )
+        return self.query.send(QueryCommand("servergroupdel", kwargs={"sgid": sgid, "force": force}))
 
-    def servergroupcopy(
-        self, ssgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType
-    ) -> QueryResponse:
+    def servergroupcopy(self, ssgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType) -> QueryResponse:
         """
         Creates a copy of the server group specified with ssgid. If tsgid is set to 0,
         the server will create a new group. To overwrite an existing group, simply set
@@ -374,9 +357,7 @@ class CommandsWrapper:
         Changes the name of the server group specified with sgid.
         """
 
-        return self.query.send(
-            QueryCommand("servergrouprename", kwargs={"sgid": sgid, "name": name})
-        )
+        return self.query.send(QueryCommand("servergrouprename", kwargs={"sgid": sgid, "name": name}))
 
     def servergrouppermlist(self, sgid: int, permsid: bool = False) -> QueryResponse:
         """
@@ -444,11 +425,7 @@ class CommandsWrapper:
         cannot be added to default groups or template groups.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "servergroupaddclient", kwargs={"sgid": sgid, "cldbid": cldbid}
-            )
-        )
+        return self.query.send(QueryCommand("servergroupaddclient", kwargs={"sgid": sgid, "cldbid": cldbid}))
 
     def servergroupdelclient(self, sgid: int, cldbid: int) -> QueryResponse:
         """
@@ -456,11 +433,7 @@ class CommandsWrapper:
         sgid.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "servergroupdelclient", kwargs={"sgid": sgid, "cldbid": cldbid}
-            )
-        )
+        return self.query.send(QueryCommand("servergroupdelclient", kwargs={"sgid": sgid, "cldbid": cldbid}))
 
     def servergroupclientlist(self, sgid: int, names: bool = False) -> QueryResponse:
         """
@@ -469,11 +442,7 @@ class CommandsWrapper:
         contain the last known nickname and the unique identifier of the clients.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "servergroupclientlist", args=(("names", names),), kwargs={"sgid": sgid}
-            )
-        )
+        return self.query.send(QueryCommand("servergroupclientlist", args=(("names", names),), kwargs={"sgid": sgid}))
 
     def servergroupsbyclientid(self, cldbid: int) -> QueryResponse:
         """
@@ -481,9 +450,7 @@ class CommandsWrapper:
         residing in.
         """
 
-        return self.query.send(
-            QueryCommand("servergroupsbyclientid", kwargs={"cldbid": cldbid})
-        )
+        return self.query.send(QueryCommand("servergroupsbyclientid", kwargs={"cldbid": cldbid}))
 
     def servergroupautoaddperm(
         self,
@@ -555,9 +522,7 @@ class CommandsWrapper:
 
         return self.query.send(QueryCommand("serversnapshotcreate"))
 
-    def serversnapshotdeploy(
-        self, hash: str, mapping: bool = False, **kwargs
-    ) -> QueryResponse:
+    def serversnapshotdeploy(self, hash: str, mapping: bool = False, **kwargs) -> QueryResponse:
         """
         Restores the selected virtual servers configuration using the data from a
         previously created server snapshot. Please note that the TeamSpeak 3 Server does
@@ -573,9 +538,7 @@ class CommandsWrapper:
             )
         )
 
-    def servernotifyregister(
-        self, event: NotifyRegisterType, id: Optional[int] = None
-    ) -> QueryResponse:
+    def servernotifyregister(self, event: NotifyRegisterType, id: Optional[int] = None) -> QueryResponse:
         """
         Registers for a specified category of events on a virtual server to receive
         notification messages. Depending on the notifications you've registered for,
@@ -585,11 +548,7 @@ class CommandsWrapper:
         parameter while id can be used to limit the notifications to a specific channel.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "servernotifyregister", kwargs={"event": event.value, "id": id}
-            )
-        )
+        return self.query.send(QueryCommand("servernotifyregister", kwargs={"event": event.value, "id": id}))
 
     def servernotifyunregister(self) -> QueryResponse:
         """
@@ -599,9 +558,7 @@ class CommandsWrapper:
 
         return self.query.send(QueryCommand("servernotifyunregister"))
 
-    def sendtextmessage(
-        self, targetmode: TargetMode, target: int, msg: str
-    ) -> QueryResponse:
+    def sendtextmessage(self, targetmode: TargetMode, target: int, msg: str) -> QueryResponse:
         """
         Sends a text message to a specified target. If targetmode is set to 1, a message
         is sent to the client with the ID specified by target. If targetmode is set to 2
@@ -649,11 +606,7 @@ class CommandsWrapper:
         detailed information, see Definitions.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "logadd", kwargs={"loglevel": loglevel.value, "logmsg": logmsg}
-            )
-        )
+        return self.query.send(QueryCommand("logadd", kwargs={"loglevel": loglevel.value, "logmsg": logmsg}))
 
     def gm(self, msg: str) -> QueryResponse:
         """
@@ -706,20 +659,14 @@ class CommandsWrapper:
 
         return self.query.send(QueryCommand("channelfind", kwargs={"pattern": pattern}))
 
-    def channelmove(
-        self, cid: int, cpid: int, order: Optional[int] = None
-    ) -> QueryResponse:
+    def channelmove(self, cid: int, cpid: int, order: Optional[int] = None) -> QueryResponse:
         """
         Moves a channel to a new parent channel with the ID cpid. If order is specified,
         the channel will be sorted right under the channel with the specified ID. If
         order is set to 0, the channel will be sorted right below the new parent.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "channelmove", kwargs={"cid": cid, "cpid": cpid, "order": order}
-            )
-        )
+        return self.query.send(QueryCommand("channelmove", kwargs={"cid": cid, "cpid": cpid, "order": order}))
 
     def channelcreate(self, channel_name: str, **kwargs) -> QueryResponse:
         """
@@ -731,11 +678,7 @@ class CommandsWrapper:
 
         _validate_channel_kwargs(kwargs)
 
-        return self.query.send(
-            QueryCommand(
-                "channelcreate", kwargs={"channel_name": channel_name, **kwargs}
-            )
-        )
+        return self.query.send(QueryCommand("channelcreate", kwargs={"channel_name": channel_name, **kwargs}))
 
     def channeldelete(self, cid: int, force: bool = False) -> QueryResponse:
         """
@@ -744,9 +687,7 @@ class CommandsWrapper:
         default channel with an appropriate reason message.
         """
 
-        return self.query.send(
-            QueryCommand("channeldelete", kwargs={"cid": cid, "force": force})
-        )
+        return self.query.send(QueryCommand("channeldelete", kwargs={"cid": cid, "force": force}))
 
     def channeledit(self, cid: int, **kwargs) -> QueryResponse:
         """
@@ -758,9 +699,7 @@ class CommandsWrapper:
 
         _validate_channel_kwargs(kwargs)
 
-        return self.query.send(
-            QueryCommand("channeledit", kwargs={"cid": cid, **kwargs})
-        )
+        return self.query.send(QueryCommand("channeledit", kwargs={"cid": cid, **kwargs}))
 
     def channelgrouplist(self) -> QueryResponse:
         """
@@ -769,9 +708,7 @@ class CommandsWrapper:
 
         return self.query.send(QueryCommand("channelgrouplist"))
 
-    def channelgroupadd(
-        self, name: str, type: Optional[PermissionGroupDatabaseType] = None
-    ) -> QueryResponse:
+    def channelgroupadd(self, name: str, type: Optional[PermissionGroupDatabaseType] = None) -> QueryResponse:
         """
         Creates a new channel group using a given name and displays its ID. The optional
         type parameter can be used to create template groups. For detailed information,
@@ -791,13 +728,9 @@ class CommandsWrapper:
         deleted even if there are clients within.
         """
 
-        return self.query.send(
-            QueryCommand("channelgroupdel", kwargs={"cgid": cgid, "force": force})
-        )
+        return self.query.send(QueryCommand("channelgroupdel", kwargs={"cgid": cgid, "force": force}))
 
-    def channelgroupcopy(
-        self, scgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType
-    ) -> QueryResponse:
+    def channelgroupcopy(self, scgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType) -> QueryResponse:
         """
         Creates a copy of the channel group specified with scgid. If tcgid is set to 0,
         the server will create a new group. To overwrite an existing group, simply set
@@ -823,9 +756,7 @@ class CommandsWrapper:
         Changes the name of a specified channel group.
         """
 
-        return self.query.send(
-            QueryCommand("channelgrouprename", kwargs={"cgid": cgid, "name": name})
-        )
+        return self.query.send(QueryCommand("channelgrouprename", kwargs={"cgid": cgid, "name": name}))
 
     def channelgroupaddperm(
         self,
@@ -965,11 +896,7 @@ class CommandsWrapper:
         Displays a list of permissions defined for a channel.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "channelpermlist", args=(("permsid", permsid),), kwargs={"cid": cid}
-            )
-        )
+        return self.query.send(QueryCommand("channelpermlist", args=(("permsid", permsid),), kwargs={"cid": cid}))
 
     def channeladdperm(
         self,
@@ -996,9 +923,7 @@ class CommandsWrapper:
             )
         )
 
-    def channeldelperm(
-        self, cid: int, permid: Optional[int] = None, permsid: Optional[str] = None
-    ) -> QueryResponse:
+    def channeldelperm(self, cid: int, permid: Optional[int] = None, permsid: Optional[str] = None) -> QueryResponse:
         """
         Removes a set of specified permissions from a channel. Multiple permissions can
         be removed at once. A permission can be specified by permid or permsid.
@@ -1070,9 +995,7 @@ class CommandsWrapper:
 
         _validate_client_kwargs(kwargs)
 
-        return self.query.send(
-            QueryCommand("clientedit", kwargs={"clid": clid, **kwargs})
-        )
+        return self.query.send(QueryCommand("clientedit", kwargs={"clid": clid, **kwargs}))
 
     def clientdblist(
         self,
@@ -1109,11 +1032,7 @@ class CommandsWrapper:
         wildcard characters (e.g. %).
         """
 
-        return self.query.send(
-            QueryCommand(
-                "clientdbfind", args=(("uid", uid),), kwargs={"pattern": pattern}
-            )
-        )
+        return self.query.send(QueryCommand("clientdbfind", args=(("uid", uid),), kwargs={"pattern": pattern}))
 
     def clientdbedit(self, cldbid: int, **kwargs) -> QueryResponse:
         """
@@ -1123,18 +1042,14 @@ class CommandsWrapper:
 
         _validate_client_kwargs(kwargs)
 
-        return self.query.send(
-            QueryCommand("clientdbedit", kwargs={"cldbid": cldbid, **kwargs})
-        )
+        return self.query.send(QueryCommand("clientdbedit", kwargs={"cldbid": cldbid, **kwargs}))
 
     def clientdbdelete(self, cldbid: int) -> QueryResponse:
         """
         Deletes a clients properties from the database.
         """
 
-        return self.query.send(
-            QueryCommand("clientdbdelete", kwargs={"cldbid": cldbid})
-        )
+        return self.query.send(QueryCommand("clientdbdelete", kwargs={"cldbid": cldbid}))
 
     def clientgetids(self, cluid: str) -> QueryResponse:
         """
@@ -1148,9 +1063,7 @@ class CommandsWrapper:
         Displays the database ID matching the unique identifier specified by cluid.
         """
 
-        return self.query.send(
-            QueryCommand("clientgetdbidfromuid", kwargs={"cluid": cluid})
-        )
+        return self.query.send(QueryCommand("clientgetdbidfromuid", kwargs={"cluid": cluid}))
 
     def clientgetnamefromuid(self, cluid: str) -> QueryResponse:
         """
@@ -1158,18 +1071,14 @@ class CommandsWrapper:
         by cluid.
         """
 
-        return self.query.send(
-            QueryCommand("clientgetnamefromuid", kwargs={"cluid": cluid})
-        )
+        return self.query.send(QueryCommand("clientgetnamefromuid", kwargs={"cluid": cluid}))
 
     def clientgetuidfromclid(self, clid: int) -> QueryResponse:
         """
         Displays the unique identifier matching the clientID specified by clid.
         """
 
-        return self.query.send(
-            QueryCommand("clientgetuidfromclid", kwargs={"clid": clid})
-        )
+        return self.query.send(QueryCommand("clientgetuidfromclid", kwargs={"clid": clid}))
 
     def clientgetnamefromdbid(self, cldbid: int) -> QueryResponse:
         """
@@ -1177,9 +1086,7 @@ class CommandsWrapper:
         by cldbid.
         """
 
-        return self.query.send(
-            QueryCommand("clientgetnamefromdbid", kwargs={"cldbid": cldbid})
-        )
+        return self.query.send(QueryCommand("clientgetnamefromdbid", kwargs={"cldbid": cldbid}))
 
     def clientsetserverquerylogin(self, client_login_name: str) -> QueryResponse:
         """
@@ -1204,22 +1111,16 @@ class CommandsWrapper:
 
         return self.query.send(QueryCommand("clientupdate", kwargs=kwargs))
 
-    def clientmove(
-        self, clid: int, cid: int, cpw: Optional[str] = None
-    ) -> QueryResponse:
+    def clientmove(self, clid: int, cid: int, cpw: Optional[str] = None) -> QueryResponse:
         """
         Moves one or more clients specified with clid to the channel with ID cid. If the
         target channel has a password, it needs to be specified with cpw. If the channel
         has no password, the parameter can be omitted.
         """
 
-        return self.query.send(
-            QueryCommand("clientmove", kwargs={"clid": clid, "cid": cid, "cpw": cpw})
-        )
+        return self.query.send(QueryCommand("clientmove", kwargs={"clid": clid, "cid": cid, "cpw": cpw}))
 
-    def clientkick(
-        self, clid: int, reasonid: ReasonIdentifier, reasonmsg: Optional[str] = None
-    ) -> QueryResponse:
+    def clientkick(self, clid: int, reasonid: ReasonIdentifier, reasonmsg: Optional[str] = None) -> QueryResponse:
         """
         Kicks one or more clients specified with clid from their currently joined
         channel or from the server, depending on reasonid. The reasonmsg parameter
@@ -1244,9 +1145,7 @@ class CommandsWrapper:
         Sends a poke message to the client specified with clid.
         """
 
-        return self.query.send(
-            QueryCommand("clientpoke", kwargs={"clid": clid, "msg": msg})
-        )
+        return self.query.send(QueryCommand("clientpoke", kwargs={"clid": clid, "msg": msg}))
 
     def clientpermlist(self, cldbid: int, permsid: bool = False) -> QueryResponse:
         """
@@ -1288,9 +1187,7 @@ class CommandsWrapper:
             )
         )
 
-    def clientdelperm(
-        self, cldbid: int, permsid: Optional[str], permid: Optional[int] = None
-    ) -> QueryResponse:
+    def clientdelperm(self, cldbid: int, permsid: Optional[str], permid: Optional[int] = None) -> QueryResponse:
         """
         Removes a set of specified permissions from a client. Multiple permissions can
         be removed at once. A permission can be specified by permid or permsid.
@@ -1303,9 +1200,7 @@ class CommandsWrapper:
             )
         )
 
-    def channelclientpermlist(
-        self, cid: int, cldbid: int, permsid: bool = False
-    ) -> QueryResponse:
+    def channelclientpermlist(self, cid: int, cldbid: int, permsid: bool = False) -> QueryResponse:
         """
         Displays a list of permissions defined for a client in a specific channel.
         """
@@ -1383,9 +1278,7 @@ class CommandsWrapper:
         Displays the database ID of one or more permissions specified by permsid.
         """
 
-        return self.query.send(
-            QueryCommand("permidgetbyname", kwargs={"permsid": permsid})
-        )
+        return self.query.send(QueryCommand("permidgetbyname", kwargs={"permsid": permsid}))
 
     def permoverview(
         self,
@@ -1413,9 +1306,7 @@ class CommandsWrapper:
             )
         )
 
-    def permget(
-        self, permid: Optional[int] = None, permsid: Optional[str] = None
-    ) -> QueryResponse:
+    def permget(self, permid: Optional[int] = None, permsid: Optional[str] = None) -> QueryResponse:
         """
         Displays detailed information about all assignments of the permission specified
         with permid. The output is similar to permoverview which includes the type and
@@ -1423,13 +1314,9 @@ class CommandsWrapper:
         permission can be specified by permid or permsid.
         """
 
-        return self.query.send(
-            QueryCommand("permget", kwargs={"permid": permid, "permsid": permsid})
-        )
+        return self.query.send(QueryCommand("permget", kwargs={"permid": permid, "permsid": permsid}))
 
-    def permfind(
-        self, permid: Optional[int] = None, permsid: Optional[str] = None
-    ) -> QueryResponse:
+    def permfind(self, permid: Optional[int] = None, permsid: Optional[str] = None) -> QueryResponse:
         """
         Displays detailed information about all assignments of the permission specified
         with permid. The output is similar to permoverview which includes the type and
@@ -1437,9 +1324,7 @@ class CommandsWrapper:
         permission can be specified by permid or permsid.
         """
 
-        return self.query.send(
-            QueryCommand("permfind", kwargs={"permid": permid, "permsid": permsid})
-        )
+        return self.query.send(QueryCommand("permfind", kwargs={"permid": permid, "permsid": permsid}))
 
     def permreset(self) -> QueryResponse:
         """
@@ -1500,9 +1385,7 @@ class CommandsWrapper:
         Deletes an existing token matching the token key specified with token.
         """
 
-        return self.query.send(
-            QueryCommand("privilegekeydelete", kwargs={"token": token})
-        )
+        return self.query.send(QueryCommand("privilegekeydelete", kwargs={"token": token}))
 
     def privilegekeyuse(self, token: str) -> QueryResponse:
         """
@@ -1548,9 +1431,7 @@ class CommandsWrapper:
         flag is set to 1, the message will be marked as read.
         """
 
-        return self.query.send(
-            QueryCommand("messageupdateflag", kwargs={"msgid": msgid, "flag": flag})
-        )
+        return self.query.send(QueryCommand("messageupdateflag", kwargs={"msgid": msgid, "flag": flag}))
 
     def complainlist(self, tcldbid: Optional[int]) -> QueryResponse:
         """
@@ -1558,9 +1439,7 @@ class CommandsWrapper:
         specified, only complaints about the targeted client will be shown.
         """
 
-        return self.query.send(
-            QueryCommand("complainlist", kwargs={"tcldbid": tcldbid})
-        )
+        return self.query.send(QueryCommand("complainlist", kwargs={"tcldbid": tcldbid}))
 
     def complainadd(self, tcldbid: int, message: str) -> QueryResponse:
         """
@@ -1568,9 +1447,7 @@ class CommandsWrapper:
         server.
         """
 
-        return self.query.send(
-            QueryCommand("complainadd", kwargs={"tcldbid": tcldbid, "message": message})
-        )
+        return self.query.send(QueryCommand("complainadd", kwargs={"tcldbid": tcldbid, "message": message}))
 
     def complaindelall(self, tcldbid: int) -> QueryResponse:
         """
@@ -1578,9 +1455,7 @@ class CommandsWrapper:
         server.
         """
 
-        return self.query.send(
-            QueryCommand("complaindelall", kwargs={"tcldbid": tcldbid})
-        )
+        return self.query.send(QueryCommand("complaindelall", kwargs={"tcldbid": tcldbid}))
 
     def complaindel(self, tcldbid: int, fcldbid: int) -> QueryResponse:
         """
@@ -1588,24 +1463,16 @@ class CommandsWrapper:
         with ID fcldbid from the server.
         """
 
-        return self.query.send(
-            QueryCommand("complaindel", kwargs={"tcldbid": tcldbid, "fcldbid": fcldbid})
-        )
+        return self.query.send(QueryCommand("complaindel", kwargs={"tcldbid": tcldbid, "fcldbid": fcldbid}))
 
-    def banclient(
-        self, clid: int, time: Optional[int] = None, banreason: Optional[str] = None
-    ) -> QueryResponse:
+    def banclient(self, clid: int, time: Optional[int] = None, banreason: Optional[str] = None) -> QueryResponse:
         """
         Bans the client specified with ID clid from the server. Please note that this
         will create two separate ban rules for the targeted clients IP address and his
         unique identifier.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "banclient", kwargs={"clid": clid, "time": time, "banreason": banreason}
-            )
-        )
+        return self.query.send(QueryCommand("banclient", kwargs={"clid": clid, "time": time, "banreason": banreason}))
 
     def banlist(self) -> QueryResponse:
         """
@@ -1743,9 +1610,7 @@ class CommandsWrapper:
         repository.
         """
 
-        return self.query.send(
-            QueryCommand("ftgetfilelist", kwargs={"cid": cid, "cpw": cpw, "path": path})
-        )
+        return self.query.send(QueryCommand("ftgetfilelist", kwargs={"cid": cid, "cpw": cpw, "path": path}))
 
     def ftgetfileinfo(self, cid: int, cpw: str, name: str) -> QueryResponse:
         """
@@ -1753,40 +1618,28 @@ class CommandsWrapper:
         channels file repository.
         """
 
-        return self.query.send(
-            QueryCommand("ftgetfileinfo", kwargs={"cid": cid, "cpw": cpw, "name": name})
-        )
+        return self.query.send(QueryCommand("ftgetfileinfo", kwargs={"cid": cid, "cpw": cpw, "name": name}))
 
     def ftstop(self, serverftfid: int, delete: Optional[bool]) -> QueryResponse:
         """
         Stops the running file transfer with server-side ID serverftfid.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "ftstop", kwargs={"serverftfid": serverftfid, "delete": delete}
-            )
-        )
+        return self.query.send(QueryCommand("ftstop", kwargs={"serverftfid": serverftfid, "delete": delete}))
 
     def ftdeletefile(self, cid: int, cpw: str, name: str) -> QueryResponse:
         """
         Deletes one or more files stored in a channels file repository.
         """
 
-        return self.query.send(
-            QueryCommand("ftdeletefile", kwargs={"cid": cid, "cpw": cpw, "name": name})
-        )
+        return self.query.send(QueryCommand("ftdeletefile", kwargs={"cid": cid, "cpw": cpw, "name": name}))
 
     def ftcreatedir(self, cid: int, cpw: str, dirname: str) -> QueryResponse:
         """
         Creates new directory in a channels file repository.
         """
 
-        return self.query.send(
-            QueryCommand(
-                "ftcreatedir", kwargs={"cid": cid, "cpw": cpw, "dirname": dirname}
-            )
-        )
+        return self.query.send(QueryCommand("ftcreatedir", kwargs={"cid": cid, "cpw": cpw, "dirname": dirname}))
 
     def ftrenamefile(
         self,
@@ -1823,9 +1676,7 @@ class CommandsWrapper:
         parameter can include regular characters and SQL wildcard characters (e.g. %).
         """
 
-        return self.query.send(
-            QueryCommand("customsearch", kwargs={"ident": ident, "value": value})
-        )
+        return self.query.send(QueryCommand("customsearch", kwargs={"ident": ident, "value": value}))
 
     def custominfo(self, cldbid: int) -> QueryResponse:
         """
