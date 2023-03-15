@@ -1,3 +1,4 @@
+import threading
 import time
 
 from ts3client import TS3Client
@@ -9,6 +10,10 @@ logger = get_logger("main")
 
 
 class AFK_Mover(Plugin):
+    def __init__(self, stop: threading.Event):
+        super().__init__(stop)
+        logger.name = "AFK_Mover"
+
     def move_afk_clients(
         self,
         ts3_client: TS3Client,
@@ -52,4 +57,5 @@ class AFK_Mover(Plugin):
 
         while not self.event.is_set():
             self.move_afk_clients(ts3_client, afk_channel_id, afk_time, ignore_channels)
+            logger.debug(f"Sleeping for {check_interval} seconds...")
             time.sleep(check_interval)
