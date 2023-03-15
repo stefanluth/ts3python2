@@ -9,7 +9,7 @@ BOT_CONFIG = {
 }
 
 PLUGINS_CONFIG = {
-    "afk_mover": {
+    "AFK_Mover": {
         "afk_channel_id": 357515,
         "afk_time": 30 * 60,
         "check_interval": 5,
