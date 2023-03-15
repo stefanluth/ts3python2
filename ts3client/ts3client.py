@@ -131,7 +131,7 @@ class TS3Client:
         """
         return ClientResponse(self.query.commands.clientlist(uid=True))
 
-    def get_client(self, id: int) -> ClientResponse:
+    def get_client_info(self, id: int) -> ClientResponse:
         """Get information about a client.
 
         :param id: Client ID.
