@@ -27,7 +27,7 @@ class AFK_Mover(Plugin):
 
             if client_info.get("client_idle_time") > afk_time:
                 logger.info(f"Moving {client_info.get('client_nickname')} to AFK channel...")
-                # self.client.move_client(client.get("clid"), afk_channel_id)
+                self.client.move_client(client.get("clid"), afk_channel_id)
 
     def run(
         self,
