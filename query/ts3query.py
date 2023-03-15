@@ -46,7 +46,7 @@ class TS3Query(Telnet):
         timeout=10,
     ) -> None:
         logger.name = f"{self.__class__.__name__}"
-        logger.info(f"Connecting to {host}:{port}")
+        logger.info(f"Connecting to {host}:{port}...")
         try:
             super().__init__(host, port, timeout)
             self._exited = False
@@ -62,15 +62,20 @@ class TS3Query(Telnet):
         self._skip_greeting()
 
         if login and password:
-            logger.info("Logging in")
-            self.commands.login(login, password)
-        else:
-            logger.info("No login and/or password provided")
+            self.login(login, password)
 
     def __del__(self) -> None:
-        logger.info("Deleting instance")
+        logger.info("Deleting instance...")
         self.exit()
         super().__del__()
+
+    def login(self, login: str, password: str) -> None:
+        logger.info("Logging in...")
+        self.commands.login(login, password)
+
+    def logout(self) -> None:
+        logger.info("Logging out...")
+        self.commands.logout()
 
     def exit(self) -> None:
         """Exits the server, closes the connection and stops polling."""
