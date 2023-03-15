@@ -12,5 +12,7 @@ PLUGINS_CONFIG = {
     "afk_mover": {
         "afk_channel_id": 357515,
         "afk_time": 30 * 60,
+        "check_interval": 5,
+        "ignore_channels": [425000, 357512, 357513, 357514],
     },
 }

@@ -5,7 +5,13 @@ from utils.logger import get_logger
 logger = get_logger("main")
 
 
-def afk_mover(ts3_client: TS3Client, afk_channel_id: int, afk_time: int, check_interval: int = 1):
+def afk_mover(
+    ts3_client: TS3Client,
+    afk_channel_id: int,
+    afk_time: int,
+    check_interval: int = 1,
+    ignore_channels: list[int] = [],
+):
     """Moves clients to the AFK channel if they are AFK for a certain amount of time.
 
     :param client: A TS3Client instance.
@@ -14,6 +20,10 @@ def afk_mover(ts3_client: TS3Client, afk_channel_id: int, afk_time: int, check_i
     :type afk_channel_id: int
     :param afk_time: The amount of time in seconds a client has to be AFK to be moved to the AFK channel.
     :type afk_time: int
+    :param check_interval: The interval in seconds to check for AFK clients, defaults to 1.
+    :type check_interval: int
+    :param ignore_channels: A list of channel IDs to ignore, defaults to [].
+    :type ignore_channels: list[int]
     """
 
     afk_time = afk_time * 1000
@@ -22,7 +32,7 @@ def afk_mover(ts3_client: TS3Client, afk_channel_id: int, afk_time: int, check_i
         for client in ts3_client.get_clients():
             client_info = ts3_client.get_client_info(client.get("clid"))
 
-            if client_info.get("cid") == afk_channel_id:
+            if client_info.get("cid") == afk_channel_id or client_info.get("cid") in ignore_channels:
                 continue
 
             if client_info.get("client_idle_time") > afk_time:
