@@ -32,7 +32,7 @@ class ClientResponse:
         del self.data[key]
 
     def __iter__(self) -> dict:
-        return iter(self.data)
+        return iter(self.data.values())
 
     def __len__(self) -> int:
         return len(self.data)
@@ -45,3 +45,6 @@ class ClientResponse:
 
     def __ne__(self, other: dict) -> bool:
         return self.data != other
+
+    def get(self, key: str, default=None) -> dict:
+        return self.data.get(key, default)
