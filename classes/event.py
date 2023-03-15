@@ -7,6 +7,8 @@ class Event:
     Represents a TeamSpeak event.
     """
 
+    used: bool = False
+
 
 @dataclass
 class ChannelCreatedEvent(Event):
