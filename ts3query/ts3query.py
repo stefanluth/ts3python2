@@ -46,7 +46,6 @@ class TS3Query(Telnet):
             self._exited = False
         except AttributeError as e:
             logger.error(e)
-            logger.error("Invalid host and/or port")
             return
 
         self.timeout = timeout
@@ -54,8 +53,11 @@ class TS3Query(Telnet):
 
         self._skip_greeting()
 
-        if login and password:
-            self.login(login, password)
+        if not login or not password:
+            logger.info("No login and/or password provided, not logging in...")
+            return
+
+        self.login(login, password)
 
     def __del__(self) -> None:
         logger.info("Deleting instance...")
