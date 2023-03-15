@@ -25,21 +25,23 @@ class PluginManager:
                 continue
 
             stop = Event()
-            plugin: Plugin = getattr(plugins, plugin_name)(stop)
+            plugin: Plugin = getattr(plugins, plugin_name)(self.client, stop)
 
             if not hasattr(plugin, "run"):
                 logger.info(f"Plugin {plugin_name} does not have a run method. Skipping...")
                 continue
 
             logger.info(f"Starting {plugin_name}...")
-            thread = Thread(target=plugin.run, kwargs={"ts3_client": self.client, **config})
+            thread = Thread(target=plugin.run, kwargs=config)
             thread.start()
             thread.name = f"{plugin_name}-{thread.ident}"
             self.threads[thread.ident] = (thread, stop)
+            logger.info(f"Started {plugin_name} with thread name {thread.name}")
 
     def stop(self):
         logger.info("Stopping all plugins...")
         for thread, stop in self.threads.values():
-            logger.debug(f"Stopping {thread.name}...")
+            logger.info(f"Stopping {thread.name}...")
             stop.set()
             thread.join()
+            logger.info(f"Stopped {thread.name}.")

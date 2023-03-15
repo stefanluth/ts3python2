@@ -10,29 +10,27 @@ logger = create_logger("AFK_Mover", "main.log")
 
 
 class AFK_Mover(Plugin):
-    def __init__(self, stop: threading.Event):
-        super().__init__(stop)
+    def __init__(self, client: TS3Client, stop: threading.Event):
+        super().__init__(client, stop)
 
     def move_afk_clients(
         self,
-        ts3_client: TS3Client,
         afk_channel_id: int,
         afk_time: int,
         ignore_channels: list[int] = [],
     ):
-        for client in ts3_client.get_clients():
-            client_info = ts3_client.get_client_info(client.get("clid"))
+        for client in self.client.get_clients():
+            client_info = self.client.get_client_info(client.get("clid"))
 
             if client_info.get("cid") == afk_channel_id or client_info.get("cid") in ignore_channels:
                 continue
 
             if client_info.get("client_idle_time") > afk_time:
                 logger.info(f"Moving {client_info.get('client_nickname')} to AFK channel...")
-                ts3_client.move_client(client.get("clid"), afk_channel_id)
+                # self.client.move_client(client.get("clid"), afk_channel_id)
 
     def run(
         self,
-        ts3_client: TS3Client,
         afk_channel_id: int,
         afk_time: int,
         check_interval: int = 1,
@@ -55,6 +53,6 @@ class AFK_Mover(Plugin):
         afk_time = afk_time * 1000
 
         while not self.event.is_set():
-            self.move_afk_clients(ts3_client, afk_channel_id, afk_time, ignore_channels)
+            self.move_afk_clients(afk_channel_id, afk_time, ignore_channels)
             logger.debug(f"Sleeping for {check_interval} seconds...")
             time.sleep(check_interval)
