@@ -11,9 +11,34 @@ logger = get_logger("main")
 
 
 class TS3Client:
-    """A wrapper class for the TS3Query"""
+    """A higher level abstraction of the TS3Query class.
+    If no host and port are provided, the TS3Client will not connect to a server.
+    Instead you can use the TS3Client.connect() method to connect to a server.
+    If no login and password are provided, the query client will not be logged in.
+    You can login with the TS3Client.login() method after the TS3Client has been instantiated instead.
+    If you want, you can also use the TS3Client.connect() method to connect to a server and login at the same time.
+
+    :param host: The host of the TeamSpeak 3 server, defaults to None.
+    :type host: str, optional
+    :param port: The port of the TeamSpeak 3 server, defaults to None
+    :type port: int, optional
+    :param login: The login of the TeamSpeak 3 server, defaults to None
+    :type login: str, optional
+    :param password: The password of the TeamSpeak 3 server, defaults to None
+    :type password: str, optional
+    :param timeout: The timeout of the TeamSpeak 3 server, defaults to 10
+    :type timeout: int, optional
+    """
 
     query: TS3Query = None
+
+    def __init__(self, host: str = None, port: int = None, login: str = None, password: str = None, timeout=10) -> None:
+        logger.name = f"{self.__class__.__name__}"
+
+        if host and port:
+            self.connect(host, port, login, password, timeout)
+
+        logger.name = f"{self.__class__.__name__}({self.name})"
 
     @property
     def messages(self) -> list[Message]:
@@ -68,20 +93,36 @@ class TS3Client:
         return self.query.commands.serverinfo().data.get("virtualserver_port")
 
     def connect(
-        self,
-        host: str,
-        port: int,
-        login: Optional[str] = None,
-        password: Optional[str] = None,
-        timeout: int = 10,
+        self, host: str, port: int, login: Optional[str] = None, password: Optional[str] = None, timeout: int = 10
     ) -> None:
+        """Connect to a TeamSpeak 3 server.
+
+        :param host: Hostname or IP address of the TeamSpeak 3 server.
+        :type host: str
+        :param port: UDP port of the TeamSpeak 3 server.
+        :type port: int
+        :param login: Username to login with, defaults to None.
+        :type login: Optional[str], optional
+        :param password: Password to login with, defaults to None.
+        :type password: Optional[str], optional
+        :param timeout: Timeout for the connection, defaults to 10.
+        :type timeout: int, optional
+        """
         self.query = TS3Query(host, port, login, password, timeout)
 
     def disconnect(self) -> None:
+        """Disconnect from the TeamSpeak 3 server."""
         self.query.exit()
         self.query = None
 
     def login(self, login: str, password: str) -> None:
+        """Login to the TeamSpeak 3 server.
+
+        :param login: Username to login with.
+        :type login: str
+        :param password: Password to login with.
+        :type password: str
+        """
         self.query.login(login, password)
 
     def logout(self) -> None:
