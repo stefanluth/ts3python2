@@ -1,4 +1,5 @@
 import os
+import time
 
 from dotenv import load_dotenv
 
@@ -23,12 +24,16 @@ def main():
         logger.error("Missing credentials.")
         return
 
-    ts3_client = TS3Client()
-    ts3_client.connect(SERVER_IP, TELNET_PORT, TELNET_LOGIN, TELNET_PW)
+    ts3_client = TS3Client(SERVER_IP, TELNET_PORT, TELNET_LOGIN, TELNET_PW)
     ts3_client.select_server_by_port(SERVER_PORT)
 
     plugin_manager = PluginManager(ts3_client, config.PLUGINS_CONFIG)
     plugin_manager.run()
+
+    time.sleep(10)
+
+    plugin_manager.stop()
+    ts3_client.disconnect()
 
 
 if __name__ == "__main__":

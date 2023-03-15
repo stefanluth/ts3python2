@@ -1,17 +1,16 @@
 from threading import Event, Thread
 
 from ts3client import TS3Client
-from utils.logger import get_logger
+from utils.logger import create_logger
 
 from . import plugins
 from .plugin import Plugin
 
-logger = get_logger("main")
+logger = create_logger("PluginManager", "main.log")
 
 
 class PluginManager:
     def __init__(self, client: TS3Client, plugins: dict[str, dict]):
-        logger.name = "PluginManager"
         self.plugins = plugins
         self.client = client
         self.threads: dict[int, tuple[Thread, Event]] = {}
@@ -32,6 +31,7 @@ class PluginManager:
             logger.info(f"Starting {plugin_name}...")
             thread = Thread(target=plugin.run, kwargs={"ts3_client": self.client, **config})
             thread.start()
+            thread.name = f"{plugin_name}-{thread.ident}"
             self.threads[thread.ident] = (thread, stop)
 
     def stop(self):

@@ -1,7 +1,7 @@
 from ts3query.query_response import QueryResponse
-from utils.logger import get_logger
+from utils.logger import create_logger
 
-logger = get_logger("main")
+logger = create_logger("ClientResponse", "main.log")
 
 
 class ClientResponse:

@@ -5,9 +5,9 @@ from classes.message import Message
 from constants import EventType, NotifyRegisterType, ReasonIdentifier, TargetMode
 from ts3client.client_response import ClientResponse
 from ts3query.ts3query import TS3Query
-from utils.logger import get_logger
+from utils.logger import create_logger
 
-logger = get_logger("main")
+logger = create_logger("TS3Client", "main.log")
 
 
 class TS3Client:
@@ -16,7 +16,6 @@ class TS3Client:
     Instead you can use the TS3Client.connect() method to connect to a server.
     If no login and password are provided, the query client will not be logged in.
     You can login with the TS3Client.login() method after the TS3Client has been instantiated instead.
-    If you want, you can also use the TS3Client.connect() method to connect to a server and login at the same time.
 
     :param host: The host of the TeamSpeak 3 server, defaults to None.
     :type host: str, optional
@@ -33,12 +32,20 @@ class TS3Client:
     query: TS3Query = None
 
     def __init__(self, host: str = None, port: int = None, login: str = None, password: str = None, timeout=10) -> None:
-        logger.name = f"{self.__class__.__name__}"
+        if not host or not port:
+            logger.info("No host and/or port provided, not connecting to a server")
+            return
 
-        if host and port:
-            self.connect(host, port, login, password, timeout)
+        self.connect(host, port)
 
-        logger.name = f"{self.__class__.__name__}({self.name})"
+        if not login or not password:
+            logger.info("No login and/or password provided, not logging in")
+            return
+
+        self.login(login, password)
+
+    def whoami(self) -> ClientResponse:
+        return ClientResponse(self.query.commands.whoami())
 
     @property
     def messages(self) -> list[Message]:
@@ -62,19 +69,19 @@ class TS3Client:
 
     @property
     def name(self) -> str:
-        return self.query.commands.clientinfo().data.get("client_nickname")
+        return self.whoami().get("client_nickname")
 
     @property
     def id(self) -> int:
-        return self.query.commands.clientinfo().data.get("clid")
+        return self.whoami().get("clid")
 
     @property
     def unique_id(self) -> str:
-        return self.query.commands.clientinfo().data.get("client_unique_identifier")
+        return self.whoami().get("client_unique_identifier")
 
     @property
     def database_id(self) -> int:
-        return self.query.commands.clientinfo().data.get("client_database_id")
+        return self.whoami().get("client_database_id")
 
     @property
     def server_id(self) -> int:
@@ -92,23 +99,19 @@ class TS3Client:
     def server_port(self) -> int:
         return self.query.commands.serverinfo().data.get("virtualserver_port")
 
-    def connect(
-        self, host: str, port: int, login: Optional[str] = None, password: Optional[str] = None, timeout: int = 10
-    ) -> None:
+    def connect(self, host: str, port: int, timeout: int = 10) -> None:
         """Connect to a TeamSpeak 3 server.
 
         :param host: Hostname or IP address of the TeamSpeak 3 server.
         :type host: str
         :param port: UDP port of the TeamSpeak 3 server.
         :type port: int
-        :param login: Username to login with, defaults to None.
-        :type login: Optional[str], optional
-        :param password: Password to login with, defaults to None.
-        :type password: Optional[str], optional
         :param timeout: Timeout for the connection, defaults to 10.
         :type timeout: int, optional
         """
-        self.query = TS3Query(host, port, login, password, timeout)
+        logger.info(f"Connecting to {host}:{port}...")
+        self.query = TS3Query(host, port, timeout)
+        logger.info("Connected")
 
     def disconnect(self) -> None:
         """Disconnect from the TeamSpeak 3 server."""
@@ -123,7 +126,9 @@ class TS3Client:
         :param password: Password to login with.
         :type password: str
         """
+        logger.info(f"Logging in as {login}...")
         self.query.login(login, password)
+        logger.info("Logged in")
 
     def logout(self) -> None:
         self.query.logout()

@@ -6,9 +6,9 @@ from classes.message import Message
 from ts3query.query_command import CommandsWrapper, QueryCommand
 from ts3query.query_response import QueryResponse
 from utils import patterns
-from utils.logger import get_logger
+from utils.logger import create_logger
 
-logger = get_logger("main")
+logger = create_logger("TS3Query", "main.log")
 
 
 class TS3Query(Telnet):
@@ -40,7 +40,6 @@ class TS3Query(Telnet):
     _polling_thread_stop = threading.Event()
 
     def __init__(self, host: str, port: int, login: str = None, password: str = None, timeout=10) -> None:
-        logger.name = f"{self.__class__.__name__}"
         logger.info(f"Connecting to {host}:{port}...")
         try:
             super().__init__(host, port, timeout)
@@ -49,7 +48,6 @@ class TS3Query(Telnet):
             logger.error(e)
             logger.error("Invalid host and/or port")
             return
-        logger.name = f"{self.__class__.__name__}({host}:{port})"
 
         self.timeout = timeout
         self.commands = CommandsWrapper(self)
@@ -98,6 +96,8 @@ class TS3Query(Telnet):
             logger.debug(f"Sending command: {command.command}")
             self.write(command.encoded)
             response = self._receive()
+            logger.debug(f"Releasing lock...")
+        logger.debug(f"Lock released")
 
         return response
 

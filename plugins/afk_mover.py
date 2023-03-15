@@ -2,17 +2,16 @@ import threading
 import time
 
 from ts3client import TS3Client
-from utils.logger import get_logger
+from utils.logger import create_logger
 
 from .plugin import Plugin
 
-logger = get_logger("main")
+logger = create_logger("AFK_Mover", "main.log")
 
 
 class AFK_Mover(Plugin):
     def __init__(self, stop: threading.Event):
         super().__init__(stop)
-        logger.name = "AFK_Mover"
 
     def move_afk_clients(
         self,
@@ -29,7 +28,7 @@ class AFK_Mover(Plugin):
 
             if client_info.get("client_idle_time") > afk_time:
                 logger.info(f"Moving {client_info.get('client_nickname')} to AFK channel...")
-                ts3_client.move_client(client.get("clid"), afk_channel_id)
+                # ts3_client.move_client(client.get("clid"), afk_channel_id)
 
     def run(
         self,
