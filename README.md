@@ -2,36 +2,31 @@
 
 ## About
 
-This is a **very** simple pythonic interface for interacting with the TeamSpeak 3 Server
-Query.
+This is a straightforward Python interface that can be used to interact with the TeamSpeak 3 Server Query.
 
-I mainly made this repository to use in other personal projects.
-I felt like others might find it useful, so I made it public.
+I created this repository primarily for my own use in other projects.
+However, I figured that other people may also find it helpful, so I decided to make it public.
 
-There are other, **better** interfaces on GitHub, like
-[@benediktschmitt's](https://github.com/benediktschmitt) excellent
-[API](https://github.com/benediktschmitt/py-ts3/tree/v2) or
-[@Murgeye's](https://github.com/Murgeye)
-[API](https://github.com/Murgeye/teamspeak3-python-api) and
-[Bot](https://github.com/Murgeye/teamspeak3-python-bot).
+There are other, more sophisticated interfaces available on GitHub,
+such as the excellent API by @benediktschmitt, as well as the API and Bot by @Murgeye.
 
-I have resorted to writing my own versions from scratch because those projects were too
-big and extensive for my needs, and also because it's fun!
-This is just a personal project for fun and learning.
+Because those projects were too extensive for my needs and I enjoy programming,
+I chose to create my own versions from scratch.
+This is simply a personal project that I created for fun and learning.
+
+## Documentation
+
+The `docs` directory in this repository contains documentation for this project.
+The documentation explains how to use the interface and provides detailed information on write plugins.
 
 ## Questions
 
-If you have questions on how to use this repository, open an issue; I'll be happy to help.
+If you have any questions about how to use this repository, feel free to open an issue, and I'll be happy to assist you.
 
 ## Suggestions
 
 And ~~if~~ **when** you find ways to improve the code, please open a PR and let me know
-about it; I love to learn and I know my code is far from perfect.
-
-## License
-
-I just copied the MIT license, because it ensures I'm not liable for anything going wrong
-and I don't have to give any warranty that this stuff actually works.
+about it; I'm eager to learn, and I know that my code has plenty of room for improvement.
 
 ## Previous Version
 
