@@ -1,8 +1,6 @@
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Optional
+from dataclasses import dataclass
+
 from constants import ChangeableClientProperties
-from dataclasses import dataclass, field
 
 
 @dataclass

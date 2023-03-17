@@ -3,10 +3,11 @@ from telnetlib import Telnet
 
 from classes.event import Event
 from classes.message import Message
-from .ts3query_command import CommandsWrapper, TS3QueryCommand
-from .ts3query_response import TS3QueryResponse
 from utils import patterns
 from utils.logger import create_logger
+
+from .ts3query_command import CommandsWrapper, TS3QueryCommand
+from .ts3query_response import TS3QueryResponse
 
 logger = create_logger("TS3Query", "main.log")
 

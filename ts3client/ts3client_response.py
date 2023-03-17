@@ -1,4 +1,4 @@
-from typing import Any
+
 from classes.exceptions import TS3Exception
 from ts3query.ts3query_response import TS3QueryResponse
 from utils.logger import create_logger

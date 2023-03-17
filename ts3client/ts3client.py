@@ -1,13 +1,14 @@
 from typing import Optional
+
 from classes.client import Client
 from classes.client_info import ClientInfo
-
 from classes.event import Event
 from classes.message import Message
 from constants import EventType, NotifyRegisterType, ReasonIdentifier, TargetMode
-from .ts3client_response import TS3ClientResponse
 from ts3query.ts3query import TS3Query
 from utils.logger import create_logger
+
+from .ts3client_response import TS3ClientResponse
 
 logger = create_logger("TS3Client", "main.log")
 

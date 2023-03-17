@@ -1,6 +1,5 @@
 import os
 import signal
-import sys
 
 from dotenv import load_dotenv
 
