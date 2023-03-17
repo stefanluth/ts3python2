@@ -1,7 +1,7 @@
 from threading import Event, Thread
 
 from ts3client import TS3Client
-from utils.logger import create_logger
+from ts3client.utils.logger import create_logger
 
 from . import plugins
 from .plugin import Plugin

@@ -3,7 +3,7 @@ from typing import Optional
 
 
 @dataclass
-class Client:
+class User:
     clid: int
     client_nickname: str
     cid: Optional[int] = None

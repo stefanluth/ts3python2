@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from constants import ChangeableClientProperties
-
 
 @dataclass
-class ClientInfo:
+class UserInfo:
     cid: Optional[int] = None
     client_idle_time: Optional[int] = None
     client_unique_identifier: Optional[str] = None

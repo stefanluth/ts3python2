@@ -1,6 +1,6 @@
 import re
 
-from classes.event import (
+from ..event import (
     ChannelCreatedEvent,
     ChannelDeletedEvent,
     ChannelDescriptionChangedEvent,
@@ -14,10 +14,10 @@ from classes.event import (
     ServerEditedEvent,
     TokenUsedEvent,
 )
-from classes.message import Message
-from constants import EventType
-from utils import patterns
-from utils.formatters import query_to_string, string_to_query
+from ..message import Message
+from ..constants import EventType
+from . import patterns
+from .formatters import query_to_string, string_to_query
 
 
 def boolean_to_option(option: str, value: bool) -> str:

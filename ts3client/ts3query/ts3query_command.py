@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Optional
 
-from constants import *
-from utils import parsers, validators
+from ..constants import *
+from ..utils import parsers, validators
 
 if TYPE_CHECKING:
     from ts3query_response import TS3QueryResponse

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from constants import EventType
+from .constants import EventType
 
 
 class Event:

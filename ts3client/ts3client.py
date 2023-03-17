@@ -1,14 +1,12 @@
 from typing import Optional
-from classes.channel import Channel
-from classes.channel_info import ChannelInfo
 
-from classes.client import Client
-from classes.client_info import ClientInfo
-from classes.event import ClientEnterViewEvent, Event
-from classes.message import Message
-from constants import EventType, NotifyRegisterType, ReasonIdentifier, TargetMode
-from ts3query.ts3query import TS3Query
-from utils.logger import create_logger
+from .channel import Channel, ChannelInfo
+from .user import User, UserInfo
+from .event import ClientEnterViewEvent, Event
+from .message import Message
+from .constants import NotifyRegisterType, ReasonIdentifier, TargetMode
+from .ts3query import TS3Query
+from .utils.logger import create_logger
 
 from .ts3client_response import TS3ClientResponse
 
@@ -157,15 +155,15 @@ class TS3Client:
         """
         return TS3ClientResponse(self.query.commands.clientupdate(client_description=description))
 
-    def get_clients(self) -> list[Client]:
+    def get_clients(self) -> list[User]:
         """Get a list of all connected clients.
 
         :return: Response from the server.
         :rtype: ClientResponse
         """
-        return [Client(**client) for client in TS3ClientResponse(self.query.commands.clientlist(uid=True))]
+        return [User(**client) for client in TS3ClientResponse(self.query.commands.clientlist(uid=True))]
 
-    def get_client_info(self, id: int) -> ClientInfo:
+    def get_client_info(self, id: int) -> UserInfo:
         """Get information about a client.
 
         :param id: Client ID.
@@ -173,9 +171,9 @@ class TS3Client:
         :return: Response from the server.
         :rtype: ClientResponse
         """
-        return ClientInfo(**TS3ClientResponse(self.query.commands.clientinfo(clid=id))[0])
+        return UserInfo(**TS3ClientResponse(self.query.commands.clientinfo(clid=id))[0])
 
-    def find_client(self, name: str) -> list[Client]:
+    def find_client(self, name: str) -> list[User]:
         """Find clients by name.
 
         :param name: Name of the client.
@@ -183,7 +181,7 @@ class TS3Client:
         :return: Response from the server.
         :rtype: ClientResponse
         """
-        return [Client(**client) for client in TS3ClientResponse(self.query.commands.clientfind(pattern=name))]
+        return [User(**client) for client in TS3ClientResponse(self.query.commands.clientfind(pattern=name))]
 
     def rename_client(self, id: int, name: str) -> TS3ClientResponse:
         """Rename a client.

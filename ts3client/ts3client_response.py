@@ -1,7 +1,6 @@
-
-from classes.exceptions import TS3Exception
-from ts3query.ts3query_response import TS3QueryResponse
-from utils.logger import create_logger
+from .exceptions import TS3Exception
+from .ts3query.ts3query_response import TS3QueryResponse
+from .utils.logger import create_logger
 
 logger = create_logger("ClientResponse", "main.log")
 

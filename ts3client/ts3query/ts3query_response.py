@@ -1,9 +1,9 @@
 import re
 from dataclasses import dataclass, field
 
-from classes.event import Event
-from classes.message import Message
-from utils import parsers
+from ..event import Event
+from ..message import Message
+from ..utils import parsers
 
 
 @dataclass

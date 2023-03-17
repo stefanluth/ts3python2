@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
-from constants import TargetMode
-from utils.formatters import query_to_string
+from .constants import TargetMode
+from .utils.formatters import query_to_string
 
 
 @dataclass

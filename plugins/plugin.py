@@ -2,7 +2,7 @@ import threading
 
 from ts3client import TS3Client
 
-from utils.logger import create_logger
+from ts3client.utils.logger import create_logger
 
 
 class Plugin:
