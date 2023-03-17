@@ -1,7 +1,7 @@
 import threading
 import time
 
-from ts3client.ts3client import TS3Client
+from ts3client import TS3Client
 from .plugin import Plugin
 
 
@@ -20,6 +20,9 @@ class Welcomer(Plugin):
         while not self.event.is_set():
             self.logger.debug("Checking for new clients...")
             for event in self.client.get_client_entered_events():
+                if event.client_type == 1:
+                    event.used = True
+                    continue
                 self.logger.info(f"Sending welcome message to {event.client_nickname}...")
                 self.client.send_private_message(event.clid, message)
                 event.used = True
