@@ -117,6 +117,6 @@ SERVER_INSTANCE_PROPERTIES = {
     },
 }
 
-CHANGEABLE_SERVER_INSTANCE_PROPERTIES = {
-    key: value for key, value in SERVER_INSTANCE_PROPERTIES.items() if value["changeable"]
-}
+CHANGEABLE_SERVER_INSTANCE_PROPERTIES = [
+    key.lower() for key, value in SERVER_INSTANCE_PROPERTIES.items() if value["changeable"]
+]

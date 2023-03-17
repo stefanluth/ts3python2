@@ -123,7 +123,7 @@ CLIENT_PROPERTIES = {
         "description": "Number of unread offline messages in this clients inbox",
         "changeable": False,
     },
-    "CLIENT_NICKNAME_PHONETIC ": {
+    "CLIENT_NICKNAME_PHONETIC": {
         "description": "Phonetic name of the client",
         "changeable": False,
     },
@@ -175,22 +175,22 @@ CLIENT_PROPERTIES = {
         "description": "Average bandwidth used for incoming data in the last minute (Bytes/s)",
         "changeable": False,
     },
-    "CONNECTION_CLIENT_IP ": {
+    "CONNECTION_CLIENT_IP": {
         "description": "The IPv4 address of the client",
         "changeable": False,
     },
-    "CLIENT_IS_CHANNEL_COMMANDER ": {
+    "CLIENT_IS_CHANNEL_COMMANDER": {
         "description": "Indicates whether the client is a channel commander or not",
         "changeable": True,
     },
-    "CLIENT_ICON_ID ": {
+    "CLIENT_ICON_ID": {
         "description": "CRC32 checksum of the client icon",
         "changeable": True,
     },
-    "CLIENT_COUNTRY ": {
+    "CLIENT_COUNTRY": {
         "description": "The country identifier of the client (i.e. DE)",
         "changeable": False,
     },
 }
 
-CHANGEABLE_CLIENT_PROPERTIES = {key: value for key, value in CLIENT_PROPERTIES.items() if value["changeable"]}
+CHANGEABLE_CLIENT_PROPERTIES = [key.lower() for key, value in CLIENT_PROPERTIES.items() if value["changeable"]]

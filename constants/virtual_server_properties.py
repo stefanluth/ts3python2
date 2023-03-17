@@ -337,6 +337,6 @@ VIRTUAL_SERVER_PROPERTIES = {
     },
 }
 
-CHANGEABLE_VIRTUAL_SERVER_PROPERTIES = {
-    key: value for key, value in VIRTUAL_SERVER_PROPERTIES.items() if value["changeable"]
-}
+CHANGEABLE_VIRTUAL_SERVER_PROPERTIES = [
+    key.lower() for key, value in VIRTUAL_SERVER_PROPERTIES.items() if value["changeable"]
+]

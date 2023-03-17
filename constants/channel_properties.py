@@ -105,4 +105,4 @@ CHANNEL_PROPERTIES = {
     },
 }
 
-CHANGEABLE_CHANNEL_PROPERTIES = {key: value for key, value in CHANNEL_PROPERTIES.items() if value["changeable"]}
+CHANGEABLE_CHANNEL_PROPERTIES = [key.lower() for key, value in CHANNEL_PROPERTIES.items() if value["changeable"]]
