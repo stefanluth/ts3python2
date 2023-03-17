@@ -12,7 +12,7 @@ class ChannelInfo:
     channel_codec: Optional[int] = None
     channel_codec_quality: Optional[int] = None
     channel_maxclients: Optional[int] = None
-    channel_maxfamilyclients: Optional[-1] = None
+    channel_maxfamilyclients: Optional[int] = None
     channel_order: Optional[int] = None
     channel_flag_permanent: Optional[int] = None
     channel_flag_semi_permanent: Optional[int] = None
