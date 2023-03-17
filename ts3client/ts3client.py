@@ -59,34 +59,42 @@ class TS3Client:
 
     @property
     def name(self) -> str:
+        """Get the client's nickname."""
         return self.whoami().get("client_nickname")
 
     @property
     def id(self) -> int:
+        """Get the client's ID."""
         return self.whoami().get("clid")
 
     @property
     def unique_id(self) -> str:
+        """Get the client's unique ID."""
         return self.whoami().get("client_unique_identifier")
 
     @property
     def database_id(self) -> int:
+        """Get the client's database ID."""
         return self.whoami().get("client_database_id")
 
     @property
     def server_id(self) -> int:
+        """Get the client's server ID."""
         return self.query.commands.serverinfo().data.get("virtualserver_id")
 
     @property
     def server_unique_id(self) -> str:
+        """Get the client's server unique ID."""
         return self.query.commands.serverinfo().data.get("virtualserver_unique_identifier")
 
     @property
     def server_name(self) -> str:
+        """Get the client's server name."""
         return self.query.commands.serverinfo().data.get("virtualserver_name")
 
     @property
     def server_port(self) -> int:
+        """Get the client's server port."""
         return self.query.commands.serverinfo().data.get("virtualserver_port")
 
     def connect(self, host: str, port: int, timeout: int = 10) -> None:
@@ -124,6 +132,7 @@ class TS3Client:
         self.logger.info("Logged in")
 
     def logout(self) -> None:
+        """Logout from the TeamSpeak 3 server."""
         self.query.logout()
 
     def select_server(self, id: int) -> None:
