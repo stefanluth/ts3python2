@@ -1,4 +1,7 @@
+import logging
 import threading
+import socket
+import time
 from telnetlib import Telnet
 
 from ..event import Event
@@ -8,10 +11,8 @@ from ..utils.logger import create_logger
 from .ts3query_command import CommandsWrapper, TS3QueryCommand
 from .ts3query_response import TS3QueryResponse
 
-logger = create_logger("TS3Query", "main.log")
 
-
-class TS3Query(Telnet):
+class TS3Query:
     """A class for interacting with the TeamSpeak 3 ServerQuery interface.
     If no login and password are provided, the query client will not be logged in.
     You can login with the TS3Query.login() method after the TS3Query has been instantiated.
@@ -28,10 +29,9 @@ class TS3Query(Telnet):
     :type timeout: int, optional
     """
 
-    _lock = threading.Lock()
+    _lock = threading.RLock()
 
-    _exited = True
-
+    _flood_protection: bool = True
     _events: list[Event] = []
     _events_limit: int = 1000
     _messages: list[Message] = []
@@ -39,50 +39,78 @@ class TS3Query(Telnet):
     _polling_thread: threading.Thread = None
     _polling_thread_stop = threading.Event()
 
-    def __init__(self, host: str, port: int, login: str = None, password: str = None, timeout=10) -> None:
-        logger.info(f"Connecting to {host}:{port}...")
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        login: str = None,
+        password: str = None,
+        timeout=10,
+        logger: logging.Logger = None,
+    ) -> None:
+        self.logger = logger or create_logger("TS3Query", "main.log")
+        self.logger.info(f"Connecting to {host}:{port}...")
+
         try:
-            super().__init__(host, port, timeout)
-            self._exited = False
+            self._telnet = Telnet(host, port, timeout)
         except AttributeError as e:
-            logger.error(e)
+            self.logger.error(e)
             return
 
         self.timeout = timeout
         self.commands = CommandsWrapper(self)
-
         self._skip_greeting()
 
         if not login or not password:
-            logger.info("No login and/or password provided, not logging in...")
+            self.logger.info("No login and/or password provided, not logging in...")
             return
 
         self.login(login, password)
 
     def __del__(self) -> None:
-        logger.info("Deleting instance...")
         self.exit()
         super().__del__()
 
-    def login(self, login: str, password: str) -> None:
-        logger.info("Logging in...")
-        self.commands.login(login, password)
+    def connected(self) -> bool:
+        sock = self._telnet.get_socket()
+        if sock is not None and sock.fileno() != -1:
+            try:
+                sock.getsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE)
+            except socket.error:
+                return False
+        else:
+            return False
 
-    def logout(self) -> None:
-        logger.info("Logging out...")
-        self.commands.logout()
+        return True
+
+    def login(self, login: str, password: str) -> TS3QueryResponse:
+        if not self.connected():
+            return
+
+        self.logger.info("Logging in...")
+        return self.commands.login(login, password)
+
+    def logout(self) -> TS3QueryResponse:
+        if not self.connected():
+            return
+
+        self.logger.info("Logging out...")
+        return self.commands.logout()
 
     def exit(self) -> None:
         """Exits the server, closes the connection and stops polling."""
 
+        if not self.connected():
+            return
+
         if self._polling_thread and self._polling_thread.is_alive():
             self.stop_polling()
 
-        if not self._exited:
-            logger.info("Exiting")
-            self.commands.quit()
-            self.close()
-            self._exited = True
+        self.logger.info("Exiting")
+        self.commands.quit()
+        self.logger.info("Closing connection")
+        self._telnet.close()
+        self.logger.info("Connection closed")
 
     def send(self, command: TS3QueryCommand) -> TS3QueryResponse:
         """Sends a command to the server.
@@ -92,44 +120,51 @@ class TS3Query(Telnet):
         :return: The response from the server
         :rtype: QueryResponse
         """
-        logger.debug(f"Aquiring lock...")
+        if not self.connected():
+            return
+
+        self.logger.debug(f"Aquiring lock...")
         with self._lock:
-            logger.debug(f"Lock aquired")
-            logger.debug(f"Sending command: {command.command}")
-            self.write(command.encoded)
+            if self._flood_protection:
+                time.sleep(0.1)
+
+            self.logger.debug(f"Lock aquired")
+            self.logger.debug(f"Sending command: {command.command}")
+            self._telnet.write(command.encoded)
             response = self._receive()
-            logger.debug(f"Releasing lock...")
-        logger.debug(f"Lock released")
+            self.logger.debug(f"Releasing lock...")
+
+        self.logger.debug(f"Lock released")
 
         return response
 
     def _receive(self) -> TS3QueryResponse:
-        logger.debug("Receiving response...")
-        response = self.expect([patterns.RESPONSE_END_BYTES], self.timeout)
+        self.logger.debug("Receiving response...")
+        response = self._telnet.expect([patterns.RESPONSE_END_BYTES], self.timeout)
+        self.logger.debug(f"Received response: {response}")
+
         response = TS3QueryResponse(*response)
-        logger.debug(f"Received response: {response.response}")
+        self.logger.debug(f"Parsed response: {response}")
 
         self._add_events(response.events, self._events_limit)
         self._add_messages(response.messages, self._messages_limit)
 
-        logger.debug(f"Received data: {response.data}")
-
         return response
 
     def _add_events(self, events: list[Event], limit: int):
-        logger.debug(f"Adding events: {events}")
+        self.logger.debug(f"Adding events: {events}")
         self._events.extend(events)
 
         if len(self._events) > limit:
-            logger.debug("Events limit reached, trimming events")
+            self.logger.debug("Events limit reached, trimming events")
             self._events = self._events[-limit:]
 
     def _add_messages(self, messages: list[Message], limit: int):
-        logger.debug(f"Adding messages: {messages}")
+        self.logger.debug(f"Adding messages: {messages}")
         self._messages.extend(messages)
 
         if len(self._messages) > limit:
-            logger.debug("Messages limit reached, trimming messages")
+            self.logger.debug("Messages limit reached, trimming messages")
             self._messages = self._messages[-limit:]
 
     def start_polling(self, polling_rate: float = 1) -> None:
@@ -138,46 +173,46 @@ class TS3Query(Telnet):
         :param polling_rate: The rate at which to poll the server, defaults to 1
         :type polling_rate: float, optional
         """
-        logger.debug("Starting polling...")
+        self.logger.debug("Starting polling...")
         if self._polling_thread and self._polling_thread.is_alive():
-            logger.debug("Polling thread is already running")
+            self.logger.debug("Polling thread is already running")
             return
 
-        logger.debug("Creating polling thread")
+        self.logger.debug("Creating polling thread")
         self._polling_thread = threading.Thread(
             target=self._poll,
             args=(self._polling_thread_stop, polling_rate),
         )
-        logger.info("Starting polling thread")
+        self.logger.info("Starting polling thread")
         self._polling_thread.start()
 
     def stop_polling(self) -> None:
         """Stops polling the server for events and messages."""
-        logger.debug("Stopping polling...")
+        self.logger.debug("Stopping polling...")
 
         if not self._polling_thread or not self._polling_thread.is_alive():
-            logger.debug("Polling thread is not running")
+            self.logger.debug("Polling thread is not running")
             return
 
         if self._polling_thread_stop.is_set():
-            logger.debug("Polling thread is already stopped")
+            self.logger.debug("Polling thread is already stopped")
             return
 
-        logger.info("Stopping polling thread")
+        self.logger.info("Stopping polling thread")
         self._polling_thread_stop.set()
         self._polling_thread.join()
         self._polling_thread_stop.clear()
         self._polling_thread = None
 
     def _poll(self, stop: threading.Event, polling_rate: float) -> None:
-        logger.debug("Polling...")
+        self.logger.debug("Polling...")
         while not stop.is_set():
             self.commands.version()
             stop.wait(polling_rate)
-        logger.debug("Polling stopped")
+        self.logger.debug("Polling stopped")
 
     def set_messages_limit(self, limit: int) -> None:
-        logger.info(f"Setting messages limit to {limit}")
+        self.logger.info(f"Setting messages limit to {limit}")
         self._messages_limit = limit
 
     @property
@@ -193,7 +228,7 @@ class TS3Query(Telnet):
         return [message for message in self._messages if not message.used]
 
     def set_events_limit(self, limit: int) -> None:
-        logger.info(f"Setting events limit to {limit}")
+        self.logger.info(f"Setting events limit to {limit}")
         self._events_limit = limit
 
     @property
@@ -208,10 +243,26 @@ class TS3Query(Telnet):
     def unread_events(self) -> list[Event]:
         return [event for event in self._events if not event.used]
 
+    @property
+    def flood_protection(self) -> bool:
+        return self._flood_protection
+
+    def enable_flood_protection(self) -> None:
+        self.logger.info("Enabling flood protection")
+        self._flood_protection = True
+
+    def disable_flood_protection(self) -> None:
+        self.logger.info("Disabling flood protection")
+        self._flood_protection = False
+
     def _skip_greeting(self) -> None:
-        logger.debug("Skipping greeting")
-        self.read_until(
-            b'TS3\n\rWelcome to the TeamSpeak 3 ServerQuery interface, type "help" for a list of '
-            b'commands and "help <command>" for information on a specific command.\n\r',
-            self.timeout,
-        )
+        if not self.connected():
+            return
+
+        with self._lock:
+            self.logger.debug("Skipping greeting")
+            self._telnet.read_until(
+                b'TS3\n\rWelcome to the TeamSpeak 3 ServerQuery interface, type "help" for a list of '
+                b'commands and "help <command>" for information on a specific command.\n\r',
+                self.timeout,
+            )
