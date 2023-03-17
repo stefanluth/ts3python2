@@ -39,13 +39,13 @@ class AFK_Mover(Plugin):
 
         while not self.event.is_set():
             for client in self.client.get_clients():
-                client_info = self.client.get_client_info(client.get("clid"))
-
-                if client_info.get("cid") == afk_channel_id or client_info.get("cid") in ignore_channels:
+                if client.cid == afk_channel_id or client.cid in ignore_channels:
                     continue
 
-                if client_info.get("client_idle_time") > afk_time:
-                    logger.info(f"Moving {client_info.get('client_nickname')} to AFK channel...")
+                client_info = self.client.get_client_info(client.clid)
+
+                if client_info.client_idle_time > afk_time:
+                    logger.info(f"Moving {client.client_nickname} to AFK channel...")
                     self.client.move_client(client.get("clid"), afk_channel_id)
                     self.client.send_private_message(client.get("clid"), move_message)
             logger.debug(f"Sleeping for {check_interval} seconds...")
