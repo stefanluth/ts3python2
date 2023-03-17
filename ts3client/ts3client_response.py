@@ -1,11 +1,13 @@
-from ts3query.query_response import QueryResponse
+from typing import Any
+from classes.exceptions import TS3Exception
+from ts3query.ts3query_response import TS3QueryResponse
 from utils.logger import create_logger
 
 logger = create_logger("ClientResponse", "main.log")
 
 
-class ClientResponse:
-    def __init__(self, response: QueryResponse):
+class TS3ClientResponse:
+    def __init__(self, response: TS3QueryResponse):
         self.query_response = response
         self.error_id = response.error_id
         self.msg = response.msg
@@ -15,9 +17,13 @@ class ClientResponse:
 
         if response.error_id != 0:
             logger.error(f"Error {response.error_id}: {response.msg}")
+            raise TS3Exception(response.error_id, response.msg)
 
         if response.data == {}:
             self.data = {"msg": response.msg}
+
+    def to_dict(self) -> dict:
+        return self.data
 
     def __repr__(self) -> str:
         return self.data.__repr__()
@@ -32,12 +38,7 @@ class ClientResponse:
         del self.data[key]
 
     def __iter__(self) -> dict:
-        # TODO This is a temporary fix for the issue of the client response
-        contains_multiple_results = all(str(i) == key for i, key in enumerate(self.data.keys()))
-        if contains_multiple_results:
-            return iter(self.data.values())
-
-        return iter({"0": self.data}.values())
+        return iter(self.data.values())
 
     def __len__(self) -> int:
         return len(self.data)

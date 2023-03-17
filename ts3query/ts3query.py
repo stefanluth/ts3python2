@@ -3,8 +3,8 @@ from telnetlib import Telnet
 
 from classes.event import Event
 from classes.message import Message
-from ts3query.query_command import CommandsWrapper, QueryCommand
-from ts3query.query_response import QueryResponse
+from .ts3query_command import CommandsWrapper, TS3QueryCommand
+from .ts3query_response import TS3QueryResponse
 from utils import patterns
 from utils.logger import create_logger
 
@@ -84,7 +84,7 @@ class TS3Query(Telnet):
             self.close()
             self._exited = True
 
-    def send(self, command: QueryCommand) -> QueryResponse:
+    def send(self, command: TS3QueryCommand) -> TS3QueryResponse:
         """Sends a command to the server.
 
         :param command: The command to send
@@ -103,10 +103,10 @@ class TS3Query(Telnet):
 
         return response
 
-    def _receive(self) -> QueryResponse:
+    def _receive(self) -> TS3QueryResponse:
         logger.debug("Receiving response...")
         response = self.expect([patterns.RESPONSE_END_BYTES], self.timeout)
-        response = QueryResponse(*response)
+        response = TS3QueryResponse(*response)
         logger.debug(f"Received response: {response.response}")
 
         self._add_events(response.events, self._events_limit)

@@ -4,15 +4,15 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Optional
 
 from constants import *
-from utils import parsers
+from utils import parsers, validators
 
 if TYPE_CHECKING:
-    from ts3query.query_response import QueryResponse
-    from ts3query.ts3query import TS3Query
+    from ts3query_response import TS3QueryResponse
+    from ts3query import TS3Query
 
 
 @dataclass
-class QueryCommand:
+class TS3QueryCommand:
     command: str
     args: Optional[tuple[tuple[str, bool]]] = field(default_factory=tuple)
     kwargs: Optional[dict] = field(default_factory=dict)
@@ -46,31 +46,31 @@ class CommandsWrapper:
     def __init__(self, query: TS3Query) -> None:
         self.query = query
 
-    def help(self) -> QueryResponse:
+    def help(self) -> TS3QueryResponse:
         """
         Provides information about ServerQuery commands. Used without parameters,
         help lists and briefly describes every command.
         """
 
-        response = self.query.send(QueryCommand("help"))
+        response = self.query.send(TS3QueryCommand("help"))
         data, events, messages = parsers.parse_help(response.response)
         response.data = data
         response.events = events
         response.messages = messages
         return response
 
-    def quit(self) -> QueryResponse:
+    def quit(self) -> TS3QueryResponse:
         """Closes the ServerQuery connection to the TeamSpeak 3 Server instance."""
-        return self.query.send(QueryCommand("quit"))
+        return self.query.send(TS3QueryCommand("quit"))
 
-    def login(self, client_login_name: str, client_login_password: str) -> QueryResponse:
+    def login(self, client_login_name: str, client_login_password: str) -> TS3QueryResponse:
         """
         Authenticates with the TeamSpeak 3 Server instance using given ServerQuery
         login credentials.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "login",
                 kwargs={
                     "client_login_name": client_login_name,
@@ -79,62 +79,62 @@ class CommandsWrapper:
             )
         )
 
-    def logout(self) -> QueryResponse:
+    def logout(self) -> TS3QueryResponse:
         """
         Deselects the active virtual server and logs out from the server instance.
         """
 
-        return self.query.send(QueryCommand("logout"))
+        return self.query.send(TS3QueryCommand("logout"))
 
-    def version(self) -> QueryResponse:
+    def version(self) -> TS3QueryResponse:
         """
         Displays the servers version information including platform and build number.
         """
 
-        return self.query.send(QueryCommand("version"))
+        return self.query.send(TS3QueryCommand("version"))
 
-    def hostinfo(self) -> QueryResponse:
+    def hostinfo(self) -> TS3QueryResponse:
         """
         Displays detailed connection information about the server instance including
         uptime, number of virtual servers online, traffic information, etc. For detailed
         information, see Server Instance Properties.
         """
 
-        return self.query.send(QueryCommand("hostinfo"))
+        return self.query.send(TS3QueryCommand("hostinfo"))
 
-    def instanceinfo(self) -> QueryResponse:
+    def instanceinfo(self) -> TS3QueryResponse:
         """
         Displays the server instance configuration including database revision number,
         the file transfer port, default group IDs, etc. For detailed information, see
         Server Instance Properties.
         """
 
-        return self.query.send(QueryCommand("instanceinfo"))
+        return self.query.send(TS3QueryCommand("instanceinfo"))
 
-    def instanceedit(self, **kwargs) -> QueryResponse:
+    def instanceedit(self, **kwargs) -> TS3QueryResponse:
         """
         Changes the server instance configuration using given properties. For detailed
         information, see Server Instance Properties.
         """
 
-        _validate_server_instance_kwargs(kwargs)
+        validators._validate_server_instance_kwargs(kwargs)
 
-        return self.query.send(QueryCommand("instanceedit", kwargs=kwargs))
+        return self.query.send(TS3QueryCommand("instanceedit", kwargs=kwargs))
 
-    def bindinglist(self, subsystem: Optional[Subsystem] = None) -> QueryResponse:
+    def bindinglist(self, subsystem: Optional[Subsystem] = None) -> TS3QueryResponse:
         """
         Displays a list of IP addresses used by the server instance on multi-homed
         machines. If no subsystem is specified, "voice" is used by default.
         """
 
-        return self.query.send(QueryCommand("bindinglist", kwargs={"subsystem": subsystem.value or Subsystem.VOICE}))
+        return self.query.send(TS3QueryCommand("bindinglist", kwargs={"subsystem": subsystem.value or Subsystem.VOICE}))
 
     def use(
         self,
         sid: Optional[int] = None,
         port: Optional[int] = None,
         virtual: bool = False,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Selects the virtual server specified with sid or port to allow further
         interaction. The ServerQuery client will appear on the virtual server and acts
@@ -143,7 +143,7 @@ class CommandsWrapper:
         port, use will select a random virtual server using the specified port.
         """
 
-        return self.query.send(QueryCommand("use", args=(("virtual", virtual),), kwargs={"sid": sid, "port": port}))
+        return self.query.send(TS3QueryCommand("use", args=(("virtual", virtual),), kwargs={"sid": sid, "port": port}))
 
     def serverlist(
         self,
@@ -151,7 +151,7 @@ class CommandsWrapper:
         short: bool = False,
         all: bool = False,
         onlyoffline: bool = False,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Displays a list of virtual servers including their ID, status, number of clients
         online, etc. If you're using the -all option, the server will list all virtual
@@ -169,7 +169,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "serverlist",
                 args=(
                     ("uid", uid),
@@ -180,23 +180,23 @@ class CommandsWrapper:
             )
         )
 
-    def serveridgetbyport(self, virtualserver_port: int) -> QueryResponse:
+    def serveridgetbyport(self, virtualserver_port: int) -> TS3QueryResponse:
         """
         Displays the database ID of the virtual server running on the UDP port specified
         by virtualserver_port.
         """
 
-        return self.query.send(QueryCommand("serveridgetbyport", kwargs={"virtualserver_port": virtualserver_port}))
+        return self.query.send(TS3QueryCommand("serveridgetbyport", kwargs={"virtualserver_port": virtualserver_port}))
 
-    def serverdelete(self, sid: int) -> QueryResponse:
+    def serverdelete(self, sid: int) -> TS3QueryResponse:
         """
         Deletes the virtual server specified with sid. Please note that only virtual
         servers in stopped state can be deleted.
         """
 
-        return self.query.send(QueryCommand("serverdelete", kwargs={"sid": sid}))
+        return self.query.send(TS3QueryCommand("serverdelete", kwargs={"sid": sid}))
 
-    def servercreate(self, **kwargs) -> QueryResponse:
+    def servercreate(self, **kwargs) -> TS3QueryResponse:
         """
         Creates a new virtual server using the given properties and displays its ID,
         port and initial administrator privilege key. If virtualserver_port is not
@@ -206,53 +206,53 @@ class CommandsWrapper:
         information, see Virtual Server Properties.
         """
 
-        _validate_virtual_server_kwargs(kwargs)
+        validators._validate_virtual_server_kwargs(kwargs)
 
-        return self.query.send(QueryCommand("servercreate", kwargs={**kwargs}))
+        return self.query.send(TS3QueryCommand("servercreate", kwargs={**kwargs}))
 
-    def serverstart(self, sid: int) -> QueryResponse:
+    def serverstart(self, sid: int) -> TS3QueryResponse:
         """
         Starts the virtual server specified with sid. Depending on your permissions,
         you're able to start either your own virtual server only or all virtual servers
         in the server instance.
         """
 
-        return self.query.send(QueryCommand("serverstart", kwargs={"sid": sid}))
+        return self.query.send(TS3QueryCommand("serverstart", kwargs={"sid": sid}))
 
-    def serverstop(self, sid: int) -> QueryResponse:
+    def serverstop(self, sid: int) -> TS3QueryResponse:
         """
         Stops the virtual server specified with sid. Depending on your permissions,
         you're able to stop either your own virtual server only or all virtual servers
         in the server instance.
         """
 
-        return self.query.send(QueryCommand("serverstop", kwargs={"sid": sid}))
+        return self.query.send(TS3QueryCommand("serverstop", kwargs={"sid": sid}))
 
-    def serverprocessstop(self) -> QueryResponse:
+    def serverprocessstop(self) -> TS3QueryResponse:
         """
         Stops the entire TeamSpeak 3 Server instance by shutting down the process.
         """
 
-        return self.query.send(QueryCommand("serverprocessstop"))
+        return self.query.send(TS3QueryCommand("serverprocessstop"))
 
-    def serverinfo(self) -> QueryResponse:
+    def serverinfo(self) -> TS3QueryResponse:
         """
         Displays detailed configuration information about the selected virtual server
         including unique ID, number of clients online, configuration, etc. For detailed
         information, see Virtual Server Properties.
         """
 
-        return self.query.send(QueryCommand("serverinfo"))
+        return self.query.send(TS3QueryCommand("serverinfo"))
 
-    def serverrequestconnectioninfo(self) -> QueryResponse:
+    def serverrequestconnectioninfo(self) -> TS3QueryResponse:
         """
         Displays detailed connection information about the selected virtual server
         including uptime, traffic information, etc.
         """
 
-        return self.query.send(QueryCommand("serverrequestconnectioninfo"))
+        return self.query.send(TS3QueryCommand("serverrequestconnectioninfo"))
 
-    def servertemppasswordadd(self, pw: str, desc: str, duration: int, tcid: int, tcpw: str) -> QueryResponse:
+    def servertemppasswordadd(self, pw: str, desc: str, duration: int, tcid: int, tcpw: str) -> TS3QueryResponse:
         """
         Sets a new temporary server password specified with pw. The temporary password
         will be valid for the number of seconds specified with duration. The client
@@ -261,7 +261,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "servertemppasswordadd",
                 kwargs={
                     "pw": pw,
@@ -273,23 +273,23 @@ class CommandsWrapper:
             )
         )
 
-    def servertemppassworddel(self, pw: str) -> QueryResponse:
+    def servertemppassworddel(self, pw: str) -> TS3QueryResponse:
         """
         Deletes the temporary server password specified with pw.
         """
 
-        return self.query.send(QueryCommand("servertemppassworddel", kwargs={"pw": pw}))
+        return self.query.send(TS3QueryCommand("servertemppassworddel", kwargs={"pw": pw}))
 
-    def servertemppasswordlist(self) -> QueryResponse:
+    def servertemppasswordlist(self) -> TS3QueryResponse:
         """
 
         Returns a list of active temporary server passwords. The output contains the
         clear-text password, the nickname and unique identifier of the creating client.
         """
 
-        return self.query.send(QueryCommand("servertemppasswordlist"))
+        return self.query.send(TS3QueryCommand("servertemppasswordlist"))
 
-    def serveredit(self, **kwargs) -> QueryResponse:
+    def serveredit(self, **kwargs) -> TS3QueryResponse:
         """
         Changes the selected virtual servers configuration using given properties.
         Note that this command accepts multiple properties which means that you're able
@@ -297,19 +297,19 @@ class CommandsWrapper:
         information, see Virtual Server Properties.
         """
 
-        _validate_virtual_server_kwargs(kwargs)
+        validators._validate_virtual_server_kwargs(kwargs)
 
-        return self.query.send(QueryCommand("serveredit", kwargs=kwargs))
+        return self.query.send(TS3QueryCommand("serveredit", kwargs=kwargs))
 
-    def servergrouplist(self) -> QueryResponse:
+    def servergrouplist(self) -> TS3QueryResponse:
         """
         Displays a list of server groups available. Depending on your permissions,
         the output may also contain global ServerQuery groups and template groups.
         """
 
-        return self.query.send(QueryCommand("servergrouplist"))
+        return self.query.send(TS3QueryCommand("servergrouplist"))
 
-    def servergroupadd(self, name: str, type: Optional[PermissionGroupDatabaseType] = None) -> QueryResponse:
+    def servergroupadd(self, name: str, type: Optional[PermissionGroupDatabaseType] = None) -> TS3QueryResponse:
         """
         Creates a new server group using the name specified with name and displays its
         ID. The optional type parameter can be used to create ServerQuery groups and
@@ -317,21 +317,21 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "servergroupadd",
                 kwargs={"name": name, "type": type.value if type else None},
             )
         )
 
-    def servergroupdel(self, sgid: int, force: bool = False) -> QueryResponse:
+    def servergroupdel(self, sgid: int, force: bool = False) -> TS3QueryResponse:
         """
         Deletes the server group specified with sgid. If force is set to 1, the server
         group will be deleted even if there are clients within.
         """
 
-        return self.query.send(QueryCommand("servergroupdel", kwargs={"sgid": sgid, "force": force}))
+        return self.query.send(TS3QueryCommand("servergroupdel", kwargs={"sgid": sgid, "force": force}))
 
-    def servergroupcopy(self, ssgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType) -> QueryResponse:
+    def servergroupcopy(self, ssgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType) -> TS3QueryResponse:
         """
         Creates a copy of the server group specified with ssgid. If tsgid is set to 0,
         the server will create a new group. To overwrite an existing group, simply set
@@ -342,7 +342,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "servergroupcopy",
                 kwargs={
                     "ssgid": ssgid,
@@ -353,14 +353,14 @@ class CommandsWrapper:
             )
         )
 
-    def servergrouprename(self, sgid: int, name: str) -> QueryResponse:
+    def servergrouprename(self, sgid: int, name: str) -> TS3QueryResponse:
         """
         Changes the name of the server group specified with sgid.
         """
 
-        return self.query.send(QueryCommand("servergrouprename", kwargs={"sgid": sgid, "name": name}))
+        return self.query.send(TS3QueryCommand("servergrouprename", kwargs={"sgid": sgid, "name": name}))
 
-    def servergrouppermlist(self, sgid: int, permsid: bool = False) -> QueryResponse:
+    def servergrouppermlist(self, sgid: int, permsid: bool = False) -> TS3QueryResponse:
         """
         Displays a list of permissions assigned to the server group specified with sgid.
         If the -permsid option is specified, the output will contain the permission
@@ -368,7 +368,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "servergrouppermlist",
                 args=(("permsid", permsid),),
                 kwargs={"sgid": sgid},
@@ -383,7 +383,7 @@ class CommandsWrapper:
         permsid: Optional[str] = None,
         permnegated: bool = False,
         permskip: bool = False,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Adds a set of specified permissions to the server group specified with sgid.
         Multiple permissions can be added by providing the four parameters of each
@@ -391,7 +391,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "servergroupaddperm",
                 kwargs={
                     "sgid": sgid,
@@ -406,7 +406,7 @@ class CommandsWrapper:
 
     def servergroupdelperm(
         self, sgid: int, permid: Optional[int] = None, permsid: Optional[str] = None
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Removes a set of specified permissions from the server group specified with
         sgid. Multiple permissions can be removed at once. A permission can be specified
@@ -414,44 +414,46 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "servergroupdelperm",
                 kwargs={"sgid": sgid, "permid": permid, "permsid": permsid},
             )
         )
 
-    def servergroupaddclient(self, sgid: int, cldbid: int) -> QueryResponse:
+    def servergroupaddclient(self, sgid: int, cldbid: int) -> TS3QueryResponse:
         """
         Adds a client to the server group specified with sgid. Please note that a client
         cannot be added to default groups or template groups.
         """
 
-        return self.query.send(QueryCommand("servergroupaddclient", kwargs={"sgid": sgid, "cldbid": cldbid}))
+        return self.query.send(TS3QueryCommand("servergroupaddclient", kwargs={"sgid": sgid, "cldbid": cldbid}))
 
-    def servergroupdelclient(self, sgid: int, cldbid: int) -> QueryResponse:
+    def servergroupdelclient(self, sgid: int, cldbid: int) -> TS3QueryResponse:
         """
         Removes a client specified with cldbid from the server group specified with
         sgid.
         """
 
-        return self.query.send(QueryCommand("servergroupdelclient", kwargs={"sgid": sgid, "cldbid": cldbid}))
+        return self.query.send(TS3QueryCommand("servergroupdelclient", kwargs={"sgid": sgid, "cldbid": cldbid}))
 
-    def servergroupclientlist(self, sgid: int, names: bool = False) -> QueryResponse:
+    def servergroupclientlist(self, sgid: int, names: bool = False) -> TS3QueryResponse:
         """
         Displays the IDs of all clients currently residing in the server group specified
         with sgid. If you're using the optional -names option, the output will also
         contain the last known nickname and the unique identifier of the clients.
         """
 
-        return self.query.send(QueryCommand("servergroupclientlist", args=(("names", names),), kwargs={"sgid": sgid}))
+        return self.query.send(
+            TS3QueryCommand("servergroupclientlist", args=(("names", names),), kwargs={"sgid": sgid})
+        )
 
-    def servergroupsbyclientid(self, cldbid: int) -> QueryResponse:
+    def servergroupsbyclientid(self, cldbid: int) -> TS3QueryResponse:
         """
         Displays all server groups the client specified with cldbid is currently
         residing in.
         """
 
-        return self.query.send(QueryCommand("servergroupsbyclientid", kwargs={"cldbid": cldbid}))
+        return self.query.send(TS3QueryCommand("servergroupsbyclientid", kwargs={"cldbid": cldbid}))
 
     def servergroupautoaddperm(
         self,
@@ -461,7 +463,7 @@ class CommandsWrapper:
         permsid: Optional[str] = None,
         permnegated: bool = False,
         permskip: bool = False,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Adds a set of specified permissions to *ALL* regular server groups on all
         virtual servers. The target groups will be identified by the value of their
@@ -473,7 +475,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "servergroupautoaddperm",
                 kwargs={
                     "sgtype": sgtype.value,
@@ -491,7 +493,7 @@ class CommandsWrapper:
         sgtype: ServerGroupType,
         permid: Optional[int] = None,
         permsid: Optional[str] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Removes a set of specified permissions from *ALL* regular server groups on all
         virtual servers. The target groups will be identified by the value of their
@@ -503,7 +505,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "servergroupautodelperm",
                 kwargs={
                     "sgtype": sgtype.value,
@@ -513,7 +515,7 @@ class CommandsWrapper:
             )
         )
 
-    def serversnapshotcreate(self) -> QueryResponse:
+    def serversnapshotcreate(self) -> TS3QueryResponse:
         """
         Displays a snapshot of the selected virtual server containing all settings,
         groups and known client identities. The data from a server snapshot can be used
@@ -521,9 +523,9 @@ class CommandsWrapper:
         serversnapshotdeploy command.
         """
 
-        return self.query.send(QueryCommand("serversnapshotcreate"))
+        return self.query.send(TS3QueryCommand("serversnapshotcreate"))
 
-    def serversnapshotdeploy(self, hash: str, mapping: bool = False, **kwargs) -> QueryResponse:
+    def serversnapshotdeploy(self, hash: str, mapping: bool = False, **kwargs) -> TS3QueryResponse:
         """
         Restores the selected virtual servers configuration using the data from a
         previously created server snapshot. Please note that the TeamSpeak 3 Server does
@@ -532,14 +534,14 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "serversnapshotdeploy",
                 args=(("mapping", mapping),),
                 kwargs={"hash": hash, **kwargs},
             )
         )
 
-    def servernotifyregister(self, event: NotifyRegisterType, id: Optional[int] = None) -> QueryResponse:
+    def servernotifyregister(self, event: NotifyRegisterType, id: Optional[int] = None) -> TS3QueryResponse:
         """
         Registers for a specified category of events on a virtual server to receive
         notification messages. Depending on the notifications you've registered for,
@@ -549,17 +551,17 @@ class CommandsWrapper:
         parameter while id can be used to limit the notifications to a specific channel.
         """
 
-        return self.query.send(QueryCommand("servernotifyregister", kwargs={"event": event.value, "id": id}))
+        return self.query.send(TS3QueryCommand("servernotifyregister", kwargs={"event": event.value, "id": id}))
 
-    def servernotifyunregister(self) -> QueryResponse:
+    def servernotifyunregister(self) -> TS3QueryResponse:
         """
         Unregisters all events previously registered with servernotifyregister so you
         will no longer receive notification messages.
         """
 
-        return self.query.send(QueryCommand("servernotifyunregister"))
+        return self.query.send(TS3QueryCommand("servernotifyunregister"))
 
-    def sendtextmessage(self, targetmode: TargetMode, target: int, msg: str) -> QueryResponse:
+    def sendtextmessage(self, targetmode: TargetMode, target: int, msg: str) -> TS3QueryResponse:
         """
         Sends a text message to a specified target. If targetmode is set to 1, a message
         is sent to the client with the ID specified by target. If targetmode is set to 2
@@ -568,7 +570,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "sendtextmessage",
                 kwargs={"targetmode": targetmode.value, "target": target, "msg": msg},
             )
@@ -580,7 +582,7 @@ class CommandsWrapper:
         reverse: bool = False,
         instance: bool = False,
         begin_pos: Optional[int] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Displays a specified number of entries from the servers log. If instance is set
         to 1, the server will return lines from the master logfile (ts3server_0.log)
@@ -588,7 +590,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "logview",
                 kwargs={
                     "lines": lines,
@@ -599,7 +601,7 @@ class CommandsWrapper:
             )
         )
 
-    def logadd(self, loglevel: LogLevel, logmsg: str) -> QueryResponse:
+    def logadd(self, loglevel: LogLevel, logmsg: str) -> TS3QueryResponse:
         """
         Writes a custom entry into the servers log. Depending on your permissions,
         you'll be able to add entries into the server instance log and/or your virtual
@@ -607,15 +609,15 @@ class CommandsWrapper:
         detailed information, see Definitions.
         """
 
-        return self.query.send(QueryCommand("logadd", kwargs={"loglevel": loglevel.value, "logmsg": logmsg}))
+        return self.query.send(TS3QueryCommand("logadd", kwargs={"loglevel": loglevel.value, "logmsg": logmsg}))
 
-    def gm(self, msg: str) -> QueryResponse:
+    def gm(self, msg: str) -> TS3QueryResponse:
         """
         Sends a text message to all clients on all virtual servers in the TeamSpeak 3
         Server instance.
         """
 
-        return self.query.send(QueryCommand("gm", kwargs={"msg": msg}))
+        return self.query.send(TS3QueryCommand("gm", kwargs={"msg": msg}))
 
     def channellist(
         self,
@@ -625,14 +627,14 @@ class CommandsWrapper:
         limits: bool = False,
         icon: bool = False,
         secondsempty: bool = False,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Displays a list of channels created on a virtual server including their ID,
         order, name, etc. The output can be modified using several command options.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channellist",
                 args=(
                     ("topic", topic),
@@ -645,31 +647,31 @@ class CommandsWrapper:
             )
         )
 
-    def channelinfo(self, cid: int) -> QueryResponse:
+    def channelinfo(self, cid: int) -> TS3QueryResponse:
         """
         Displays detailed configuration information about a channel including ID, topic,
         description, etc. For detailed information, see Channel Properties.
         """
 
-        return self.query.send(QueryCommand("channelinfo", kwargs={"cid": cid}))
+        return self.query.send(TS3QueryCommand("channelinfo", kwargs={"cid": cid}))
 
-    def channelfind(self, pattern: str) -> QueryResponse:
+    def channelfind(self, pattern: str) -> TS3QueryResponse:
         """
         Displays a list of channels matching a given name pattern.
         """
 
-        return self.query.send(QueryCommand("channelfind", kwargs={"pattern": pattern}))
+        return self.query.send(TS3QueryCommand("channelfind", kwargs={"pattern": pattern}))
 
-    def channelmove(self, cid: int, cpid: int, order: Optional[int] = None) -> QueryResponse:
+    def channelmove(self, cid: int, cpid: int, order: Optional[int] = None) -> TS3QueryResponse:
         """
         Moves a channel to a new parent channel with the ID cpid. If order is specified,
         the channel will be sorted right under the channel with the specified ID. If
         order is set to 0, the channel will be sorted right below the new parent.
         """
 
-        return self.query.send(QueryCommand("channelmove", kwargs={"cid": cid, "cpid": cpid, "order": order}))
+        return self.query.send(TS3QueryCommand("channelmove", kwargs={"cid": cid, "cpid": cpid, "order": order}))
 
-    def channelcreate(self, channel_name: str, **kwargs) -> QueryResponse:
+    def channelcreate(self, channel_name: str, **kwargs) -> TS3QueryResponse:
         """
         Creates a new channel using the given properties and displays its ID. Note that
         this command accepts multiple properties which means that you're able to
@@ -677,20 +679,20 @@ class CommandsWrapper:
         see Channel Properties.
         """
 
-        _validate_channel_kwargs(kwargs)
+        validators._validate_channel_kwargs(kwargs)
 
-        return self.query.send(QueryCommand("channelcreate", kwargs={"channel_name": channel_name, **kwargs}))
+        return self.query.send(TS3QueryCommand("channelcreate", kwargs={"channel_name": channel_name, **kwargs}))
 
-    def channeldelete(self, cid: int, force: bool = False) -> QueryResponse:
+    def channeldelete(self, cid: int, force: bool = False) -> TS3QueryResponse:
         """
         Deletes an existing channel by ID. If force is set to 1, the channel will be
         deleted even if there are clients within. The clients will be kicked to the
         default channel with an appropriate reason message.
         """
 
-        return self.query.send(QueryCommand("channeldelete", kwargs={"cid": cid, "force": force}))
+        return self.query.send(TS3QueryCommand("channeldelete", kwargs={"cid": cid, "force": force}))
 
-    def channeledit(self, cid: int, **kwargs) -> QueryResponse:
+    def channeledit(self, cid: int, **kwargs) -> TS3QueryResponse:
         """
         Changes a channels configuration using given properties. Note that this command
         accepts multiple properties which means that you're able to change all settings
@@ -698,18 +700,18 @@ class CommandsWrapper:
         Properties.
         """
 
-        _validate_channel_kwargs(kwargs)
+        validators._validate_channel_kwargs(kwargs)
 
-        return self.query.send(QueryCommand("channeledit", kwargs={"cid": cid, **kwargs}))
+        return self.query.send(TS3QueryCommand("channeledit", kwargs={"cid": cid, **kwargs}))
 
-    def channelgrouplist(self) -> QueryResponse:
+    def channelgrouplist(self) -> TS3QueryResponse:
         """
         Displays a list of channel groups available on the selected virtual server.
         """
 
-        return self.query.send(QueryCommand("channelgrouplist"))
+        return self.query.send(TS3QueryCommand("channelgrouplist"))
 
-    def channelgroupadd(self, name: str, type: Optional[PermissionGroupDatabaseType] = None) -> QueryResponse:
+    def channelgroupadd(self, name: str, type: Optional[PermissionGroupDatabaseType] = None) -> TS3QueryResponse:
         """
         Creates a new channel group using a given name and displays its ID. The optional
         type parameter can be used to create template groups. For detailed information,
@@ -717,21 +719,23 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channelgroupadd",
                 kwargs={"name": name, "type": type.value if type else None},
             )
         )
 
-    def channelgroupdel(self, cgid: int, force: bool = False) -> QueryResponse:
+    def channelgroupdel(self, cgid: int, force: bool = False) -> TS3QueryResponse:
         """
         Deletes a channel group by ID. If force is set to 1, the channel group will be
         deleted even if there are clients within.
         """
 
-        return self.query.send(QueryCommand("channelgroupdel", kwargs={"cgid": cgid, "force": force}))
+        return self.query.send(TS3QueryCommand("channelgroupdel", kwargs={"cgid": cgid, "force": force}))
 
-    def channelgroupcopy(self, scgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType) -> QueryResponse:
+    def channelgroupcopy(
+        self, scgid: int, tsgid: int, name: str, type: PermissionGroupDatabaseType
+    ) -> TS3QueryResponse:
         """
         Creates a copy of the channel group specified with scgid. If tcgid is set to 0,
         the server will create a new group. To overwrite an existing group, simply set
@@ -741,7 +745,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channelgroupcopy",
                 kwargs={
                     "scgid": scgid,
@@ -752,12 +756,12 @@ class CommandsWrapper:
             )
         )
 
-    def channelgrouprename(self, cgid: int, name: str) -> QueryResponse:
+    def channelgrouprename(self, cgid: int, name: str) -> TS3QueryResponse:
         """
         Changes the name of a specified channel group.
         """
 
-        return self.query.send(QueryCommand("channelgrouprename", kwargs={"cgid": cgid, "name": name}))
+        return self.query.send(TS3QueryCommand("channelgrouprename", kwargs={"cgid": cgid, "name": name}))
 
     def channelgroupaddperm(
         self,
@@ -765,7 +769,7 @@ class CommandsWrapper:
         permvalue: int,
         permid: Optional[int] = None,
         permsid: Optional[str] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Adds a set of specified permissions to a channel group. Multiple permissions can
         be added by providing the two parameters of each permission. A permission can be
@@ -773,7 +777,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channelgroupaddperm",
                 kwargs={
                     "cgid": cgid,
@@ -784,7 +788,7 @@ class CommandsWrapper:
             )
         )
 
-    def channelgrouppermlist(self, cgid: int, permsid: bool = False) -> QueryResponse:
+    def channelgrouppermlist(self, cgid: int, permsid: bool = False) -> TS3QueryResponse:
         """
         Displays a list of permissions assigned to the channel group specified with
         cgid. If the -permsid option is specified, the output will contain the
@@ -792,7 +796,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channelgrouppermlist",
                 args=(("permsid", permsid),),
                 kwargs={"cgid": cgid},
@@ -801,7 +805,7 @@ class CommandsWrapper:
 
     def channelgroupdelperm(
         self, cgid: int, permid: Optional[int] = None, permsid: Optional[str] = None
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Removes a set of specified permissions from the channel group. Multiple
         permissions can be removed at once. A permission can be specified by permid or
@@ -809,7 +813,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channelgroupdelperm",
                 kwargs={"cgid": cgid, "permid": permid, "permsid": permsid},
             )
@@ -820,7 +824,7 @@ class CommandsWrapper:
         cid: Optional[int] = None,
         cldbid: Optional[int] = None,
         cgid: Optional[int] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Displays all the client and/or channel IDs currently assigned to channel groups.
         All three parameters are optional so you're free to choose the most suitable
@@ -828,19 +832,19 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channelgroupclientlist",
                 kwargs={"cid": cid, "cldbid": cldbid, "cgid": cgid},
             )
         )
 
-    def setclientchannelgroup(self, cgid: int, cid: int, cldbid: int) -> QueryResponse:
+    def setclientchannelgroup(self, cgid: int, cid: int, cldbid: int) -> TS3QueryResponse:
         """
         Sets the channel group of a client to the ID specified with cgid.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "setclientchannelgroup",
                 kwargs={"cgid": cgid, "cid": cid, "cldbid": cldbid},
             )
@@ -853,13 +857,13 @@ class CommandsWrapper:
         tokenid2: int,
         tokendescription: Optional[str] = None,
         tokencustomset: Optional[str] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Alias for privilegekeyadd.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "tokenadd",
                 kwargs={
                     "tokentype": tokentype,
@@ -871,33 +875,33 @@ class CommandsWrapper:
             )
         )
 
-    def tokendelete(self, token: str) -> QueryResponse:
+    def tokendelete(self, token: str) -> TS3QueryResponse:
         """
         Alias for privilegekeydelete
         """
 
-        return self.query.send(QueryCommand("tokendelete", kwargs={"token": token}))
+        return self.query.send(TS3QueryCommand("tokendelete", kwargs={"token": token}))
 
-    def tokenlist(self) -> QueryResponse:
+    def tokenlist(self) -> TS3QueryResponse:
         """
         Alias for privilegekeylist.
         """
 
-        return self.query.send(QueryCommand("tokenlist"))
+        return self.query.send(TS3QueryCommand("tokenlist"))
 
-    def tokenuse(self, token: str) -> QueryResponse:
+    def tokenuse(self, token: str) -> TS3QueryResponse:
         """
         Alias for privilegekeyuse.
         """
 
-        return self.query.send(QueryCommand("tokenuse", kwargs={"token": token}))
+        return self.query.send(TS3QueryCommand("tokenuse", kwargs={"token": token}))
 
-    def channelpermlist(self, cid: int, permsid: bool = False) -> QueryResponse:
+    def channelpermlist(self, cid: int, permsid: bool = False) -> TS3QueryResponse:
         """
         Displays a list of permissions defined for a channel.
         """
 
-        return self.query.send(QueryCommand("channelpermlist", args=(("permsid", permsid),), kwargs={"cid": cid}))
+        return self.query.send(TS3QueryCommand("channelpermlist", args=(("permsid", permsid),), kwargs={"cid": cid}))
 
     def channeladdperm(
         self,
@@ -905,7 +909,7 @@ class CommandsWrapper:
         permvalue: int,
         permid: Optional[int] = None,
         permsid: Optional[str] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Adds a set of specified permissions to a channel. Multiple permissions can be
         added by providing the two parameters of each permission. A permission can be
@@ -913,7 +917,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channeladdperm",
                 kwargs={
                     "cid": cid,
@@ -924,14 +928,14 @@ class CommandsWrapper:
             )
         )
 
-    def channeldelperm(self, cid: int, permid: Optional[int] = None, permsid: Optional[str] = None) -> QueryResponse:
+    def channeldelperm(self, cid: int, permid: Optional[int] = None, permsid: Optional[str] = None) -> TS3QueryResponse:
         """
         Removes a set of specified permissions from a channel. Multiple permissions can
         be removed at once. A permission can be specified by permid or permsid.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channeldelperm",
                 kwargs={"cid": cid, "permid": permid, "permsid": permsid},
             )
@@ -948,7 +952,7 @@ class CommandsWrapper:
         country: bool = False,
         ip: bool = False,
         badge: bool = False,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Displays a list of clients online on a virtual server including their ID,
         nickname, status flags, etc. The output can be modified using several command
@@ -957,7 +961,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "clientlist",
                 args=(
                     ("uid", uid),
@@ -973,59 +977,59 @@ class CommandsWrapper:
             )
         )
 
-    def clientinfo(self, clid: int) -> QueryResponse:
+    def clientinfo(self, clid: int) -> TS3QueryResponse:
         """
         Displays detailed configuration information about a client including unique ID,
         nickname, client version, etc.
         """
 
-        return self.query.send(QueryCommand("clientinfo", kwargs={"clid": clid}))
+        return self.query.send(TS3QueryCommand("clientinfo", kwargs={"clid": clid}))
 
-    def clientfind(self, pattern: str) -> QueryResponse:
+    def clientfind(self, pattern: str) -> TS3QueryResponse:
         """
         Displays a list of clients matching a given name pattern.
         """
 
-        return self.query.send(QueryCommand("clientfind", kwargs={"pattern": pattern}))
+        return self.query.send(TS3QueryCommand("clientfind", kwargs={"pattern": pattern}))
 
-    def clientedit(self, clid: int, **kwargs) -> QueryResponse:
+    def clientedit(self, clid: int, **kwargs) -> TS3QueryResponse:
         """
         Changes a clients settings using given properties. For detailed information, see
         Client Properties.
         """
 
-        _validate_client_kwargs(kwargs)
+        validators._validate_client_kwargs(kwargs)
 
-        return self.query.send(QueryCommand("clientedit", kwargs={"clid": clid, **kwargs}))
+        return self.query.send(TS3QueryCommand("clientedit", kwargs={"clid": clid, **kwargs}))
 
     def clientdblist(
         self,
         start: Optional[int] = None,
         duration: Optional[int] = None,
         count: bool = False,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Displays a list of client identities known by the server including their
         database ID, last nickname, etc.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "clientdblist",
                 args=(("count", count),),
                 kwargs={"start": start, "duration": duration},
             )
         )
 
-    def clientdbinfo(self, cldbid: int) -> QueryResponse:
+    def clientdbinfo(self, cldbid: int) -> TS3QueryResponse:
         """
         Displays detailed database information about a client including unique ID,
         creation date, etc.
         """
 
-        return self.query.send(QueryCommand("clientdbinfo", kwargs={"cldbid": cldbid}))
+        return self.query.send(TS3QueryCommand("clientdbinfo", kwargs={"cldbid": cldbid}))
 
-    def clientdbfind(self, pattern: str, uid: bool = False) -> QueryResponse:
+    def clientdbfind(self, pattern: str, uid: bool = False) -> TS3QueryResponse:
         """
         Displays a list of client database IDs matching a given pattern. You can either
         search for a clients last known nickname or his unique identity by using the
@@ -1033,95 +1037,95 @@ class CommandsWrapper:
         wildcard characters (e.g. %).
         """
 
-        return self.query.send(QueryCommand("clientdbfind", args=(("uid", uid),), kwargs={"pattern": pattern}))
+        return self.query.send(TS3QueryCommand("clientdbfind", args=(("uid", uid),), kwargs={"pattern": pattern}))
 
-    def clientdbedit(self, cldbid: int, **kwargs) -> QueryResponse:
+    def clientdbedit(self, cldbid: int, **kwargs) -> TS3QueryResponse:
         """
         Changes a clients settings using given properties. For detailed information,
         see Client Properties.
         """
 
-        _validate_client_kwargs(kwargs)
+        validators._validate_client_kwargs(kwargs)
 
-        return self.query.send(QueryCommand("clientdbedit", kwargs={"cldbid": cldbid, **kwargs}))
+        return self.query.send(TS3QueryCommand("clientdbedit", kwargs={"cldbid": cldbid, **kwargs}))
 
-    def clientdbdelete(self, cldbid: int) -> QueryResponse:
+    def clientdbdelete(self, cldbid: int) -> TS3QueryResponse:
         """
         Deletes a clients properties from the database.
         """
 
-        return self.query.send(QueryCommand("clientdbdelete", kwargs={"cldbid": cldbid}))
+        return self.query.send(TS3QueryCommand("clientdbdelete", kwargs={"cldbid": cldbid}))
 
-    def clientgetids(self, cluid: str) -> QueryResponse:
+    def clientgetids(self, cluid: str) -> TS3QueryResponse:
         """
         Displays all client IDs matching the unique identifier specified by cluid.
         """
 
-        return self.query.send(QueryCommand("clientgetids", kwargs={"cluid": cluid}))
+        return self.query.send(TS3QueryCommand("clientgetids", kwargs={"cluid": cluid}))
 
-    def clientgetdbidfromuid(self, cluid: str) -> QueryResponse:
+    def clientgetdbidfromuid(self, cluid: str) -> TS3QueryResponse:
         """
         Displays the database ID matching the unique identifier specified by cluid.
         """
 
-        return self.query.send(QueryCommand("clientgetdbidfromuid", kwargs={"cluid": cluid}))
+        return self.query.send(TS3QueryCommand("clientgetdbidfromuid", kwargs={"cluid": cluid}))
 
-    def clientgetnamefromuid(self, cluid: str) -> QueryResponse:
+    def clientgetnamefromuid(self, cluid: str) -> TS3QueryResponse:
         """
         Displays the database ID and nickname matching the unique identifier specified
         by cluid.
         """
 
-        return self.query.send(QueryCommand("clientgetnamefromuid", kwargs={"cluid": cluid}))
+        return self.query.send(TS3QueryCommand("clientgetnamefromuid", kwargs={"cluid": cluid}))
 
-    def clientgetuidfromclid(self, clid: int) -> QueryResponse:
+    def clientgetuidfromclid(self, clid: int) -> TS3QueryResponse:
         """
         Displays the unique identifier matching the clientID specified by clid.
         """
 
-        return self.query.send(QueryCommand("clientgetuidfromclid", kwargs={"clid": clid}))
+        return self.query.send(TS3QueryCommand("clientgetuidfromclid", kwargs={"clid": clid}))
 
-    def clientgetnamefromdbid(self, cldbid: int) -> QueryResponse:
+    def clientgetnamefromdbid(self, cldbid: int) -> TS3QueryResponse:
         """
         Displays the unique identifier and nickname matching the database ID specified
         by cldbid.
         """
 
-        return self.query.send(QueryCommand("clientgetnamefromdbid", kwargs={"cldbid": cldbid}))
+        return self.query.send(TS3QueryCommand("clientgetnamefromdbid", kwargs={"cldbid": cldbid}))
 
-    def clientsetserverquerylogin(self, client_login_name: str) -> QueryResponse:
+    def clientsetserverquerylogin(self, client_login_name: str) -> TS3QueryResponse:
         """
         Updates your own ServerQuery login credentials using a specified username. The
         password will be auto-generated.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "clientsetserverquerylogin",
                 kwargs={"client_login_name": client_login_name},
             )
         )
 
-    def clientupdate(self, **kwargs) -> QueryResponse:
+    def clientupdate(self, **kwargs) -> TS3QueryResponse:
         """
         Change your ServerQuery clients settings using given properties. For detailed
         information, see Client Properties.
         """
 
-        _validate_client_kwargs(kwargs)
+        validators._validate_client_kwargs(kwargs)
 
-        return self.query.send(QueryCommand("clientupdate", kwargs=kwargs))
+        return self.query.send(TS3QueryCommand("clientupdate", kwargs=kwargs))
 
-    def clientmove(self, clid: int, cid: int, cpw: Optional[str] = None) -> QueryResponse:
+    def clientmove(self, clid: int, cid: int, cpw: Optional[str] = None) -> TS3QueryResponse:
         """
         Moves one or more clients specified with clid to the channel with ID cid. If the
         target channel has a password, it needs to be specified with cpw. If the channel
         has no password, the parameter can be omitted.
         """
 
-        return self.query.send(QueryCommand("clientmove", kwargs={"clid": clid, "cid": cid, "cpw": cpw}))
+        return self.query.send(TS3QueryCommand("clientmove", kwargs={"clid": clid, "cid": cid, "cpw": cpw}))
 
-    def clientkick(self, clid: int, reasonid: ReasonIdentifier, reasonmsg: Optional[str] = None) -> QueryResponse:
+    def clientkick(self, clid: int, reasonid: ReasonIdentifier, reasonmsg: Optional[str] = None) -> TS3QueryResponse:
         """
         Kicks one or more clients specified with clid from their currently joined
         channel or from the server, depending on reasonid. The reasonmsg parameter
@@ -1131,7 +1135,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "clientkick",
                 kwargs={
                     "clid": clid,
@@ -1141,20 +1145,20 @@ class CommandsWrapper:
             )
         )
 
-    def clientpoke(self, clid: int, msg: str) -> QueryResponse:
+    def clientpoke(self, clid: int, msg: str) -> TS3QueryResponse:
         """
         Sends a poke message to the client specified with clid.
         """
 
-        return self.query.send(QueryCommand("clientpoke", kwargs={"clid": clid, "msg": msg}))
+        return self.query.send(TS3QueryCommand("clientpoke", kwargs={"clid": clid, "msg": msg}))
 
-    def clientpermlist(self, cldbid: int, permsid: bool = False) -> QueryResponse:
+    def clientpermlist(self, cldbid: int, permsid: bool = False) -> TS3QueryResponse:
         """
         Displays a list of permissions defined for a client.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "clientpermlist",
                 args=(("permsid", permsid),),
                 kwargs={"cldbid": cldbid},
@@ -1168,7 +1172,7 @@ class CommandsWrapper:
         permid: Optional[int] = None,
         permsid: Optional[str] = None,
         permskip: bool = False,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Adds a set of specified permissions to a client. Multiple permissions can be
         added by providing the three parameters of each permission. A permission can be
@@ -1176,7 +1180,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "clientaddperm",
                 kwargs={
                     "cldbid": cldbid,
@@ -1188,26 +1192,26 @@ class CommandsWrapper:
             )
         )
 
-    def clientdelperm(self, cldbid: int, permsid: Optional[str], permid: Optional[int] = None) -> QueryResponse:
+    def clientdelperm(self, cldbid: int, permsid: Optional[str], permid: Optional[int] = None) -> TS3QueryResponse:
         """
         Removes a set of specified permissions from a client. Multiple permissions can
         be removed at once. A permission can be specified by permid or permsid.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "clientdelperm",
                 kwargs={"cldbid": cldbid, "permid": permid, "permsid": permsid},
             )
         )
 
-    def channelclientpermlist(self, cid: int, cldbid: int, permsid: bool = False) -> QueryResponse:
+    def channelclientpermlist(self, cid: int, cldbid: int, permsid: bool = False) -> TS3QueryResponse:
         """
         Displays a list of permissions defined for a client in a specific channel.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channelclientpermlist",
                 args=(("permsid", permsid),),
                 kwargs={"cid": cid, "cldbid": cldbid},
@@ -1221,7 +1225,7 @@ class CommandsWrapper:
         permvalue: int,
         permid: Optional[int] = None,
         permsid: Optional[str] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Adds a set of specified permissions to a client in a specific channel. Multiple
         permissions can be added by providing the three parameters of each permission.
@@ -1229,7 +1233,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channelclientaddperm",
                 kwargs={
                     "cid": cid,
@@ -1247,7 +1251,7 @@ class CommandsWrapper:
         cldbid: int,
         permsid: Optional[str],
         permid: Optional[int] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Removes a set of specified permissions from a client in a specific channel.
         Multiple permissions can be removed at once. A permission can be specified by
@@ -1255,7 +1259,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "channelclientdelperm",
                 kwargs={
                     "cid": cid,
@@ -1266,20 +1270,20 @@ class CommandsWrapper:
             )
         )
 
-    def permissionlist(self) -> QueryResponse:
+    def permissionlist(self) -> TS3QueryResponse:
         """
         Displays a list of permissions available on the server instance including ID,
         name and description.
         """
 
-        return self.query.send(QueryCommand("permissionlist"))
+        return self.query.send(TS3QueryCommand("permissionlist"))
 
-    def permidgetbyname(self, permsid: str) -> QueryResponse:
+    def permidgetbyname(self, permsid: str) -> TS3QueryResponse:
         """
         Displays the database ID of one or more permissions specified by permsid.
         """
 
-        return self.query.send(QueryCommand("permidgetbyname", kwargs={"permsid": permsid}))
+        return self.query.send(TS3QueryCommand("permidgetbyname", kwargs={"permsid": permsid}))
 
     def permoverview(
         self,
@@ -1287,7 +1291,7 @@ class CommandsWrapper:
         cldbid: int,
         permsid: Optional[str],
         permid: Optional[int] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Displays detailed information about all assignments of the permission specified
         with permid. The output is similar to permoverview which includes the type and
@@ -1296,7 +1300,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "permoverview",
                 kwargs={
                     "cid": cid,
@@ -1307,7 +1311,7 @@ class CommandsWrapper:
             )
         )
 
-    def permget(self, permid: Optional[int] = None, permsid: Optional[str] = None) -> QueryResponse:
+    def permget(self, permid: Optional[int] = None, permsid: Optional[str] = None) -> TS3QueryResponse:
         """
         Displays detailed information about all assignments of the permission specified
         with permid. The output is similar to permoverview which includes the type and
@@ -1315,9 +1319,9 @@ class CommandsWrapper:
         permission can be specified by permid or permsid.
         """
 
-        return self.query.send(QueryCommand("permget", kwargs={"permid": permid, "permsid": permsid}))
+        return self.query.send(TS3QueryCommand("permget", kwargs={"permid": permid, "permsid": permsid}))
 
-    def permfind(self, permid: Optional[int] = None, permsid: Optional[str] = None) -> QueryResponse:
+    def permfind(self, permid: Optional[int] = None, permsid: Optional[str] = None) -> TS3QueryResponse:
         """
         Displays detailed information about all assignments of the permission specified
         with permid. The output is similar to permoverview which includes the type and
@@ -1325,9 +1329,9 @@ class CommandsWrapper:
         permission can be specified by permid or permsid.
         """
 
-        return self.query.send(QueryCommand("permfind", kwargs={"permid": permid, "permsid": permsid}))
+        return self.query.send(TS3QueryCommand("permfind", kwargs={"permid": permid, "permsid": permsid}))
 
-    def permreset(self) -> QueryResponse:
+    def permreset(self) -> TS3QueryResponse:
         """
         Restores the default permission settings on the selected virtual server and
         creates a new initial administrator token. Please note that in case of an error
@@ -1335,9 +1339,9 @@ class CommandsWrapper:
         corrupted - the virtual server will be deleted from the database.
         """
 
-        return self.query.send(QueryCommand("permreset"))
+        return self.query.send(TS3QueryCommand("permreset"))
 
-    def privilegekeylist(self) -> QueryResponse:
+    def privilegekeylist(self) -> TS3QueryResponse:
         """
         Displays a list of privilege keys available including their type and group IDs.
         Tokens can be used to gain access to specified server or channel groups. A
@@ -1347,7 +1351,7 @@ class CommandsWrapper:
         string that can be used as a ticket into a specific server group.
         """
 
-        return self.query.send(QueryCommand("privilegekeylist"))
+        return self.query.send(TS3QueryCommand("privilegekeylist"))
 
     def privilegekeyadd(
         self,
@@ -1356,7 +1360,7 @@ class CommandsWrapper:
         tokenid2: int,
         tokendescription: Optional[str] = None,
         tokencustomset: Optional[str] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Create a new token. If tokentype is set to 0, the ID specified with tokenid1
         will be a server group ID. Otherwise, tokenid1 is used as a channel group ID
@@ -1369,7 +1373,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "privilegekeyadd",
                 kwargs={
                     "tokentype": tokentype,
@@ -1381,106 +1385,108 @@ class CommandsWrapper:
             )
         )
 
-    def privilegekeydelete(self, token: str) -> QueryResponse:
+    def privilegekeydelete(self, token: str) -> TS3QueryResponse:
         """
         Deletes an existing token matching the token key specified with token.
         """
 
-        return self.query.send(QueryCommand("privilegekeydelete", kwargs={"token": token}))
+        return self.query.send(TS3QueryCommand("privilegekeydelete", kwargs={"token": token}))
 
-    def privilegekeyuse(self, token: str) -> QueryResponse:
+    def privilegekeyuse(self, token: str) -> TS3QueryResponse:
         """
         Use a token key gain access to a server or channel group. Please note that the
         server will automatically delete the token after it has been used.
         """
 
-        return self.query.send(QueryCommand("privilegekeyuse", kwargs={"token": token}))
+        return self.query.send(TS3QueryCommand("privilegekeyuse", kwargs={"token": token}))
 
-    def messagelist(self) -> QueryResponse:
+    def messagelist(self) -> TS3QueryResponse:
         """
         Displays a list of offline messages you've received. The output contains the
         senders unique identifier, the messages subject, etc.
         """
 
-        return self.query.send(QueryCommand("messagelist"))
+        return self.query.send(TS3QueryCommand("messagelist"))
 
-    def messageadd(self) -> QueryResponse:
+    def messageadd(self) -> TS3QueryResponse:
         """
         Sends an offline message to the client specified by cluid.
         """
 
-        return self.query.send(QueryCommand("messageadd"))
+        return self.query.send(TS3QueryCommand("messageadd"))
 
-    def messagedel(self, msgid: int) -> QueryResponse:
+    def messagedel(self, msgid: int) -> TS3QueryResponse:
         """
         Deletes an existing offline message with ID msgid from your inbox.
         """
 
-        return self.query.send(QueryCommand("messagedel", kwargs={"msgid": msgid}))
+        return self.query.send(TS3QueryCommand("messagedel", kwargs={"msgid": msgid}))
 
-    def messageget(self, msgid: int) -> QueryResponse:
+    def messageget(self, msgid: int) -> TS3QueryResponse:
         """
         Displays an existing offline message with ID msgid from your inbox. Please note
         that this does not automatically set the flag_read property of the message.
         """
 
-        return self.query.send(QueryCommand("messageget", kwargs={"msgid": msgid}))
+        return self.query.send(TS3QueryCommand("messageget", kwargs={"msgid": msgid}))
 
-    def messageupdateflag(self, msgid: int, flag: bool) -> QueryResponse:
+    def messageupdateflag(self, msgid: int, flag: bool) -> TS3QueryResponse:
         """
         Updates the flag_read property of the offline message specified with msgid. If
         flag is set to 1, the message will be marked as read.
         """
 
-        return self.query.send(QueryCommand("messageupdateflag", kwargs={"msgid": msgid, "flag": flag}))
+        return self.query.send(TS3QueryCommand("messageupdateflag", kwargs={"msgid": msgid, "flag": flag}))
 
-    def complainlist(self, tcldbid: Optional[int]) -> QueryResponse:
+    def complainlist(self, tcldbid: Optional[int]) -> TS3QueryResponse:
         """
         Displays a list of complaints on the selected virtual server. If tcldbid is
         specified, only complaints about the targeted client will be shown.
         """
 
-        return self.query.send(QueryCommand("complainlist", kwargs={"tcldbid": tcldbid}))
+        return self.query.send(TS3QueryCommand("complainlist", kwargs={"tcldbid": tcldbid}))
 
-    def complainadd(self, tcldbid: int, message: str) -> QueryResponse:
+    def complainadd(self, tcldbid: int, message: str) -> TS3QueryResponse:
         """
         Submits a complaint about a connected client with database ID tcldbid to the
         server.
         """
 
-        return self.query.send(QueryCommand("complainadd", kwargs={"tcldbid": tcldbid, "message": message}))
+        return self.query.send(TS3QueryCommand("complainadd", kwargs={"tcldbid": tcldbid, "message": message}))
 
-    def complaindelall(self, tcldbid: int) -> QueryResponse:
+    def complaindelall(self, tcldbid: int) -> TS3QueryResponse:
         """
         Deletes all complaints about the client with database ID tcldbid from the
         server.
         """
 
-        return self.query.send(QueryCommand("complaindelall", kwargs={"tcldbid": tcldbid}))
+        return self.query.send(TS3QueryCommand("complaindelall", kwargs={"tcldbid": tcldbid}))
 
-    def complaindel(self, tcldbid: int, fcldbid: int) -> QueryResponse:
+    def complaindel(self, tcldbid: int, fcldbid: int) -> TS3QueryResponse:
         """
         Deletes the complaint about the client with ID tcldbid submitted by the client
         with ID fcldbid from the server.
         """
 
-        return self.query.send(QueryCommand("complaindel", kwargs={"tcldbid": tcldbid, "fcldbid": fcldbid}))
+        return self.query.send(TS3QueryCommand("complaindel", kwargs={"tcldbid": tcldbid, "fcldbid": fcldbid}))
 
-    def banclient(self, clid: int, time: Optional[int] = None, banreason: Optional[str] = None) -> QueryResponse:
+    def banclient(self, clid: int, time: Optional[int] = None, banreason: Optional[str] = None) -> TS3QueryResponse:
         """
         Bans the client specified with ID clid from the server. Please note that this
         will create two separate ban rules for the targeted clients IP address and his
         unique identifier.
         """
 
-        return self.query.send(QueryCommand("banclient", kwargs={"clid": clid, "time": time, "banreason": banreason}))
+        return self.query.send(
+            TS3QueryCommand("banclient", kwargs={"clid": clid, "time": time, "banreason": banreason})
+        )
 
-    def banlist(self) -> QueryResponse:
+    def banlist(self) -> TS3QueryResponse:
         """
         Displays a list of active bans on the selected virtual server.
         """
 
-        return self.query.send(QueryCommand("banlist"))
+        return self.query.send(TS3QueryCommand("banlist"))
 
     def banadd(
         self,
@@ -1489,14 +1495,14 @@ class CommandsWrapper:
         uid: Optional[str] = None,
         time: Optional[int] = None,
         banreason: Optional[str] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Adds a new ban rule on the selected virtual server. All parameters are optional
         but at least one of the following must be set: ip, name, or uid.
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "banadd",
                 kwargs={
                     "ip": ip,
@@ -1508,19 +1514,19 @@ class CommandsWrapper:
             )
         )
 
-    def bandel(self, banid: int) -> QueryResponse:
+    def bandel(self, banid: int) -> TS3QueryResponse:
         """
         Deletes the ban rule with ID banid from the server.
         """
 
-        return self.query.send(QueryCommand("bandel", kwargs={"banid": banid}))
+        return self.query.send(TS3QueryCommand("bandel", kwargs={"banid": banid}))
 
-    def bandelall(self) -> QueryResponse:
+    def bandelall(self) -> TS3QueryResponse:
         """
         Deletes all active ban rules from the server.
         """
 
-        return self.query.send(QueryCommand("bandelall"))
+        return self.query.send(TS3QueryCommand("bandelall"))
 
     def ftinitupload(
         self,
@@ -1532,7 +1538,7 @@ class CommandsWrapper:
         overwrite: Optional[bool],
         resume: Optional[bool],
         proto: Optional[Literal[0, 1]],
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Initializes a file transfer upload. clientftfid is an arbitrary ID to identify
         the file transfer on client-side. On success, the server generates a new ftkey
@@ -1546,7 +1552,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "ftinitupload",
                 kwargs={
                     "clientftfid": clientftfid,
@@ -1569,7 +1575,7 @@ class CommandsWrapper:
         cpw: str,
         seekpos: int,
         proto: Optional[Literal[0, 1]],
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Initializes a file transfer download. clientftfid is an arbitrary ID to identify
         the file transfer on client-side. On success, the server generates a new ftkey
@@ -1583,7 +1589,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "ftinitdownload",
                 kwargs={
                     "clientftfid": clientftfid,
@@ -1596,51 +1602,51 @@ class CommandsWrapper:
             )
         )
 
-    def ftlist(self) -> QueryResponse:
+    def ftlist(self) -> TS3QueryResponse:
         """
         Displays a list of running file transfers on the selected virtual server. The
         output contains the path to which a file is uploaded to, the current transfer
         rate in bytes per second, etc.
         """
 
-        return self.query.send(QueryCommand("ftlist"))
+        return self.query.send(TS3QueryCommand("ftlist"))
 
-    def ftgetfilelist(self, cid: int, cpw: str, path: str) -> QueryResponse:
+    def ftgetfilelist(self, cid: int, cpw: str, path: str) -> TS3QueryResponse:
         """
         Displays a list of files and directories stored in the specified channels file
         repository.
         """
 
-        return self.query.send(QueryCommand("ftgetfilelist", kwargs={"cid": cid, "cpw": cpw, "path": path}))
+        return self.query.send(TS3QueryCommand("ftgetfilelist", kwargs={"cid": cid, "cpw": cpw, "path": path}))
 
-    def ftgetfileinfo(self, cid: int, cpw: str, name: str) -> QueryResponse:
+    def ftgetfileinfo(self, cid: int, cpw: str, name: str) -> TS3QueryResponse:
         """
         Displays detailed information about one or more specified files stored in a
         channels file repository.
         """
 
-        return self.query.send(QueryCommand("ftgetfileinfo", kwargs={"cid": cid, "cpw": cpw, "name": name}))
+        return self.query.send(TS3QueryCommand("ftgetfileinfo", kwargs={"cid": cid, "cpw": cpw, "name": name}))
 
-    def ftstop(self, serverftfid: int, delete: Optional[bool]) -> QueryResponse:
+    def ftstop(self, serverftfid: int, delete: Optional[bool]) -> TS3QueryResponse:
         """
         Stops the running file transfer with server-side ID serverftfid.
         """
 
-        return self.query.send(QueryCommand("ftstop", kwargs={"serverftfid": serverftfid, "delete": delete}))
+        return self.query.send(TS3QueryCommand("ftstop", kwargs={"serverftfid": serverftfid, "delete": delete}))
 
-    def ftdeletefile(self, cid: int, cpw: str, name: str) -> QueryResponse:
+    def ftdeletefile(self, cid: int, cpw: str, name: str) -> TS3QueryResponse:
         """
         Deletes one or more files stored in a channels file repository.
         """
 
-        return self.query.send(QueryCommand("ftdeletefile", kwargs={"cid": cid, "cpw": cpw, "name": name}))
+        return self.query.send(TS3QueryCommand("ftdeletefile", kwargs={"cid": cid, "cpw": cpw, "name": name}))
 
-    def ftcreatedir(self, cid: int, cpw: str, dirname: str) -> QueryResponse:
+    def ftcreatedir(self, cid: int, cpw: str, dirname: str) -> TS3QueryResponse:
         """
         Creates new directory in a channels file repository.
         """
 
-        return self.query.send(QueryCommand("ftcreatedir", kwargs={"cid": cid, "cpw": cpw, "dirname": dirname}))
+        return self.query.send(TS3QueryCommand("ftcreatedir", kwargs={"cid": cid, "cpw": cpw, "dirname": dirname}))
 
     def ftrenamefile(
         self,
@@ -1650,7 +1656,7 @@ class CommandsWrapper:
         newname: str,
         tcid: Optional[int] = None,
         tcpw: Optional[str] = None,
-    ) -> QueryResponse:
+    ) -> TS3QueryResponse:
         """
         Renames a file in a channels file repository. If the two parameters tcid and
         tcpw are specified, the file will be moved into another channels file
@@ -1658,7 +1664,7 @@ class CommandsWrapper:
         """
 
         return self.query.send(
-            QueryCommand(
+            TS3QueryCommand(
                 "ftrenamefile",
                 kwargs={
                     "cid": cid,
@@ -1671,104 +1677,25 @@ class CommandsWrapper:
             )
         )
 
-    def customsearch(self, ident: str, value: str) -> QueryResponse:
+    def customsearch(self, ident: str, value: str) -> TS3QueryResponse:
         """
         Searches for custom client properties specified by ident and value. The value
         parameter can include regular characters and SQL wildcard characters (e.g. %).
         """
 
-        return self.query.send(QueryCommand("customsearch", kwargs={"ident": ident, "value": value}))
+        return self.query.send(TS3QueryCommand("customsearch", kwargs={"ident": ident, "value": value}))
 
-    def custominfo(self, cldbid: int) -> QueryResponse:
+    def custominfo(self, cldbid: int) -> TS3QueryResponse:
         """
         Displays a list of custom properties for the client specified with cldbid.
         """
 
-        return self.query.send(QueryCommand("custominfo", kwargs={"cldbid": cldbid}))
+        return self.query.send(TS3QueryCommand("custominfo", kwargs={"cldbid": cldbid}))
 
-    def whoami(self) -> QueryResponse:
+    def whoami(self) -> TS3QueryResponse:
         """
         Displays information about your current ServerQuery connection including your
         loginname, etc.
         """
 
-        return self.query.send(QueryCommand("whoami"))
-
-
-def _validate_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a query command.
-
-    :param args: Arguments to validate.
-    :type args: dict
-    :raises ValueError: Raised if any argument value is not a string, integer or float.
-    """
-    if not all([isinstance(arg, (str, int, float)) for arg in args.values()]):
-        raise ValueError("All argument values must be strings, integers or floats.")
-
-
-def _validate_server_instance_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a server instance query command.
-
-    :param args: Arguments to validate.
-    :type args: dict
-    :raises ValueError: Raised if any argument is not a valid changeable server instance property.
-    """
-    _validate_kwargs(args)
-
-    for key in args.keys():
-        if str(key).upper() not in ChangeableServerInstanceProperties.keys():
-            raise ValueError(
-                f"Invalid argument: {key}\n\
-                \rValid arguments: {ChangeableServerInstanceProperties.keys()}"
-            )
-
-
-def _validate_channel_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a channel query command.
-
-    :param args: Arguments to validate.
-    :type args: dict
-    :raises ValueError: Raised if any argument is not a valid changeable channel property.
-    """
-    _validate_kwargs(args)
-
-    for key in args.keys():
-        if str(key).upper() not in ChangeableChannelProperties.keys():
-            raise ValueError(
-                f"Invalid argument: {key}\n\
-                \rValid arguments: {ChangeableChannelProperties.keys()}"
-            )
-
-
-def _validate_client_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a client query command.
-
-    :param args: Arguments to validate.
-    :type args: dict
-    :raises ValueError: Raised if any argument is not a valid changeable client property.
-    """
-    _validate_kwargs(args)
-
-    for key in args.keys():
-        if str(key).upper() not in ChangeableClientProperties.keys():
-            raise ValueError(
-                f"Invalid argument: {key}\n\
-                \rValid arguments: {ChangeableClientProperties.keys()}"
-            )
-
-
-def _validate_virtual_server_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a virtual server query command.
-
-    :param args: Arguments to validate.
-    :type args: dict
-    :raises ValueError: Raised if any argument is not a valid changeable virtual server property.
-    """
-    _validate_kwargs(args)
-
-    for key in args.keys():
-        if str(key).upper() not in ChangeableVirtualServerProperties.keys():
-            raise ValueError(
-                f"Invalid argument: {key}\n\
-                \rValid arguments: {ChangeableVirtualServerProperties.keys()}"
-            )
+        return self.query.send(TS3QueryCommand("whoami"))

@@ -7,7 +7,7 @@ from utils import parsers
 
 
 @dataclass
-class QueryResponse:
+class TS3QueryResponse:
     """A class for representing a query response.
 
     :param index: The index of the query response match.
