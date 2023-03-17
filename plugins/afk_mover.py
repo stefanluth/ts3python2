@@ -1,7 +1,5 @@
-import threading
 import time
 
-from ts3client import TS3Client
 from utils.logger import create_logger
 
 from .plugin import Plugin
@@ -10,9 +8,6 @@ logger = create_logger("AFK_Mover", "main.log")
 
 
 class AFK_Mover(Plugin):
-    def __init__(self, client: TS3Client, stop: threading.Event):
-        super().__init__(client, stop)
-
     def run(
         self,
         afk_channel_id: int,
