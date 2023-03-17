@@ -69,7 +69,6 @@ class TS3Query:
 
     def __del__(self) -> None:
         self.exit()
-        super().__del__()
 
     def connected(self) -> bool:
         sock = self._telnet.get_socket()
