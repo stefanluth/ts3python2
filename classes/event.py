@@ -104,11 +104,14 @@ class ClientEnterViewEvent(Event):
     client_icon_id: Optional[int] = None
     client_input_hardware: Optional[int] = None
     client_input_muted: Optional[int] = None
+    client_integrations: Optional[int] = None
     client_is_channel_commander: Optional[int] = None
     client_is_priority_speaker: Optional[int] = None
     client_is_recording: Optional[int] = None
     client_is_talker: Optional[int] = None
     client_meta_data: Optional[str] = None
+    client_myteamspeak_avatar: Optional[str] = None
+    client_myteamspeak_id: Optional[str] = None
     client_needed_serverquery_view_power: Optional[int] = None
     client_nickname_phonetic: Optional[str] = None
     client_nickname: Optional[str] = None
@@ -116,6 +119,7 @@ class ClientEnterViewEvent(Event):
     client_output_muted: Optional[int] = None
     client_outputonly_muted: Optional[int] = None
     client_servergroups: Optional[str] = None
+    client_signed_badges: Optional[str] = None
     client_talk_power: Optional[int] = None
     client_talk_request_msg: Optional[str] = None
     client_talk_request: Optional[int] = None
