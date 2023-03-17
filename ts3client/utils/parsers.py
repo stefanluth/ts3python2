@@ -1,5 +1,6 @@
 import re
 
+from ..constants import EventType
 from ..event import (
     ChannelCreatedEvent,
     ChannelDeletedEvent,
@@ -15,7 +16,6 @@ from ..event import (
     TokenUsedEvent,
 )
 from ..message import Message
-from ..constants import EventType
 from . import patterns
 from .formatters import query_to_string, string_to_query
 

@@ -1,14 +1,13 @@
 from typing import Optional
 
 from .channel import Channel, ChannelInfo
-from .user import User, UserInfo
+from .constants import NotifyRegisterType, ReasonIdentifier, TargetMode
 from .event import ClientEnterViewEvent, Event
 from .message import Message
-from .constants import NotifyRegisterType, ReasonIdentifier, TargetMode
-from .ts3query import TS3Query
-from .utils.logger import create_logger
-
 from .ts3client_response import TS3ClientResponse
+from .ts3query import TS3Query
+from .user import User, UserInfo
+from .utils.logger import create_logger
 
 logger = create_logger("TS3Client", "main.log")
 

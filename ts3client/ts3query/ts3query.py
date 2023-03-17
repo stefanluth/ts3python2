@@ -5,7 +5,6 @@ from ..event import Event
 from ..message import Message
 from ..utils import patterns
 from ..utils.logger import create_logger
-
 from .ts3query_command import CommandsWrapper, TS3QueryCommand
 from .ts3query_response import TS3QueryResponse
 

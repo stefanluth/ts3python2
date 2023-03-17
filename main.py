@@ -1,6 +1,5 @@
 import signal
 
-
 import config
 from plugins import PluginManager
 from ts3client import TS3Client

@@ -7,9 +7,8 @@ from ..constants import *
 from ..utils import parsers, validators
 
 if TYPE_CHECKING:
-    from ts3query_response import TS3QueryResponse
-
     from ts3query import TS3Query
+    from ts3query_response import TS3QueryResponse
 
 
 @dataclass

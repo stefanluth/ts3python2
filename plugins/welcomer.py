@@ -2,6 +2,7 @@ import threading
 import time
 
 from ts3client import TS3Client
+
 from .plugin import Plugin
 
 

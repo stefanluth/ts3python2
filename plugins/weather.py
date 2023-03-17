@@ -1,7 +1,8 @@
 import json
 import time
-from .plugin import Plugin
 import urllib.request
+
+from .plugin import Plugin
 
 
 class Weather(Plugin):
