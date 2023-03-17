@@ -1,4 +1,6 @@
 from typing import Optional
+from classes.channel import Channel
+from classes.channel_info import ChannelInfo
 
 from classes.client import Client
 from classes.client_info import ClientInfo
@@ -271,15 +273,15 @@ class TS3Client:
         """
         return TS3ClientResponse(self.query.commands.banclient(clid=id, banreason=reason))
 
-    def get_channels(self) -> TS3ClientResponse:
+    def get_channels(self) -> list[Channel]:
         """Get a list of all channels.
 
         :return: Response from the server.
         :rtype: ClientResponse
         """
-        return TS3ClientResponse(self.query.commands.channellist())
+        return [Channel(**channel) for channel in TS3ClientResponse(self.query.commands.channellist())]
 
-    def get_channel(self, id: int) -> TS3ClientResponse:
+    def get_channel_info(self, id: int) -> ChannelInfo:
         """Get information about a channel.
 
         :param id: Channel ID.
@@ -287,9 +289,9 @@ class TS3Client:
         :return: Response from the server.
         :rtype: ClientResponse
         """
-        return TS3ClientResponse(self.query.commands.channelinfo(cid=id))
+        return ChannelInfo(**TS3ClientResponse(self.query.commands.channelinfo(cid=id))[0])
 
-    def find_channel(self, name: str) -> TS3ClientResponse:
+    def find_channel(self, name: str) -> Channel:
         """Find a channel by name.
 
         :param name: Name of the channel.
@@ -297,7 +299,7 @@ class TS3Client:
         :return: Response from the server.
         :rtype: ClientResponse
         """
-        return TS3ClientResponse(self.query.commands.channelfind(pattern=name))
+        return Channel(**TS3ClientResponse(self.query.commands.channelfind(pattern=name))[0])
 
     def send_server_message(self, message: str) -> TS3ClientResponse:
         """Send a message to the server.
