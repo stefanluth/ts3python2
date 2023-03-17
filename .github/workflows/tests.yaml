@@ -1,4 +1,4 @@
-name: Run make test on push
+name: Run pytest on push
 on: [push]
 jobs:
   test:
@@ -7,5 +7,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Run make test
-        run: make test
+      - name: Run TeamSpeak 3 Docker Container
+        run: docker run -p 9987:9987/udp -p 10011:10011 -p 30033:30033 -e TS3SERVER_LICENSE=accept --name TS3_TEST_CONTAINER -d teamspeak:3.13 --wait
+
+      - name: Get ServerAdmin Password
+        id: get_password
+        run: |
+          echo "PASSWORD=$(\
+          docker logs TS3_TEST_CONTAINER 2>&1 \
+          | less \
+          | grep password \
+          | cut -d ',' -f 2 \
+          | cut -d '"' -f 2\)" \
+          >> $GITHUB_OUTPUT
+
+      - name: Run pytest
+        run: |
+          QUERY_ADMIN_PASSWORD=${{ steps.get_password.outputs.PASSWORD }} \
+          pytest -v
