@@ -125,7 +125,7 @@ class TS3Query:
         self.logger.debug(f"Aquiring lock...")
         with self._lock:
             if self._flood_protection:
-                time.sleep(0.1)
+                time.sleep(0.2)
 
             self.logger.debug(f"Lock aquired")
             self.logger.debug(f"Sending command: {command.command}")
