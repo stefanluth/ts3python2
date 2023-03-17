@@ -33,6 +33,12 @@ jobs:
           | cut -d '"' -f 2)" \
           >> $GITHUB_OUTPUT
 
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install python3-pip
+          pip3 install -r requirements.dev.txt
+
       - name: Run pytest
         run: |
           QUERY_ADMIN_PASSWORD=${{ steps.get_password.outputs.PASSWORD }} \
