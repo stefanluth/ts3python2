@@ -8,7 +8,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run TeamSpeak 3 Docker Container
-        run: docker run -p 9987:9987/udp -p 10011:10011 -p 30033:30033 -e TS3SERVER_LICENSE=accept --name TS3_TEST_CONTAINER -d teamspeak:3.13 --wait
+        run: docker run -p 9987:9987/udp -p 10011:10011 -p 30033:30033 -e TS3SERVER_LICENSE=accept --name TS3_TEST_CONTAINER -d teamspeak:3.13
+
+      - name: Wait For Container To Start
+        run: |
+          while ! docker logs TS3_TEST_CONTAINER 2>&1 | grep "ServerAdmin privilege key created"; do
+            sleep 1
+          done
 
       - name: Show Docker Containers
         run: docker ps -a
