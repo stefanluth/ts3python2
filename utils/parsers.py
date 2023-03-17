@@ -74,10 +74,7 @@ def parse_response(response: bytes) -> tuple[dict, list[Event], list[Message]]:
         events.append(parse_event_match(match))
         response_str = response_str.replace(match.group(), "")
 
-    if "|" not in response_str:
-        data = response_to_dict(response_str)
-    else:
-        data = {i: response_to_dict(data) for i, data in enumerate(response_str.split("|"))}
+    data = {i: response_to_dict(data) for i, data in enumerate(response_str.split("|"))}
 
     return data, events, messages
 
