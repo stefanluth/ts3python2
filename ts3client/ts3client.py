@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from .channel import Channel, ChannelInfo
@@ -8,8 +9,6 @@ from .ts3client_response import TS3ClientResponse
 from .ts3query import TS3Query
 from .user import User, UserInfo
 from .utils.logger import create_logger
-
-logger = create_logger("TS3Client", "main.log")
 
 
 class TS3Client:
@@ -33,15 +32,24 @@ class TS3Client:
 
     query: Optional[TS3Query] = None
 
-    def __init__(self, host: str = None, port: int = None, login: str = None, password: str = None, timeout=10) -> None:
+    def __init__(
+        self,
+        host: str = None,
+        port: int = None,
+        login: str = None,
+        password: str = None,
+        timeout: int = 10,
+        logger: logging.Logger = None,
+    ) -> None:
+        self.logger = logger or create_logger("TS3Client", "main.log")
         if not host or not port:
-            logger.info("No host and/or port provided, not connecting to a server")
+            self.logger.info("No host and/or port provided, not connecting to a server")
             return
 
-        self.connect(host, port)
+        self.connect(host, port, timeout)
 
         if not login or not password:
-            logger.info("No login and/or password provided, not logging in")
+            self.logger.info("No login and/or password provided, not logging in")
             return
 
         self.login(login, password)
@@ -91,13 +99,13 @@ class TS3Client:
         :param timeout: Timeout for the connection, defaults to 10.
         :type timeout: int, optional
         """
-        logger.info(f"Connecting to {host}:{port}...")
+        self.logger.info(f"Connecting to {host}:{port}...")
         self.query = TS3Query(host, port, timeout)
-        logger.info("Connected")
+        self.logger.info("Connected")
 
     def disconnect(self) -> None:
         """Disconnect from the TeamSpeak 3 server."""
-        logger.info("Disconnecting...")
+        self.logger.info("Disconnecting...")
         if self.query is None:
             return
         self.query.exit()
@@ -111,9 +119,9 @@ class TS3Client:
         :param password: Password to login with.
         :type password: str
         """
-        logger.info(f"Logging in as {login}...")
+        self.logger.info(f"Logging in as {login}...")
         self.query.login(login, password)
-        logger.info("Logged in")
+        self.logger.info("Logged in")
 
     def logout(self) -> None:
         self.query.logout()
@@ -423,10 +431,10 @@ class TS3Client:
         :param interval: Polling interval in seconds, defaults to 1
         :type interval: int, optional
         """
-        logger.debug("Starting polling")
+        self.logger.debug("Starting polling")
         self.query.start_polling(interval)
 
     def stop_polling(self) -> None:
         """Stop polling for events and messages."""
-        logger.debug("Stopping polling")
+        self.logger.debug("Stopping polling")
         self.query.stop_polling()
