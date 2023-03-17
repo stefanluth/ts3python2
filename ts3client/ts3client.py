@@ -4,7 +4,7 @@ from classes.channel_info import ChannelInfo
 
 from classes.client import Client
 from classes.client_info import ClientInfo
-from classes.event import Event
+from classes.event import ClientEnterViewEvent, Event
 from classes.message import Message
 from constants import EventType, NotifyRegisterType, ReasonIdentifier, TargetMode
 from ts3query.ts3query import TS3Query
@@ -51,26 +51,6 @@ class TS3Client:
 
     def whoami(self) -> TS3ClientResponse:
         return TS3ClientResponse(self.query.commands.whoami())
-
-    @property
-    def messages(self) -> list[Message]:
-        return self.query.messages
-
-    @property
-    def unread_messages(self) -> list[Message]:
-        return self.query.unread_messages
-
-    @property
-    def events(self) -> list[Event]:
-        return self.query.events
-
-    @property
-    def unread_events(self) -> list[Event]:
-        return self.query.unread_events
-
-    @property
-    def client_entered_events(self) -> list[Event]:
-        return [event for event in self.query.events if event.event_type == EventType.CLIENT_ENTER_VIEW]
 
     @property
     def name(self) -> str:
@@ -301,6 +281,46 @@ class TS3Client:
         """
         return Channel(**TS3ClientResponse(self.query.commands.channelfind(pattern=name))[0])
 
+    def get_messages(self) -> list[Message]:
+        """Get a list of all messages.
+
+        :return: A list of all messages.
+        :rtype: list[Message]
+        """
+        return self.query.messages
+
+    def get_unread_messages(self) -> list[Message]:
+        """Get a list of all unread messages.
+
+        :return: A list of all unread messages.
+        :rtype: list[Message]
+        """
+        return self.query.unread_messages
+
+    def get_events(self) -> list[Event]:
+        """Get a list of all events.
+
+        :return: A list of all events.
+        :rtype: list[Event]
+        """
+        return self.query.events
+
+    def get_unread_events(self) -> list[Event]:
+        """Get a list of all unread events.
+
+        :return: A list of all unread events.
+        :rtype: list[Event]
+        """
+        return self.query.unread_events
+
+    def get_client_entered_events(self) -> list[ClientEnterViewEvent]:
+        """Get a list of all client enter view events.
+
+        :return: A list of all client enter view events.
+        :rtype: list[Event]
+        """
+        return [event for event in self.query.events if isinstance(event, ClientEnterViewEvent) and not event.used]
+
     def send_server_message(self, message: str) -> TS3ClientResponse:
         """Send a message to the server.
 
@@ -353,6 +373,7 @@ class TS3Client:
 
     def enable_message_events(self) -> None:
         """Enable receiving all message events."""
+        self.start_polling()
         self.query.commands.servernotifyregister(event=NotifyRegisterType.TEXT_SERVER)
         self.query.commands.servernotifyregister(event=NotifyRegisterType.TEXT_CHANNEL)
         self.query.commands.servernotifyregister(event=NotifyRegisterType.TEXT_PRIVATE)
@@ -365,6 +386,7 @@ class TS3Client:
 
     def enable_server_events(self) -> None:
         """Enable receiving server events."""
+        self.start_polling()
         self.query.commands.servernotifyregister(event=NotifyRegisterType.SERVER)
 
     def disable_server_events(self) -> None:
@@ -373,24 +395,41 @@ class TS3Client:
 
     def enable_channel_events(self) -> None:
         """Enable receiving channel events."""
+        self.start_polling()
         self.query.commands.servernotifyregister(event=NotifyRegisterType.CHANNEL)
 
     def disable_channel_events(self) -> None:
         """Disable receiving channel events."""
         self.query.commands.servernotifyunregister(event=NotifyRegisterType.CHANNEL)
 
-    def enable_all_events(self) -> None:
+    def enable_events_and_messages(self) -> None:
         """Enable receiving all events."""
+        self.start_polling()
         self.query.commands.servernotifyregister(event=NotifyRegisterType.TEXT_SERVER)
         self.query.commands.servernotifyregister(event=NotifyRegisterType.TEXT_CHANNEL)
         self.query.commands.servernotifyregister(event=NotifyRegisterType.TEXT_PRIVATE)
         self.query.commands.servernotifyregister(event=NotifyRegisterType.SERVER)
         self.query.commands.servernotifyregister(event=NotifyRegisterType.CHANNEL)
 
-    def disable_all_events(self) -> None:
+    def disable_events_and_messages(self) -> None:
         """Disable receiving all events."""
+        self.stop_polling()
         self.query.commands.servernotifyunregister(event=NotifyRegisterType.TEXT_SERVER)
         self.query.commands.servernotifyunregister(event=NotifyRegisterType.TEXT_CHANNEL)
         self.query.commands.servernotifyunregister(event=NotifyRegisterType.TEXT_PRIVATE)
         self.query.commands.servernotifyunregister(event=NotifyRegisterType.SERVER)
         self.query.commands.servernotifyunregister(event=NotifyRegisterType.CHANNEL)
+
+    def start_polling(self, interval: int = 1) -> None:
+        """Start polling for events and messages.
+
+        :param interval: Polling interval in seconds, defaults to 1
+        :type interval: int, optional
+        """
+        logger.debug("Starting polling")
+        self.query.start_polling(interval)
+
+    def stop_polling(self) -> None:
+        """Stop polling for events and messages."""
+        logger.debug("Stopping polling")
+        self.query.stop_polling()
