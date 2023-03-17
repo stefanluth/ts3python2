@@ -48,3 +48,4 @@ credentials.py
 configuration.py
 *.log
 .vscode
+.pytest_cache
