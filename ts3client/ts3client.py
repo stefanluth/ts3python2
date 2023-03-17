@@ -190,7 +190,7 @@ class TS3Client:
         :return: Response from the server.
         :rtype: ClientResponse
         """
-        return ClientInfo(**TS3ClientResponse(self.query.commands.clientinfo(clid=id)))
+        return ClientInfo(**TS3ClientResponse(self.query.commands.clientinfo(clid=id))[0])
 
     def find_client(self, name: str) -> list[Client]:
         """Find clients by name.
