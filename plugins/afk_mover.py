@@ -13,28 +13,13 @@ class AFK_Mover(Plugin):
     def __init__(self, client: TS3Client, stop: threading.Event):
         super().__init__(client, stop)
 
-    def move_afk_clients(
-        self,
-        afk_channel_id: int,
-        afk_time: int,
-        ignore_channels: list[int] = [],
-    ):
-        for client in self.client.get_clients():
-            client_info = self.client.get_client_info(client.get("clid"))
-
-            if client_info.get("cid") == afk_channel_id or client_info.get("cid") in ignore_channels:
-                continue
-
-            if client_info.get("client_idle_time") > afk_time:
-                logger.info(f"Moving {client_info.get('client_nickname')} to AFK channel...")
-                self.client.move_client(client.get("clid"), afk_channel_id)
-
     def run(
         self,
         afk_channel_id: int,
         afk_time: int,
         check_interval: int = 1,
         ignore_channels: list[int] = [],
+        move_message: str = "You have been moved to the AFK channel.",
     ):
         """Moves clients to the AFK channel if they are AFK for a certain amount of time.
 
@@ -53,6 +38,15 @@ class AFK_Mover(Plugin):
         afk_time = afk_time * 1000
 
         while not self.event.is_set():
-            self.move_afk_clients(afk_channel_id, afk_time, ignore_channels)
+            for client in self.client.get_clients():
+                client_info = self.client.get_client_info(client.get("clid"))
+
+                if client_info.get("cid") == afk_channel_id or client_info.get("cid") in ignore_channels:
+                    continue
+
+                if client_info.get("client_idle_time") > afk_time:
+                    logger.info(f"Moving {client_info.get('client_nickname')} to AFK channel...")
+                    self.client.move_client(client.get("clid"), afk_channel_id)
+                    self.client.send_private_message(client.get("clid"), move_message)
             logger.debug(f"Sleeping for {check_interval} seconds...")
             time.sleep(check_interval)
