@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass, field
+from typing import Optional
 
 from ..event import Event
 from ..message import Message
@@ -33,6 +34,7 @@ class TS3QueryResponse:
     response: bytes
     error_id: int = field(init=False)
     msg: str = field(init=False)
+    extra_msg: Optional[str] = field(init=False)
     data: dict = field(init=False)
     events: list[Event] = field(init=False)
     messages: list[Message] = field(init=False)
@@ -40,6 +42,8 @@ class TS3QueryResponse:
     def __post_init__(self):
         self.error_id = int(self.match.group("id").decode())
         self.msg = parsers.query_to_string(self.match.group("msg").decode().strip())
+        extra_msg = self.match.group("extramsg")
+        self.extra_msg = parsers.query_to_string(extra_msg.decode().strip()) if extra_msg else None
         data, events, messages = parsers.parse_response(self.response)
         self.data = data
         self.events = events
