@@ -1,10 +1,6 @@
 import time
 
-from utils.logger import create_logger
-
 from .plugin import Plugin
-
-logger = create_logger("AFK_Mover", "main.log")
 
 
 class AFK_Mover(Plugin):
@@ -40,8 +36,8 @@ class AFK_Mover(Plugin):
                 client_info = self.client.get_client_info(client.clid)
 
                 if client_info.client_idle_time > afk_time:
-                    logger.info(f"Moving {client.client_nickname} to AFK channel...")
+                    self.logger.info(f"Moving {client.client_nickname} to AFK channel...")
                     self.client.move_client(client.clid, afk_channel_id)
                     self.client.send_private_message(client.clid, move_message)
-            logger.debug(f"Sleeping for {check_interval} seconds...")
+            self.logger.debug(f"Sleeping for {check_interval} seconds...")
             time.sleep(check_interval)
