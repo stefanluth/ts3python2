@@ -151,22 +151,6 @@ class TS3Query:
 
         return response
 
-    def _add_events(self, events: list[Event], limit: int):
-        self.logger.debug(f"Adding events: {events}")
-        self._events.extend(events)
-
-        if len(self._events) > limit:
-            self.logger.debug("Events limit reached, trimming events")
-            self._events = self._events[-limit:]
-
-    def _add_messages(self, messages: list[Message], limit: int):
-        self.logger.debug(f"Adding messages: {messages}")
-        self._messages.extend(messages)
-
-        if len(self._messages) > limit:
-            self.logger.debug("Messages limit reached, trimming messages")
-            self._messages = self._messages[-limit:]
-
     def start_polling(self, polling_rate: float = 1) -> None:
         """Starts polling the server for events and messages.
 
@@ -211,42 +195,6 @@ class TS3Query:
             stop.wait(polling_rate)
         self.logger.debug("Polling stopped")
 
-    def set_messages_limit(self, limit: int) -> None:
-        self.logger.info(f"Setting messages limit to {limit}")
-        self._messages_limit = limit
-
-    @property
-    def messages_limit(self) -> int:
-        return self._messages_limit
-
-    @property
-    def messages(self) -> list[Message]:
-        return self._messages
-
-    @property
-    def unread_messages(self) -> list[Message]:
-        return [message for message in self._messages if not message.used]
-
-    def set_events_limit(self, limit: int) -> None:
-        self.logger.info(f"Setting events limit to {limit}")
-        self._events_limit = limit
-
-    @property
-    def events_limit(self) -> int:
-        return self._events_limit
-
-    @property
-    def events(self) -> list[Event]:
-        return self._events
-
-    @property
-    def unread_events(self) -> list[Event]:
-        return [event for event in self._events if not event.used]
-
-    @property
-    def flood_protection(self) -> bool:
-        return self._flood_protection
-
     def enable_flood_protection(self) -> None:
         self.logger.info("Enabling flood protection")
         self._flood_protection = True
@@ -254,6 +202,30 @@ class TS3Query:
     def disable_flood_protection(self) -> None:
         self.logger.info("Disabling flood protection")
         self._flood_protection = False
+
+    def set_messages_limit(self, limit: int) -> None:
+        self.logger.info(f"Setting messages limit to {limit}")
+        self._messages_limit = limit
+
+    def set_events_limit(self, limit: int) -> None:
+        self.logger.info(f"Setting events limit to {limit}")
+        self._events_limit = limit
+
+    def _add_events(self, events: list[Event], limit: int):
+        self.logger.debug(f"Adding events: {events}")
+        self._events.extend(events)
+
+        if len(self._events) > limit:
+            self.logger.debug("Events limit reached, trimming events")
+            self._events = self._events[-limit:]
+
+    def _add_messages(self, messages: list[Message], limit: int):
+        self.logger.debug(f"Adding messages: {messages}")
+        self._messages.extend(messages)
+
+        if len(self._messages) > limit:
+            self.logger.debug("Messages limit reached, trimming messages")
+            self._messages = self._messages[-limit:]
 
     def _skip_greeting(self) -> None:
         if not self.connected():
@@ -266,3 +238,31 @@ class TS3Query:
                 b'commands and "help <command>" for information on a specific command.\n\r',
                 self.timeout,
             )
+
+    @property
+    def flood_protection(self) -> bool:
+        return self._flood_protection
+
+    @property
+    def messages(self) -> list[Message]:
+        return self._messages
+
+    @property
+    def unread_messages(self) -> list[Message]:
+        return [message for message in self._messages if not message.used]
+
+    @property
+    def messages_limit(self) -> int:
+        return self._messages_limit
+
+    @property
+    def events(self) -> list[Event]:
+        return self._events
+
+    @property
+    def events_limit(self) -> int:
+        return self._events_limit
+
+    @property
+    def unread_events(self) -> list[Event]:
+        return [event for event in self._events if not event.used]
