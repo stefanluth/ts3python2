@@ -10,6 +10,12 @@ jobs:
       - name: Run TeamSpeak 3 Docker Container
         run: docker run -p 9987:9987/udp -p 10011:10011 -p 30033:30033 -e TS3SERVER_LICENSE=accept --name TS3_TEST_CONTAINER -d teamspeak:3.13 --wait
 
+      - name: Show Docker Containers
+        run: docker ps -a
+
+      - name: Show Container Logs
+        run: docker logs TS3_TEST_CONTAINER
+
       - name: Get ServerAdmin Password
         id: get_password
         run: |
@@ -18,7 +24,7 @@ jobs:
           | less \
           | grep password \
           | cut -d ',' -f 2 \
-          | cut -d '"' -f 2\)" \
+          | cut -d '"' -f 2)" \
           >> $GITHUB_OUTPUT
 
       - name: Run pytest
