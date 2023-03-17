@@ -14,6 +14,7 @@ class Message:
     invokeruid: str
     used: bool = field(default=False, init=False)
     content: str = field(init=False)
+    source: TargetMode = field(init=False)
 
     def __post_init__(self):
         self.content = query_to_string(self.msg)
