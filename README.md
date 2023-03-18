@@ -30,6 +30,16 @@ about it; I'm eager to learn, and I know that my code has plenty of room for imp
 
 ## Previous Version
 
+There is a belief among some programmers that in order to produce great code,
+it should be rewritten at least three times.
+
+This means that writing code is a continuous process of improvement and refinement,
+and the first draft is rarely perfect. By going through multiple iterations,
+developers can identify and fix issues, streamline the code, and ultimately produce a high-quality product.
+
+I firmly believe that in order to create truly great code,
+it's necessary to go through a few rounds of rewriting and refinement.
+
 I made my [previous version](https://github.com/stefanluth/ts3python) of a pythonic TS3
 query interface quite some time ago, when I knew a lot less about programming.
 My hope is to improve my code and my understanding of Python with this new version.
