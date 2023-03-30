@@ -265,7 +265,7 @@ class TS3Client:
         :return: Response from the server.
         :rtype: ClientResponse
         """
-        return TS3ClientResponse(self.query.commands.banclient(clid=id, banreason=reason))
+        return TS3ClientResponse(self.query.commands.banclient(clid=id, time=time, banreason=reason))
 
     def get_channels(self) -> list[Channel]:
         """Get a list of all channels.
@@ -285,8 +285,8 @@ class TS3Client:
         """
         return ChannelInfo(**TS3ClientResponse(self.query.commands.channelinfo(cid=id))[0])
 
-    def find_channel(self, name: str) -> Channel:
-        """Find a channel by name.
+    def find_channel(self, name: str) -> list[Channel]:
+        """Find channels by name.
 
         :param name: Name of the channel.
         :type name: str
