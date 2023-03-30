@@ -20,7 +20,7 @@ class Welcomer(Plugin):
 
         while not self.event.is_set():
             self.logger.debug("Checking for new clients...")
-            for event in self.client.get_client_entered_events():
+            for event in self.client.get_user_entered_events():
                 if event.client_type == 1:
                     event.used = True
                     continue

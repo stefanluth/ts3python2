@@ -55,12 +55,17 @@ class TS3Client:
         self.login(login, password)
 
     def whoami(self) -> TS3ClientResponse:
-        return TS3ClientResponse(self.query.commands.whoami())
+        return TS3ClientResponse(self.query.commands.whoami())[0]
 
     @property
     def name(self) -> str:
         """Get the client's nickname."""
         return self.whoami().get("client_nickname")
+
+    @property
+    def description(self) -> str:
+        """Get the client's description."""
+        return self.whoami().get("client_description")
 
     @property
     def id(self) -> int:
@@ -80,22 +85,22 @@ class TS3Client:
     @property
     def server_id(self) -> int:
         """Get the client's server ID."""
-        return self.query.commands.serverinfo().data.get("virtualserver_id")
+        return self.query.commands.serverinfo().data[0].get("virtualserver_id")
 
     @property
     def server_unique_id(self) -> str:
         """Get the client's server unique ID."""
-        return self.query.commands.serverinfo().data.get("virtualserver_unique_identifier")
+        return self.query.commands.serverinfo().data[0].get("virtualserver_unique_identifier")
 
     @property
     def server_name(self) -> str:
         """Get the client's server name."""
-        return self.query.commands.serverinfo().data.get("virtualserver_name")
+        return self.query.commands.serverinfo().data[0].get("virtualserver_name")
 
     @property
     def server_port(self) -> int:
         """Get the client's server port."""
-        return self.query.commands.serverinfo().data.get("virtualserver_port")
+        return self.query.commands.serverinfo().data[0].get("virtualserver_port")
 
     def connect(self, host: str, port: int, timeout: int = 10) -> None:
         """Connect to a TeamSpeak 3 server.
@@ -157,7 +162,7 @@ class TS3Client:
         :param name: New name of the client.
         :type name: str
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(self.query.commands.clientupdate(client_nickname=name))
 
@@ -167,103 +172,116 @@ class TS3Client:
         :param description: New description of the client.
         :type description: str
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(self.query.commands.clientupdate(client_description=description))
 
-    def get_clients(self) -> list[User]:
-        """Get a list of all connected clients.
+    def get_users(self) -> list[User]:
+        """Get a list of all connected users.
 
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return [User(**client) for client in TS3ClientResponse(self.query.commands.clientlist(uid=True))]
 
-    def get_client_info(self, id: int) -> UserInfo:
-        """Get information about a client.
+    def get_user_info(self, id: int) -> UserInfo:
+        """Get information about a user.
 
-        :param id: Client ID.
+        :param id: User ID.
         :type id: int
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return UserInfo(**TS3ClientResponse(self.query.commands.clientinfo(clid=id))[0])
 
-    def find_client(self, name: str) -> list[User]:
-        """Find clients by name.
+    def set_user_description(self, id: int, description: str) -> TS3ClientResponse:
+        """Set the description of a user.
+
+        :param id: User ID.
+        :type id: int
+        :param description: New description of the client.
+        :type description: str
+        :return: Response from the server.
+        :rtype: TS3ClientResponse
+        """
+
+        return TS3ClientResponse(self.query.commands.clientedit(clid=id, client_description=description))
+
+    def find_users(self, name: str) -> list[User]:
+        """Find users by name.
 
         :param name: Name of the client.
         :type name: str
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return [User(**client) for client in TS3ClientResponse(self.query.commands.clientfind(pattern=name))]
 
-    def rename_client(self, id: int, name: str) -> TS3ClientResponse:
-        """Rename a client.
+    def rename_user(self, id: int, name: str) -> TS3ClientResponse:
+        """Rename a user.
 
-        :param id: Client ID.
+        :param id: User ID.
         :type id: int
         :param name: New name of the client.
         :type name: str
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(self.query.commands.clientedit(clid=id, client_nickname=name))
 
-    def move_client(self, id: int, channel_id: int, channel_pw: Optional[str] = None) -> TS3ClientResponse:
-        """Move a client to a channel.
+    def move_user(self, id: int, channel_id: int, channel_pw: Optional[str] = None) -> TS3ClientResponse:
+        """Move a user to a channel.
 
-        :param id: Client ID.
+        :param id: User ID.
         :type id: int
         :param channel_id: Channel ID.
         :type channel_id: int
         :param channel_pw: Channel password, defaults to None
         :type channel_pw: str
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(self.query.commands.clientmove(clid=id, cid=channel_id, cpw=channel_pw))
 
-    def kick_client_from_channel(self, id: int, reason: Optional[str] = None) -> TS3ClientResponse:
-        """Kick a client from the channel.
+    def kick_user_from_channel(self, id: int, reason: Optional[str] = None) -> TS3ClientResponse:
+        """Kick a user from the channel.
 
-        :param id: Client ID.
+        :param id: User ID.
         :type id: int
         :param reason: Reason for the kick, defaults to None
         :type reason: str, optional
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(
             self.query.commands.clientkick(clid=id, reasonid=ReasonIdentifier.REASON_KICK_CHANNEL, reasonmsg=reason)
         )
 
-    def kick_client_from_server(self, id: int, reason: Optional[str] = None) -> TS3ClientResponse:
-        """Kick a client from the server.
+    def kick_user_from_server(self, id: int, reason: Optional[str] = None) -> TS3ClientResponse:
+        """Kick a user from the server.
 
-        :param id: Client ID.
+        :param id: User ID.
         :type id: int
         :param reason: Reason for the kick, defaults to None
         :type reason: str, optional
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(
             self.query.commands.clientkick(clid=id, reasonid=ReasonIdentifier.REASON_KICK_SERVER, reasonmsg=reason)
         )
 
-    def ban_client(self, id: int, time: int, reason: Optional[str] = None) -> TS3ClientResponse:
-        """Ban a client.
+    def ban_user(self, id: int, time: int, reason: Optional[str] = None) -> TS3ClientResponse:
+        """Ban a user.
 
-        :param id: Client ID.
+        :param id: User ID.
         :type id: int
         :param time: Time in seconds the client should be banned.
         :type time: int
         :param reason: Reason for the ban, defaults to None
         :type reason: str, optional
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(self.query.commands.banclient(clid=id, time=time, banreason=reason))
 
@@ -271,7 +289,7 @@ class TS3Client:
         """Get a list of all channels.
 
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return [Channel(**channel) for channel in TS3ClientResponse(self.query.commands.channellist())]
 
@@ -281,7 +299,7 @@ class TS3Client:
         :param id: Channel ID.
         :type id: int
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return ChannelInfo(**TS3ClientResponse(self.query.commands.channelinfo(cid=id))[0])
 
@@ -291,7 +309,7 @@ class TS3Client:
         :param name: Name of the channel.
         :type name: str
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return Channel(**TS3ClientResponse(self.query.commands.channelfind(pattern=name))[0])
 
@@ -327,7 +345,7 @@ class TS3Client:
         """
         return self.query.unread_events
 
-    def get_client_entered_events(self) -> list[ClientEnterViewEvent]:
+    def get_user_entered_events(self) -> list[ClientEnterViewEvent]:
         """Get a list of all client enter view events.
 
         :return: A list of all client enter view events.
@@ -341,7 +359,7 @@ class TS3Client:
         :param message: Message to send.
         :type message: str
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(self.query.commands.sendtextmessage(targetmode=TargetMode.SERVER, msg=message))
 
@@ -351,19 +369,19 @@ class TS3Client:
         :param message: Message to send.
         :type message: str
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(self.query.commands.sendtextmessage(targetmode=TargetMode.CHANNEL, msg=message))
 
     def send_private_message(self, id: int, message: str) -> TS3ClientResponse:
-        """Send a private message to a client.
+        """Send a private message to a user.
 
-        :param id: Client ID.
+        :param id: User ID.
         :type id: int
         :param message: Message to send.
         :type message: str
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(
             self.query.commands.sendtextmessage(targetmode=TargetMode.CLIENT, target=id, msg=message)
@@ -379,7 +397,7 @@ class TS3Client:
         :type message: str
         :param target: Target ID.
         :return: Response from the server.
-        :rtype: ClientResponse
+        :rtype: TS3ClientResponse
         """
         return TS3ClientResponse(
             self.query.commands.sendtextmessage(targetmode=target_mode, target=target, msg=message)

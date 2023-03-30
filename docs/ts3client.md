@@ -5,7 +5,7 @@
 The `TS3Client` class provides a high-level abstraction for interacting with the TeamSpeak 3 server.
 
 It is built on top of the `TS3Query` class and provides a more intuitive interface for performing common tasks such
-as moving clients, receiving and sending messages.
+as moving users, receiving and sending messages.
 
 ## Initialization
 
@@ -28,19 +28,19 @@ authentication. A logger object can also be optionally passed.
 - `logout()`: Attempts to logout from the TeamSpeak 3 server.
 - `select_server(id: int)`: Selects a server by its ID.
 - `select_server_by_port(port: int)`: Selects a server by its port.
-- `set_name(name: str)`: Sets the client's (the bot's) nickname.
-- `set_description(description: str)`: Sets the client's (the bot's) description.
-- `get_clients()`: Returns a list of all clients on the server.
-- `get_client_info(id: int)`: Returns information about a client by its ID.
-- `find_client(name: str)`: Returns clients whose nickname matches the given name.
-- `rename_client(id: int, name: str)`: Renames a client by its ID.
-- `move_client(id: int, channel_id: int, channel_pw: str = None)`: Moves a client by its ID to a channel by its ID.
-Optionally, a channel password can be provided to move the client to a password-protected channel.
-- `kick_client_from_channel(id: int, reason: str = None)`: Kicks a client by its ID from the channel they are in.
+- `set_name(name: str)`: Sets the client's nickname.
+- `set_description(description: str)`: Sets the client's description.
+- `get_users()`: Returns a list of all users on the server.
+- `get_user_info(id: int)`: Returns information about a user by its ID.
+- `find_user(name: str)`: Returns users whose nickname matches the given name.
+- `rename_user(id: int, name: str)`: Renames a user by its ID.
+- `move_user(id: int, channel_id: int, channel_pw: str = None)`: Moves a user by its ID to a channel by its ID.
+Optionally, a channel password can be provided to move the user to a password-protected channel.
+- `kick_user_from_channel(id: int, reason: str = None)`: Kicks a user by its ID from the channel they are in.
 Optionally, a reason can be provided.
-- `kick_client_from_server(id: int, reason: str = None)`: Kicks a client by its ID from the server.
+- `kick_user_from_server(id: int, reason: str = None)`: Kicks a user by its ID from the server.
 Optionally, a reason can be provided.
-- `ban_client(id: int, time: int, reason: str = None)`: Bans a client by its ID for a given amount of time.
+- `ban_user(id: int, time: int, reason: str = None)`: Bans a user by its ID for a given amount of time.
 Optionally, a reason can be provided.
 - `get_channels()`: Returns a list of all channels on the server.
 - `get_channel_info(id: int)`: Returns information about a channel by its ID.
@@ -49,10 +49,10 @@ Optionally, a reason can be provided.
 - `get_unread_messages()`: Returns a list of all unread messages received by the bot.
 - `get_events()`: Returns a list of all events received by the bot.
 - `get_unread_events()`: Returns a list of all unread events received by the bot.
-- `get_client_entered_events()`: Returns a list of all unread client entered events received by the bot.
+- `get_user_entered_events()`: Returns a list of all unread user entered events received by the bot.
 - `send_server_message(message: str)`: Sends a message to the server.
 - `send_channel_message(message: str)`: Sends a message to the channel the bot is in.
-- `send_private_message(client_id: int, message: str)`: Sends a private message to a client by its ID.
+- `send_private_message(id: int, message: str)`: Sends a private message to a user by its ID.
 - `send_message(target: int, target_mode: TargetMode, message: str)`: Sends a message to a target with a given target mode.
 - `enable_message_events()`: Enables receiving message events.
 - `disable_message_events()`: Disables receiving message events.
@@ -67,7 +67,8 @@ Optionally, a reason can be provided.
 
 ### Public properties
 
-- `name`: The client's (the bot's) nickname.
+- `name`: The client's nickname.
+- `description`: The client's description.
 - `id`: The client's ID.
 - `unique_id`: The client's unique ID.
 - `database_id`: The client's database ID.
