@@ -1,9 +1,9 @@
 # TS3Query
 
+## Introduction
+
 The `TS3Query` class facilitates communication with the TeamSpeak 3 ServerQuery interface by establishing a
 connection to the server upon instantiation.
-
-If login credentials are provided, the client is automatically logged in.
 
 This class provides methods for logging in and out, sending commands to the server, and exiting the server.
 
@@ -15,6 +15,13 @@ primarily to prevent the server from being flooded with too many requests and re
 
 The `TS3Query` class works in conjunction with other classes from the ts3query module, including CommandsWrapper,
 TS3QueryCommand, and `TS3QueryResponse`.
+
+## Initialization
+
+If login credentials are provided, the client is automatically logged in.
+
+If no login credentials are provided, the client is not logged in and must be logged in manually using the `login()`
+method.
 
 ## Note
 
@@ -40,7 +47,7 @@ which leads to more efficient development and more maintainable code.
 
 - `__init__(host: str, port: int, login: str = None, password: str = None, timeout=10, logger: logging.Logger = None)`:
 Initializes a new TS3Query instance with a given host, port, and optionally, login and password to be used for
-authentication. A logger object can also be optionally passed for logging purposes.
+authentication. A logger object can also be optionally passed.
 - `connected()`: Checks whether the query client is connected to the TeamSpeak 3 server.
 - `login(login: str, password: str)`: Attempts to login to the TeamSpeak 3 server with the given login and password.
 - `logout()`: Attempts to logout from the TeamSpeak 3 server.
