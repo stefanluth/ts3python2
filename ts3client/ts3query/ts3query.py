@@ -145,7 +145,9 @@ class TS3Query:
         response = TS3QueryResponse(*response)
         self.logger.debug(f"Parsed response: {response}")
 
+        self._remove_used_events()
         self._add_events(response.events, self._events_limit)
+        self._remove_used_messages()
         self._add_messages(response.messages, self._messages_limit)
 
         return response
@@ -225,6 +227,14 @@ class TS3Query:
         if len(self._messages) > limit:
             self.logger.debug("Messages limit reached, trimming messages")
             self._messages = self._messages[-limit:]
+
+    def _remove_used_messages(self):
+        self.logger.debug("Removing used messages")
+        self._messages = [message for message in self._messages if not message.used]
+
+    def _remove_used_events(self):
+        self.logger.debug("Removing used events")
+        self._events = [event for event in self._events if not event.used]
 
     def _skip_greeting(self) -> None:
         if not self.connected():
