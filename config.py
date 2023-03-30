@@ -24,8 +24,14 @@ PLUGINS_CONFIG = {
     "Welcomer": {
         "message": "Howdy!",
     },
-    "Weather": {
-        "api_key": os.getenv("WEATHERAPI_COM_API_KEY"),
-        "command": "!weather",
+    "CommandHandler": {
+        "prefix": "!",
+        "check_interval": 1,
+        "commands": {
+            "Weather": {
+                "trigger": "weather",
+                "api_key": os.getenv("WEATHERAPI_COM_API_KEY"),
+            },
+        },
     },
 }

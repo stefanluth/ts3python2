@@ -3,7 +3,7 @@ import time
 
 from ts3client import TS3Client
 
-from .plugin import Plugin
+from ..plugin import Plugin
 
 
 class Welcomer(Plugin):

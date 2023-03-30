@@ -1,6 +1,6 @@
 import time
 
-from .plugin import Plugin
+from ..plugin import Plugin
 
 
 class AFK_Mover(Plugin):

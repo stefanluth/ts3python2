@@ -3,7 +3,7 @@ from threading import Event, Thread
 from ts3client import TS3Client
 from ts3client.utils.logger import create_logger
 
-from . import plugins
+from . import plugins as all_plugins
 from .plugin import Plugin
 
 logger = create_logger("PluginManager", "main.log")
@@ -20,12 +20,12 @@ class PluginManager:
     def run(self):
         logger.info("Starting plugins...")
         for plugin_name, config in self.plugins.items():
-            if plugin_name not in plugins.__all__:
+            if plugin_name not in all_plugins.__all__:
                 logger.info(f"Plugin {plugin_name} not found. Skipping...")
                 continue
 
             stop = Event()
-            plugin: Plugin = getattr(plugins, plugin_name)(self.client, stop)
+            plugin: Plugin = getattr(all_plugins, plugin_name)(self.client, stop)
 
             if not hasattr(plugin, "run"):
                 logger.info(f"Plugin {plugin_name} does not have a run method. Skipping...")
