@@ -5,6 +5,8 @@ from ts3client.utils.logger import create_logger
 
 
 class Plugin:
+    """Base class for all plugins."""
+
     def __init__(self, client: TS3Client, event: threading.Event):
         self.client = client
         self.event = event

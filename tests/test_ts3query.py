@@ -1,4 +1,5 @@
 import os
+
 from ts3client.ts3query import TS3Query
 from ts3client.utils.logger import create_logger
 
