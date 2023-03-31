@@ -70,7 +70,7 @@ class TS3Client:
     @property
     def id(self) -> int:
         """Get the client's ID."""
-        return self.whoami().get("clid")
+        return self.whoami().get("client_id")
 
     @property
     def unique_id(self) -> str:
@@ -174,7 +174,7 @@ class TS3Client:
         :return: Response from the server.
         :rtype: TS3ClientResponse
         """
-        return TS3ClientResponse(self.query.commands.clientupdate(client_description=description))
+        return TS3ClientResponse(self.query.commands.clientedit(clid=self.id, client_description=description))
 
     def get_users(self) -> list[User]:
         """Get a list of all connected users.
