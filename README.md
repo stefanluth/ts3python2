@@ -14,6 +14,10 @@ There are other, more sophisticated interfaces available on GitHub,
 such as the excellent API by [@benediktschmitt](https://github.com/benediktschmitt/py-ts3),
 as well as the API and Bot by [@Murgeye](https://github.com/Murgeye/teamspeak3-python-api).
 
+## Installation
+
+Check out the [quickstart guide](./docs/quickstart_guide.md) for instructions on how to install and use this interface.
+
 ## Documentation
 
 The `docs` directory in this repository contains documentation for this project.
