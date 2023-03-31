@@ -24,14 +24,16 @@ PLUGINS_CONFIG = {
     "Welcomer": {
         "message": "Howdy!",
     },
-    "CommandHandler": {
-        "prefix": "!",
-        "check_interval": 1,
-        "commands": {
-            "Weather": {
-                "trigger": "weather",
-                "api_key": os.getenv("WEATHERAPI_COM_API_KEY"),
-            },
-        },
-    },
+    # Uncomment this to enable the Weather plugin
+    # Be sure to add the WEATHERAPI_COM_API_KEY environment variable to your .env file
+    # "CommandHandler": {
+    #     "prefix": "!",
+    #     "check_interval": 1,
+    #     "commands": {
+    #         "Weather": {
+    #             "trigger": "weather",
+    #             "api_key": os.getenv("WEATHERAPI_COM_API_KEY"),
+    #         },
+    #     },
+    # },
 }

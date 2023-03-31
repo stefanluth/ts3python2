@@ -4,24 +4,24 @@
 
 This is a straightforward Python interface that can be used to interact with the TeamSpeak 3 Server Query.
 
+It is extensible and can be used to create plugins that can be run on the TeamSpeak 3 server.
+
 I created this repository primarily for my own use in other projects.
 However, I figured that other people may also find it helpful, so I decided to make it public.
+This is simply a personal project that I created for fun and learning.
 
 There are other, more sophisticated interfaces available on GitHub,
-such as the excellent API by @benediktschmitt, as well as the API and Bot by @Murgeye.
-
-Because those projects were too extensive for my needs and I enjoy programming,
-I chose to create my own versions from scratch.
-This is simply a personal project that I created for fun and learning.
+such as the excellent API by [@benediktschmitt](https://github.com/benediktschmitt/py-ts3),
+as well as the API and Bot by [@Murgeye](https://github.com/Murgeye/teamspeak3-python-api).
 
 ## Documentation
 
 The `docs` directory in this repository contains documentation for this project.
-The documentation explains how to use the interface and provides detailed information on write plugins.
+The documentation explains how to use the interface and provides detailed information on writing plugins.
 
 ## Questions
 
-If you have any questions about how to use this repository, feel free to open an issue, and I'll be happy to assist you.
+If you have any questions about how to use this interface, feel free to open an issue, and I'll be happy to assist you.
 
 ## Suggestions
 
