@@ -1,5 +1,3 @@
-import time
-
 from .. import commands as all_commands
 from ..command import Command
 from ..plugin import Plugin
@@ -49,4 +47,4 @@ class CommandHandler(Plugin):
                 command = loaded_commands[triggers.index(trigger)]
                 command.run(message)
 
-            time.sleep(check_interval)
+            self.event.wait(check_interval)

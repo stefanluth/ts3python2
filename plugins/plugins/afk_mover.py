@@ -1,5 +1,3 @@
-import time
-
 from ..plugin import Plugin
 
 
@@ -40,4 +38,4 @@ class AFK_Mover(Plugin):
                     self.client.move_user(user.clid, afk_channel_id)
                     self.client.send_private_message(user.clid, move_message)
             self.logger.debug(f"Sleeping for {check_interval} seconds...")
-            time.sleep(check_interval)
+            self.event.wait(check_interval)

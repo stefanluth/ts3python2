@@ -38,10 +38,10 @@ class PluginManager:
             self.threads[thread.ident] = (thread, stop)
             logger.info(f"Started {plugin_name} with thread name {thread.name}")
 
-    def stop(self):
+    def stop(self, timeout: int = 5):
         logger.info("Stopping all plugins...")
         for thread, stop in self.threads.values():
             logger.info(f"Stopping {thread.name}...")
             stop.set()
-            thread.join()
+            thread.join(timeout)
             logger.info(f"Stopped {thread.name}.")

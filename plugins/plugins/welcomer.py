@@ -1,5 +1,4 @@
 import threading
-import time
 
 from ts3client import TS3Client
 
@@ -27,4 +26,4 @@ class Welcomer(Plugin):
                 self.logger.info(f"Sending welcome message to {event.client_nickname}...")
                 self.client.send_private_message(event.clid, message)
                 event.used = True
-            time.sleep(1)
+            self.event.wait(1)
