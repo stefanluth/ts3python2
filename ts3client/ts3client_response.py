@@ -6,6 +6,14 @@ logger = create_logger("ClientResponse", "main.log")
 
 
 class TS3ClientResponse:
+    """
+    This class is used to handle the response from the TS3 server.
+    It is a wrapper around the TS3QueryResponse class.
+
+    :param response: The response from the TS3 server.
+    :type response: TS3QueryResponse
+    """
+
     def __init__(self, response: TS3QueryResponse):
         self.query_response = response
         self.error_id = response.error_id
