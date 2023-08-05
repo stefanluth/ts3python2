@@ -8,10 +8,10 @@ load_dotenv()
 LOGGING_LEVEL = logging.INFO
 
 TS3_SERVER_IP = os.getenv("TS3_SERVER_IP")
-TS3_SERVER_PORT = int(os.getenv("TS3_SERVER_PORT"))
+TS3_SERVER_PORT = int(os.getenv("TS3_SERVER_PORT", 10011))
 TS3_TELNET_LOGIN = os.getenv("TS3_TELNET_LOGIN")
 TS3_TELNET_PASSWORD = os.getenv("TS3_TELNET_PASSWORD")
-TS3_TELNET_PORT = int(os.getenv("TS3_TELNET_PORT"))
+TS3_TELNET_PORT = int(os.getenv("TS3_TELNET_PORT", 1))
 
 BOT_CONFIG = {
     "name": "Bot",
