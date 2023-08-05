@@ -5,6 +5,7 @@ plugins
 ├── command.py
 ├── commands
 │   ├── __init__.py
+│   └── help.py
 │   └── weather.py
 ├── plugin_manager.py
 ├── plugin.py
@@ -21,6 +22,11 @@ plugins
 
 This file should import all commands contained in the `commands` directory and the imported class name should be
 added to the `__all__` variable.
+
+### Help Command: `commands/help.py`
+
+The Help command, triggered by `!help` or `!help <command>`,
+returns a list of available commands.
 
 ### Weather Command: `commands/weather.py`
 
