@@ -32,11 +32,12 @@ class TS3Query:
     _lock = threading.RLock()
 
     _flood_protection: bool = True
+    _flood_protection_timeout: float = 0.5
     _events: list[Event] = []
     _events_limit: int = 1000
     _messages: list[Message] = []
     _messages_limit: int = 1000
-    _polling_thread: threading.Thread = None
+    _polling_thread: threading.Thread | None = None
     _polling_thread_stop = threading.Event()
 
     def __init__(
@@ -125,7 +126,7 @@ class TS3Query:
         self.logger.debug(f"Aquiring lock...")
         with self._lock:
             if self._flood_protection:
-                time.sleep(0.2)
+                time.sleep(self._flood_protection_timeout)
 
             self.logger.debug(f"Lock aquired")
             self.logger.debug(f"Sending command: {command.command}")
@@ -204,14 +205,6 @@ class TS3Query:
         self.logger.info("Disabling flood protection")
         self._flood_protection = False
 
-    def set_messages_limit(self, limit: int) -> None:
-        self.logger.info(f"Setting messages limit to {limit}")
-        self._messages_limit = limit
-
-    def set_events_limit(self, limit: int) -> None:
-        self.logger.info(f"Setting events limit to {limit}")
-        self._events_limit = limit
-
     def _add_events(self, events: list[Event], limit: int):
         self.logger.debug(f"Adding events: {events}")
         self._events.extend(events)
@@ -253,6 +246,10 @@ class TS3Query:
         return self._flood_protection
 
     @property
+    def flood_protection_timeout(self) -> float:
+        return self._flood_protection_timeout
+
+    @property
     def messages(self) -> list[Message]:
         return self._messages
 
@@ -269,9 +266,24 @@ class TS3Query:
         return self._events
 
     @property
+    def unread_events(self) -> list[Event]:
+        return [event for event in self._events if not event.used]
+
+    @property
     def events_limit(self) -> int:
         return self._events_limit
 
-    @property
-    def unread_events(self) -> list[Event]:
-        return [event for event in self._events if not event.used]
+    @flood_protection_timeout.setter
+    def flood_protection_timeout(self, rate: float) -> None:
+        self.logger.info(f"Setting flood protection rate to {rate}")
+        self._flood_protection_timeout = rate
+
+    @messages_limit.setter
+    def messages_limit(self, limit: int) -> None:
+        self.logger.info(f"Setting messages limit to {limit}")
+        self._messages_limit = limit
+
+    @events_limit.setter
+    def events_limit(self, limit: int) -> None:
+        self.logger.info(f"Setting events limit to {limit}")
+        self._events_limit = limit
