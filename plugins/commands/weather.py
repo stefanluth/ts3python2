@@ -30,7 +30,12 @@ class Weather(Command):
         self.logger.info(f"User {message.invokername} triggered the weather command.")
         location = message.content.split(" ", 1)[1]
 
-        weather_data = self.get_weather_data(location)
+        try:
+            weather_data = self.get_weather_data(location)
+        except urllib.error.HTTPError:
+            self.client.send_private_message(message.invokerid, "Location not found.")
+            return
+
         self.client.send_private_message(
             message.invokerid,
             f"Current weather for {weather_data['location']['name']}: {weather_data['current']['condition']['text']}, "
