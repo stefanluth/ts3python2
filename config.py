@@ -11,7 +11,8 @@ TS3_TELNET_PASSWORD = os.getenv("TS3_TELNET_PASSWORD")
 TS3_TELNET_PORT = int(os.getenv("TS3_TELNET_PORT"))
 
 BOT_CONFIG = {
-    "name": "TS3Bot",
+    "name": "Bot",
+    "description": "Hi there! I'm a bot!",
 }
 
 PLUGINS_CONFIG = {

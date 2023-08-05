@@ -24,6 +24,13 @@ def main():
     ts3_client.select_server_by_port(SERVER_PORT)
     print("Connected.")
 
+    if config.BOT_CONFIG.get("name") is not None:
+        print(f"Setting bot name: {config.BOT_CONFIG['name']}")
+        ts3_client.set_name(config.BOT_CONFIG["name"])
+    if config.BOT_CONFIG.get("description") is not None:
+        print(f"Setting bot description: {config.BOT_CONFIG['description']}")
+        ts3_client.set_description(config.BOT_CONFIG["description"])
+
     print("Starting plugins...")
     plugin_manager = PluginManager(ts3_client, config.PLUGINS_CONFIG)
     plugin_manager.run()
