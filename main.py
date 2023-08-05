@@ -19,11 +19,15 @@ def main():
         logger.error("Missing credentials.")
         return
 
+    print("Connecting to server...")
     ts3_client = TS3Client(SERVER_IP, TELNET_PORT, TELNET_LOGIN, TELNET_PW)
     ts3_client.select_server_by_port(SERVER_PORT)
+    print("Connected.")
 
+    print("Starting plugins...")
     plugin_manager = PluginManager(ts3_client, config.PLUGINS_CONFIG)
     plugin_manager.run()
+    print("Plugins started.")
 
     def sigint_handler(sig, frame):
         logger.info("Stopping...")
@@ -31,6 +35,8 @@ def main():
         plugin_manager.stop()
         ts3_client.disconnect()
         logger.info("Stopped.")
+
+    print("Ready.")
 
     signal.signal(signal.SIGINT, sigint_handler)
     print("Press Ctrl+C to exit")
