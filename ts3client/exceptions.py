@@ -1,5 +1,5 @@
 class TS3Exception(Exception):
-    def __init__(self, id, msg):
+    def __init__(self, id: int, msg: str):
         self.id = id
         self.msg = msg
 
