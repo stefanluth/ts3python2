@@ -1,7 +1,9 @@
 import logging
 
+from config import LOGGING_LEVEL
 
-def create_logger(name: str, file: str, level: int = logging.DEBUG):
+
+def create_logger(name: str, file: str, level: int = LOGGING_LEVEL):
     logger = logging.getLogger(name)
     logger.setLevel(level)
     logger.propagate = False

@@ -1,8 +1,11 @@
+import logging
 import os
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+LOGGING_LEVEL = logging.INFO
 
 TS3_SERVER_IP = os.getenv("TS3_SERVER_IP")
 TS3_SERVER_PORT = int(os.getenv("TS3_SERVER_PORT"))
