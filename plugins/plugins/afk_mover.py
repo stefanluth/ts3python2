@@ -29,6 +29,7 @@ class AFK_Mover(Plugin):
         afk_time = afk_time * 1000
 
         while not self.event.is_set():
+            self.logger.debug("Checking for AFK clients...")
             for user in self.client.get_users():
                 if user.cid == afk_channel_id or user.cid in ignore_channels:
                     continue
