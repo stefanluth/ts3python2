@@ -1,9 +1,15 @@
+import logging
 import os
 
 from ts3client.ts3query import TS3Query
-from ts3client.utils.logger import create_logger
 
-logger = create_logger("TS3Query", "./tests/test.log")
+logger = logging.getLogger("TS3Query")
+logger.setLevel(logging.DEBUG)
+logger.propagate = False
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler = logging.FileHandler("./tests/test.log")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 
 def test_ts3query_login():
