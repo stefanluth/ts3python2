@@ -30,12 +30,14 @@ PLUGINS_CONFIG = {
         "commands": {
             "Help": {
                 "trigger": "help",
+                "description": "Send a list of available commands.",
             },
             # # Uncomment this to enable the Weather plugin
             # # Be sure to add the WEATHERAPI_COM_API_KEY environment variable to your .env file
             # "Weather": {
             #     "trigger": "weather",
             #     "api_key": os.getenv("WEATHERAPI_COM_API_KEY"),
+            #     "description": "Get the weather for a location.",
             # },
         },
     },

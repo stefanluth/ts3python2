@@ -5,7 +5,7 @@ from ts3client.utils.logger import create_logger
 class Command:
     """Base class for all commands."""
 
-    def __init__(self, client: TS3Client, trigger: str):
+    def __init__(self, client: TS3Client, trigger: str, *args, **kwargs):
         self.client = client
         self.trigger = trigger
         self.logger = create_logger(self.__class__.__name__, "main.log")

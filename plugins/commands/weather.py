@@ -12,7 +12,7 @@ API_URL = "http://api.weatherapi.com/v1"
 class Weather(Command):
     """Get the weather for a location."""
 
-    def __init__(self, client: TS3Client, trigger: str, api_key: str):
+    def __init__(self, client: TS3Client, trigger: str, api_key: str, *args, **kwargs):
         super().__init__(client, trigger)
         self.api_key = api_key
 
