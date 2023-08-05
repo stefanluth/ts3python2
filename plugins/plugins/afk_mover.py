@@ -16,12 +16,14 @@ class AFK_Mover(Plugin):
         :type client: TS3Client
         :param afk_channel_id: The ID of the AFK channel.
         :type afk_channel_id: int
-        :param afk_time: The amount of time in seconds a client has to be AFK to be moved to the AFK channel.
+        :param afk_time: The amount of time in seconds a client has to be idle to be moved to the AFK channel.
         :type afk_time: int
         :param check_interval: The interval in seconds to check for AFK clients, defaults to 1.
         :type check_interval: int
         :param ignore_channels: A list of channel IDs to ignore, defaults to [].
         :type ignore_channels: list[int]
+        :param move_message: The message to send to the client when they are moved to the AFK channel, defaults to "You have been moved to the AFK channel.".
+        :type move_message: str
         """
 
         afk_time = afk_time * 1000
