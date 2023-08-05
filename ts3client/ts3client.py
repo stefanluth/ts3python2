@@ -4,6 +4,7 @@ from typing import Optional
 from .channel import Channel, ChannelInfo
 from .constants import NotifyRegisterType, ReasonIdentifier, TargetMode
 from .event import ClientEnterViewEvent, Event
+from .exceptions import TS3Exception
 from .message import Message
 from .ts3client_response import TS3ClientResponse
 from .ts3query import TS3Query
@@ -156,14 +157,17 @@ class TS3Client:
         """
         self.query.commands.use(port=port)
 
-    def set_name(self, name: str) -> TS3ClientResponse:
+    def set_name(self, name: str) -> TS3ClientResponse | None:
         """Set the name of the TS3Client.
 
         :param name: New name of the client.
         :type name: str
-        :return: Response from the server.
-        :rtype: TS3ClientResponse
+        :return: Response from the server or None if the name is the same.
+        :rtype: TS3ClientResponse | None
         """
+        if self.name == name:
+            return None
+
         return TS3ClientResponse(self.query.commands.clientupdate(client_nickname=name))
 
     def set_description(self, description: str) -> TS3ClientResponse:
