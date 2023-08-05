@@ -49,3 +49,6 @@ configuration.py
 *.log
 .vscode
 .pytest_cache
+*.db
+*.sqlite
+*.sqlite3
