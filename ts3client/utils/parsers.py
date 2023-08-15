@@ -79,9 +79,9 @@ def parse_response(response: bytes) -> tuple[dict, list[Event], list[Message]]:
     return data, events, messages
 
 
-def parse_event_match(match: re.Match[str]) -> Event:
-    event_type = EventType(match.group("event"))
-    data = response_to_dict(match.group()[match.group().index(" ") + 1 :])
+def parse_event_match(re_match: re.Match[str]) -> Event:
+    event_type = EventType(re_match.group("event"))
+    data = response_to_dict(re_match.group()[re_match.group().index(" ") + 1 :])
 
     match event_type:
         case EventType.CHANNEL_CREATED:
