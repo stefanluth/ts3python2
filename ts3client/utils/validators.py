@@ -1,3 +1,4 @@
+from typing import Any
 from ..constants import *
 
 
@@ -12,7 +13,7 @@ def _validate_kwargs(args: dict) -> None:
         raise ValueError("All argument values must be strings, integers or floats.")
 
 
-def _validate_changeable_kwargs(args: dict, changeables: list[str]) -> None:
+def _validate_changeable_kwargs(args: dict[str, Any], changeables: list[str]) -> None:
     """Validates the arguments passed to a query command that changes properties. This
     function validates that the arguments are valid changeable properties.
 
@@ -25,7 +26,7 @@ def _validate_changeable_kwargs(args: dict, changeables: list[str]) -> None:
     _validate_kwargs(args)
 
     for key in args.keys():
-        if key not in changeables:
+        if key.lower() not in changeables:
             raise ValueError(
                 f"Invalid argument: {key}\n\
                 \rValid arguments: {changeables}"
