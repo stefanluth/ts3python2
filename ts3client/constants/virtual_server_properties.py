@@ -71,11 +71,11 @@ VIRTUAL_SERVER_PROPERTIES = {
         "description": "Server version information including build number",
         "changeable": False,
     },
-    "VIRTUALSERVER_MAX_DOWNLOAD_TOTAL_BANDWIDTH ": {
+    "VIRTUALSERVER_MAX_DOWNLOAD_TOTAL_BANDWIDTH": {
         "description": "Max bandwidth for outgoing file transfers on the virtual server (Bytes/s)",
         "changeable": True,
     },
-    "VIRTUALSERVER_MAX_UPLOAD_TOTAL_BANDWIDTH ": {
+    "VIRTUALSERVER_MAX_UPLOAD_TOTAL_BANDWIDTH": {
         "description": "Max bandwidth for incoming  file transfers on the virtual server (Bytes/s)",
         "changeable": True,
     },
@@ -287,47 +287,47 @@ VIRTUAL_SERVER_PROPERTIES = {
         "description": "Minimum client identity  security level required to connect to the virtual server",
         "changeable": True,
     },
-    "VIRTUALSERVER_NAME_PHONETIC ": {
+    "VIRTUALSERVER_NAME_PHONETIC": {
         "description": "Phonetic name of the virtual server",
         "changeable": True,
     },
-    "VIRTUALSERVER_ICON_ID ": {
+    "VIRTUALSERVER_ICON_ID": {
         "description": "CRC32 checksum of the virtual server icon",
         "changeable": True,
     },
-    "VIRTUALSERVER_RESERVED_SLOTS ": {
+    "VIRTUALSERVER_RESERVED_SLOTS": {
         "description": "Number of reserved slots available on the virtual server",
         "changeable": True,
     },
-    "VIRTUALSERVER_TOTAL_PACKETLOSS_SPEECH ": {
+    "VIRTUALSERVER_TOTAL_PACKETLOSS_SPEECH": {
         "description": "The average packet loss for speech data on the virtual server",
         "changeable": False,
     },
-    "VIRTUALSERVER_TOTAL_PACKETLOSS_KEEPALIVE ": {
+    "VIRTUALSERVER_TOTAL_PACKETLOSS_KEEPALIVE": {
         "description": "The average packet loss for keepalive data on the virtual server",
         "changeable": False,
     },
-    "VIRTUALSERVER_TOTAL_PACKETLOSS_CONTROL ": {
+    "VIRTUALSERVER_TOTAL_PACKETLOSS_CONTROL": {
         "description": "The average packet loss for control data on the virtual server",
         "changeable": False,
     },
-    "VIRTUALSERVER_TOTAL_PACKETLOSS_TOTAL ": {
+    "VIRTUALSERVER_TOTAL_PACKETLOSS_TOTAL": {
         "description": "The average packet loss for all data on the virtual server",
         "changeable": False,
     },
-    "VIRTUALSERVER_TOTAL_PING ": {
+    "VIRTUALSERVER_TOTAL_PING": {
         "description": "The average ping of all clients connected to the virtual server",
         "changeable": False,
     },
-    "VIRTUALSERVER_IP ": {
+    "VIRTUALSERVER_IP": {
         "description": "The IPv4 address the virtual server is listening on",
         "changeable": False,
     },
-    "VIRTUALSERVER_WEBLIST_ENABLED ": {
+    "VIRTUALSERVER_WEBLIST_ENABLED": {
         "description": "Indicates whether the server appears in the global web server list or not",
         "changeable": True,
     },
-    "VIRTUALSERVER_CODEC_ENCRYPTION_MODE ": {
+    "VIRTUALSERVER_CODEC_ENCRYPTION_MODE": {
         "description": "The global codec encryption mode of the virtual server",
         "changeable": True,
     },
