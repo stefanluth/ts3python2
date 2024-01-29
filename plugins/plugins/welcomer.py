@@ -1,3 +1,4 @@
+import random
 import threading
 
 from ts3client import TS3Client
@@ -10,11 +11,11 @@ class Welcomer(Plugin):
         super().__init__(client, event)
         self.client.enable_events_and_messages()
 
-    def run(self, message: str = "Welcome to the server!"):
+    def run(self, messages: list[str] = ["Welcome to the server!"]):
         """Send a welcome message to new clients.
 
-        :param message: The message to send to new clients.
-        :type message: str
+        :param messages: The choice of messages to send to new clients.
+        :type messages: list[str]
         """
 
         while not self.event.is_set():
@@ -24,6 +25,6 @@ class Welcomer(Plugin):
                     event.used = True
                     continue
                 self.logger.info(f"Sending welcome message to {event.client_nickname}...")
-                self.client.send_private_message(event.clid, message)
+                self.client.send_private_message(event.clid, random.choice(messages))
                 event.used = True
             self.event.wait(1)

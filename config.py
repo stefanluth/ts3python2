@@ -26,7 +26,7 @@ PLUGINS_CONFIG = {
         "ignore_channels": [425000, 357512, 357513, 357514],
     },
     "Welcomer": {
-        "message": "Howdy!",
+        "messages": ["Howdy!", "Hi there!"],
     },
     "CommandHandler": {
         "prefix": "!",
