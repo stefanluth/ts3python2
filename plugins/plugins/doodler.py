@@ -1,7 +1,4 @@
 from datetime import datetime, timedelta
-import threading
-
-from ts3client import TS3Client
 
 from ..plugin import Plugin
 
@@ -17,9 +14,6 @@ def date_range(start_date, end_date) -> str:
 
 
 class Doodler(Plugin):
-    def __init__(self, client: TS3Client, event: threading.Event):
-        super().__init__(client, event)
-
     def run(self, default: str, doodles: list[dict] = []):
         """Change the server banner on given dates.
 

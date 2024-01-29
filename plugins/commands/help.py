@@ -8,9 +8,6 @@ from ..command import Command
 class Help(Command):
     """Send a list of available commands."""
 
-    def __init__(self, client: TS3Client, trigger: str, *args, **kwargs):
-        super().__init__(client, trigger)
-
     def run(self, message: Message):
         """Send a list of available commands."""
         self.logger.info(f"User {message.invokername} triggered the help command.")
