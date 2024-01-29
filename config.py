@@ -45,4 +45,33 @@ PLUGINS_CONFIG = {
             # },
         },
     },
+    # # Uncomment this to enable the Doodler plugin
+    # # Be sure to adjust the dates and URLs to your needs
+    # "Doodler": {
+    #     "default": "https://mydomain.com/banner-default.png",
+    #     "doodles": [
+    #         {
+    #             "date": "14-02-2024",
+    #             "url": "https://mydomain.com/banner-valentines.png",
+    #         },
+    #         {
+    #             "date": "01-04-2024",
+    #             "url": "https://mydomain.com/banner-april-fools.png",
+    #         },
+    #         {
+    #             "date": "31-10-2024",
+    #             "url": "https://mydomain.com/banner-halloween.png",
+    #         },
+    #         {
+    #             "startDate": "01-12-2024",
+    #             "endDate": "30-12-2024",
+    #             "url": "https://mydomain.com/banner-christmas.png",
+    #         },
+    #         {
+    #             "startDate": "01-01-2025",
+    #             "endDate": "07-01-2025",
+    #             "url": "https://mydomain.com/banner-new-year.png",
+    #         },
+    #     ],
+    # },
 }
