@@ -45,7 +45,7 @@ venv.bak/
 
 # Project specific
 credentials.py
-configuration.py
+config.local.py
 *.log
 .vscode
 .pytest_cache
