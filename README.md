@@ -4,24 +4,35 @@
 
 This is a straightforward Python interface that can be used to interact with the TeamSpeak 3 Server Query.
 
-It is extensible and can be used to create plugins that can be run on the TeamSpeak 3 server.
-
-I created this repository primarily for my own use in other projects.
-However, I figured that other people may also find it helpful, so I decided to make it public.
-This is simply a personal project that I created for fun and learning.
-
-There are other, more sophisticated interfaces available on GitHub,
-such as the excellent API by [@benediktschmitt](https://github.com/benediktschmitt/py-ts3),
-as well as the API and Bot by [@Murgeye](https://github.com/Murgeye/teamspeak3-python-api).
+It is extensible, meaning it can be used to quickly create plugins that can be run on the TeamSpeak 3 server.
 
 ## Installation
 
-Check out the [quickstart guide](./docs/quickstart_guide.md) for instructions on how to install and use this interface.
+Check out the [quickstart guide](./docs/quickstart_guide.md) for instructions.
 
 ## Documentation
 
-The `docs` directory in this repository contains documentation for this project.
-The documentation explains how to use the interface and provides detailed information on writing plugins.
+The `docs` directory contains documentation for this project.
+It explains how to use the interface and provides detailed information on writing plugins.
+
+## Plugins & Commands
+
+The `plugins` directory contains plugins and commands that are ready to be used.
+Writing plugins and commands is easy, and you can find more information in the
+[documentation](./docs/plugins/plugins.md).
+
+Currently, the following plugins and commands are available:
+
+### Plugins
+
+- [AFK Mover](./docs/plugins/afk_mover.md) - Moves users to a specified channel when they are inactive for a given amount of time.
+- [Doodler](./docs/plugins/doodler.md) - Replaces the server banner on given dates with custom images, similar to Google Doodles.
+- [Welcomer](./docs/plugins/welcomer.md) - Sends a welcome message to users when they join the server.
+
+### Commands
+
+- [Help](./docs/commands/help.md) - Displays a list of available commands.
+- [Weather](./docs/commands/weather.md) - Displays the current weather for a given location.
 
 ## Questions
 
@@ -37,14 +48,9 @@ about it; I'm eager to learn, and I know that my code has plenty of room for imp
 There is a belief among some programmers that in order to produce great code,
 it should be rewritten at least three times.
 
-This means that writing code is a continuous process of improvement and refinement,
-and the first draft is rarely perfect. By going through multiple iterations,
-developers can identify and fix issues, streamline the code, and ultimately produce a high-quality product.
-
-I firmly believe that in order to create truly great code,
+I also believe that in order to create ever better code,
 it's necessary to go through a few rounds of rewriting and refinement.
 
 I made my [previous version](https://github.com/stefanluth/ts3python) of a pythonic TS3
 query interface quite some time ago, when I knew a lot less about programming.
 My hope is to improve my code and my understanding of Python with this new version.
-The previous version is still available on GitHub, but I will not be maintaining it.
