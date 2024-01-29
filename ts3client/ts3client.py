@@ -4,7 +4,6 @@ from typing import Optional
 from .channel import Channel, ChannelInfo
 from .constants import NotifyRegisterType, ReasonIdentifier, TargetMode
 from .event import ClientEnterViewEvent, Event
-from .exceptions import TS3Exception
 from .message import Message
 from .ts3client_response import TS3ClientResponse
 from .ts3query import TS3Query
