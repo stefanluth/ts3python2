@@ -34,6 +34,17 @@ Currently, the following plugins and commands are available:
 - [Help](./docs/commands/help.md) - Displays a list of available commands.
 - [Weather](./docs/commands/weather.md) - Displays the current weather for a given location.
 
+### Planned Plugins
+
+- Casino - A plugin that allows users to gamble with virtual currency.
+- Poll - A plugin that allows users to create polls and surveys.
+- Auto-Channel - A plugin that automatically creates channels when needed.
+
+## Contributing
+
+If you want to contribute to this project, simply fork it and open a pull request.
+I'll be happy to review your changes and merge them into the main branch.
+
 ## Questions
 
 If you have any questions about how to use this interface, feel free to open an issue, and I'll be happy to assist you.
