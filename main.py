@@ -5,9 +5,16 @@ from plugins import PluginManager
 from ts3client import TS3Client
 from ts3client.utils.logger import create_logger
 
+logger = create_logger("main", "main.log")
+
 
 def main():
-    logger = create_logger("main", "main.log")
+    def sigint_handler(sig, frame):
+        logger.info("Stopping...")
+        print("\nStopping...")
+        plugin_manager.stop()
+        ts3_client.disconnect()
+        logger.info("Stopped.")
 
     SERVER_IP = config.TS3_SERVER_IP
     SERVER_PORT = config.TS3_SERVER_PORT
@@ -16,8 +23,7 @@ def main():
     TELNET_PORT = config.TS3_TELNET_PORT
 
     if None in (SERVER_IP, SERVER_PORT, TELNET_LOGIN, TELNET_PW, TELNET_PORT):
-        logger.error("Missing credentials.")
-        return
+        raise ValueError("One or more credentials values are missing.")
 
     print("Connecting to server...")
     ts3_client = TS3Client(SERVER_IP, TELNET_PORT, TELNET_LOGIN, TELNET_PW)
@@ -35,14 +41,6 @@ def main():
     plugin_manager = PluginManager(ts3_client, config.PLUGINS_CONFIG)
     plugin_manager.run()
     print("Plugins started.")
-
-    def sigint_handler(sig, frame):
-        logger.info("Stopping...")
-        print("\nStopping...")
-        plugin_manager.stop()
-        ts3_client.disconnect()
-        logger.info("Stopped.")
-
     print("Ready.")
 
     signal.signal(signal.SIGINT, sigint_handler)
@@ -50,4 +48,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        logger.exception(e)
+        raise e
