@@ -1,9 +1,11 @@
+import inspect
 from threading import Event, Thread
 
 from ts3client import TS3Client
 from ts3client.utils.logger import create_logger
 
 from . import plugins as all_plugins
+from .errors import ConfigurationError, ImplementationError
 from .plugin import Plugin
 
 logger = create_logger("PluginManager", "main.log")
@@ -21,15 +23,21 @@ class PluginManager:
         logger.info("Starting plugins...")
         for plugin_name, config in self.plugins.items():
             if plugin_name not in all_plugins.__all__:
-                logger.info(f"Plugin {plugin_name} not found. Skipping...")
-                continue
+                raise ImplementationError(
+                    plugin_name,
+                    f"Plugin {plugin_name} was listed in the configuration, but not found in the plugins directory.",
+                )
 
             stop = Event()
             plugin: Plugin = getattr(all_plugins, plugin_name)(self.client, stop)
 
             if not hasattr(plugin, "run"):
-                logger.info(f"Plugin {plugin_name} does not have a run method. Skipping...")
-                continue
+                raise ImplementationError(
+                    plugin_name,
+                    f"Plugin {plugin_name} does not have a run() method.",
+                )
+
+            validate_config(plugin, config)
 
             logger.info(f"Starting {plugin_name}...")
             thread = Thread(target=plugin.run, kwargs=config)
@@ -45,3 +53,25 @@ class PluginManager:
             stop.set()
             thread.join(timeout)
             logger.info(f"Stopped {thread.name}.")
+
+
+def validate_config(plugin: Plugin, config: dict):
+    signature = inspect.signature(plugin.run)
+
+    for param_name, param in signature.parameters.items():
+        if param_name not in config:
+            raise ConfigurationError(
+                plugin.__class__.__name__,
+                f"Parameter '{param_name}' is missing from the configuration.",
+            )
+
+        param_value = config[param_name]
+        param_type = param.annotation
+
+        if isinstance(param_value, param_type):
+            continue
+
+        raise ConfigurationError(
+            plugin.__class__.__name__,
+            f"Configuration parameter '{param_name}' should be of type {param_type.__name__}, but got {type(param_value).__name__}.",
+        )

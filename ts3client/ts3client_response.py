@@ -1,4 +1,4 @@
-from .exceptions import TS3Exception
+from .errors import TS3Error
 from .ts3query.ts3query_response import TS3QueryResponse
 from .utils.logger import create_logger
 
@@ -23,8 +23,7 @@ class TS3ClientResponse:
         self.messages = response.messages
 
         if response.error_id != 0:
-            logger.error(f"Error {response.error_id}: {response.msg}")
-            raise TS3Exception(response.error_id, response.msg)
+            raise TS3Error(response.error_id, response.msg)
 
         if response.data == {}:
             self.data = {"msg": response.msg}
