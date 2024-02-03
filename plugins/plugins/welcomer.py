@@ -12,6 +12,7 @@ class Welcomer(Plugin):
         :param messages: The choice of messages to send to new clients.
         :type messages: list[str]
         """
+        self.client.enable_events_and_messages()
 
         while not self.event.is_set():
             self.logger.debug("Checking for new clients...")

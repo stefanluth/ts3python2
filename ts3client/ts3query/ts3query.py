@@ -168,6 +168,7 @@ class TS3Query:
         self._polling_thread = threading.Thread(
             target=self._poll,
             args=(self._polling_thread_stop, polling_rate),
+            daemon=True,
         )
         self.logger.info("Starting polling thread")
         self._polling_thread.start()

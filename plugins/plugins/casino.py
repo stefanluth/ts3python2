@@ -23,6 +23,7 @@ class Casino(Plugin):
         :param starting_balance: The starting balance for each client.
         :type starting_balance: int
         """
+        self.client.enable_events_and_messages()
         self.db.create_table(
             "players",
             {
