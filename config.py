@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-LOGGING_LEVEL = logging.INFO
+LOGGING_LEVEL = logging.DEBUG
 
 TS3_SERVER_IP = os.getenv("TS3_SERVER_IP")
 TS3_SERVER_PORT = int(os.getenv("TS3_SERVER_PORT", 10011))
@@ -24,6 +24,10 @@ PLUGINS_CONFIG = {
         "afk_time": 30 * 60,
         "check_interval": 5,
         "ignore_channels": [425000, 357512, 357513, 357514],
+    },
+    "Casino": {
+        "wage": 10,
+        "starting_balance": 500,
     },
     "Welcomer": {
         "messages": ["Howdy!", "Hi there!"],
