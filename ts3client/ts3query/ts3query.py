@@ -49,7 +49,7 @@ class TS3Query:
         timeout=10,
         logger: logging.Logger = None,
     ) -> None:
-        self.logger = logger or create_logger("TS3Query", "main.log")
+        self.logger = logger or create_logger("TS3Query", "logs/main.log")
         self.logger.info(f"Connecting to {host}:{port}...")
 
         try:

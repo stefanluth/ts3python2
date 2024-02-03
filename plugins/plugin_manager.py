@@ -8,7 +8,7 @@ from . import plugins as all_plugins
 from .errors import ConfigurationError, ImplementationError
 from .plugin import Plugin
 
-logger = create_logger("PluginManager", "main.log")
+logger = create_logger("PluginManager", "logs/main.log")
 
 
 class PluginManager:
@@ -59,11 +59,14 @@ def validate_config(plugin: Plugin, config: dict):
     signature = inspect.signature(plugin.run)
 
     for param_name, param in signature.parameters.items():
-        if param_name not in config:
+        is_mandatory = param.default == param.empty
+        if param_name not in config and is_mandatory:
             raise ConfigurationError(
                 plugin.__class__.__name__,
                 f"Parameter '{param_name}' is missing from the configuration.",
             )
+        elif param_name not in config and not is_mandatory:
+            continue
 
         param_value = config[param_name]
         param_type = param.annotation

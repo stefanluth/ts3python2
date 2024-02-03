@@ -1,4 +1,5 @@
 import logging
+import os
 
 from config import LOGGING_LEVEL
 
@@ -8,6 +9,8 @@ def create_logger(name: str, file: str, level: int = LOGGING_LEVEL):
     logger.setLevel(level)
     logger.propagate = False
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+    os.mkdir("logs") if not os.path.exists("logs") else None
     file_handler = logging.FileHandler(file)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)

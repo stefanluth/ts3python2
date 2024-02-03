@@ -2,7 +2,7 @@ from .errors import TS3Error
 from .ts3query.ts3query_response import TS3QueryResponse
 from .utils.logger import create_logger
 
-logger = create_logger("ClientResponse", "main.log")
+logger = create_logger("ClientResponse", "logs/main.log")
 
 
 class TS3ClientResponse:

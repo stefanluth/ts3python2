@@ -4,8 +4,17 @@ from ..plugin import Plugin
 
 
 class CommandHandler(Plugin):
-    def run(self, prefix: str = "!", commands: dict[str, dict] = {}, check_interval: int = 1):
-        """Handles commands."""
+    def run(self, prefix: str = "!", commands: dict = {}, check_interval: int = 1):
+        """
+        Handles commands.
+
+        :param prefix: The prefix to use for commands, defaults to "!".
+        :type prefix: str
+        :param commands: A dictionary of commands to load, defaults to {}.
+        :type commands: dict
+        :param check_interval: The interval in seconds to check for commands, defaults to 1.
+        :type check_interval: int
+        """
 
         if len(commands) == 0:
             self.logger.info("No commands to load.")
@@ -24,8 +33,6 @@ class CommandHandler(Plugin):
         if len(loaded_commands) == 0:
             self.logger.info("No commands loaded.")
             return
-
-        self.client.enable_message_events()
 
         self.logger.info(f"Loaded {len(loaded_commands)} commands...")
         triggers = [command.trigger for command in loaded_commands]
