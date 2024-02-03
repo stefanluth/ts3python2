@@ -11,7 +11,7 @@ class Plugin:
     def __init__(self, client: TS3Client, event: threading.Event):
         self.client = client
         self.event = event
-        self.logger = create_logger(self.__class__.__name__, "main.log")
+        self.logger = create_logger(self.__class__.__name__, "logs/plugins.log")
 
     def run(self) -> None:
         raise ImplementationError(self.__class__.__name__, "Plugin does not have a run() method.")

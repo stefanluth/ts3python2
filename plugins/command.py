@@ -9,7 +9,7 @@ class Command:
     def __init__(self, client: TS3Client, trigger: str, *args, **kwargs):
         self.client = client
         self.trigger = trigger
-        self.logger = create_logger(self.__class__.__name__, "main.log")
+        self.logger = create_logger(self.__class__.__name__, "logs/main.log")
 
     def run(self):
         raise ImplementationError(self.__class__.__name__, "Command does not have a run() method.")

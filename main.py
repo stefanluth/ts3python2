@@ -5,7 +5,7 @@ from plugins import PluginManager
 from ts3client import TS3Client
 from ts3client.utils.logger import create_logger
 
-logger = create_logger("main", "main.log")
+logger = create_logger("main", "logs/main.log")
 
 
 def main():

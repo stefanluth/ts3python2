@@ -7,7 +7,7 @@ class AFK_Mover(Plugin):
         afk_channel_id: int,
         afk_time: int,
         check_interval: int = 1,
-        ignore_channels: list[int] = [],
+        ignore_channels: list = [],
         move_message: str = "You have been moved to the AFK channel.",
     ):
         """Moves clients to the AFK channel if they are AFK for a certain amount of time.

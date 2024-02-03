@@ -41,7 +41,7 @@ class TS3Client:
         timeout: int = 10,
         logger: logging.Logger = None,
     ) -> None:
-        self.logger = logger or create_logger("TS3Client", "main.log")
+        self.logger = logger or create_logger("TS3Client", "logs/main.log")
         if not host or not port:
             self.logger.info("No host and/or port provided, not connecting to a server")
             return
@@ -53,6 +53,7 @@ class TS3Client:
             return
 
         self.login(login, password)
+        self.enable_events_and_messages()
 
     def whoami(self) -> TS3ClientResponse:
         return TS3ClientResponse(self.query.commands.whoami())[0]
@@ -461,10 +462,8 @@ class TS3Client:
         :param interval: Polling interval in seconds, defaults to 1
         :type interval: int, optional
         """
-        self.logger.debug("Starting polling")
         self.query.start_polling(interval)
 
     def stop_polling(self) -> None:
         """Stop polling for events and messages."""
-        self.logger.debug("Stopping polling")
         self.query.stop_polling()
