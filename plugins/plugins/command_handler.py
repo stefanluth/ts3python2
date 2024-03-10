@@ -37,7 +37,6 @@ class CommandHandler(Plugin):
         self.logger.info(f"Loaded {len(loaded_commands)} commands...")
         triggers = [command.trigger for command in loaded_commands]
 
-        self.client.enable_message_events()
         self.ready()
 
         while not self.event.is_set():
