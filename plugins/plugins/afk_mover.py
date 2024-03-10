@@ -10,7 +10,8 @@ class AFK_Mover(Plugin):
         ignore_channels: list = [],
         move_message: str = "You have been moved to the AFK channel.",
     ):
-        """Moves clients to the AFK channel if they are AFK for a certain amount of time.
+        """
+        Moves clients to the AFK channel if they are AFK for a certain amount of time.
 
         :param client: A TS3Client instance.
         :type client: TS3Client

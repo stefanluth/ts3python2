@@ -12,7 +12,8 @@ from .utils.logger import create_logger
 
 
 class TS3Client:
-    """A higher level abstraction of the TS3Query class.
+    """
+    A higher level abstraction of the TS3Query class.
     If no host and port are provided, the TS3Client will not connect to a server.
     Instead you can use the TS3Client.connect() method to connect to a server.
     If no login and password are provided, the query client will not be logged in.

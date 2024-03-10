@@ -7,7 +7,8 @@ from ..plugin import Plugin
 
 class Welcomer(Plugin):
     def run(self, messages: list = ["Welcome to the server!"]):
-        """Send a welcome message to new clients.
+        """
+        Send a welcome message to new clients.
 
         :param messages: The choice of messages to send to new clients.
         :type messages: list[str]

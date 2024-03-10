@@ -29,9 +29,7 @@ def boolean_to_literal(boolean: bool) -> str:
 
 
 def response_to_dict(response: str) -> dict:
-    """
-    Converts a query response to a dict.
-    """
+    """Converts a query response to a dict."""
     response_dict = dict()
 
     for key_value_pair in response.split():
@@ -47,9 +45,7 @@ def response_to_dict(response: str) -> dict:
 
 
 def dict_to_query_kwargs(parameters: dict) -> list[str]:
-    """
-    Converts a dict to a list of query kwargs.
-    """
+    """Converts a dict to a list of query kwargs."""
     return [
         f"{key}={boolean_to_literal(value) if isinstance(value, bool) else string_to_query(value)}"
         for key, value in parameters.items()
@@ -57,9 +53,7 @@ def dict_to_query_kwargs(parameters: dict) -> list[str]:
 
 
 def parse_response(response: bytes) -> tuple[dict, list[Event], list[Message]]:
-    """
-    Parses a query response to a dict, a list of events and a list of messages.
-    """
+    """Parses a query response to a dict, a list of events and a list of messages."""
     events = []
     messages = []
     response_str = response.decode()
@@ -122,9 +116,7 @@ def parse_message_match(match: re.Match[str]) -> Message:
 
 
 def parse_help(help: bytes) -> tuple[dict, list[Event], list[Message]]:
-    """
-    Parses the help response to a dict.
-    """
+    """Parses the help response to a dict."""
 
     _, events, messages = parse_response(help)
     help_text = re.sub(patterns.RESPONSE_END, "", help.decode()).strip()

@@ -15,7 +15,8 @@ def date_range(start_date, end_date) -> str:
 
 class Doodler(Plugin):
     def run(self, default: str, doodles: list[dict] = []):
-        """Change the server banner on given dates.
+        """
+        Change the server banner on given dates.
 
         :param default: The default server banner to use.
         :type default: str

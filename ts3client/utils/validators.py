@@ -4,7 +4,8 @@ from ..constants import *
 
 
 def _validate_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a query command.
+    """
+    Validates the arguments passed to a query command.
 
     :param args: Arguments to validate.
     :type args: dict
@@ -15,7 +16,8 @@ def _validate_kwargs(args: dict) -> None:
 
 
 def _validate_changeable_kwargs(args: dict[str, Any], changeables: list[str]) -> None:
-    """Validates the arguments passed to a query command that changes properties. This
+    """
+    Validates the arguments passed to a query command that changes properties. This
     function validates that the arguments are valid changeable properties.
 
     :param args: Arguments to validate.
@@ -35,7 +37,8 @@ def _validate_changeable_kwargs(args: dict[str, Any], changeables: list[str]) ->
 
 
 def _validate_server_instance_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a server instance query command.
+    """
+    Validates the arguments passed to a server instance query command.
 
     :param args: Arguments to validate.
     :type args: dict
@@ -46,7 +49,8 @@ def _validate_server_instance_kwargs(args: dict) -> None:
 
 
 def _validate_channel_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a channel query command.
+    """
+    Validates the arguments passed to a channel query command.
 
     :param args: Arguments to validate.
     :type args: dict
@@ -57,7 +61,8 @@ def _validate_channel_kwargs(args: dict) -> None:
 
 
 def _validate_client_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a client query command.
+    """
+    Validates the arguments passed to a client query command.
 
     :param args: Arguments to validate.
     :type args: dict
@@ -68,7 +73,8 @@ def _validate_client_kwargs(args: dict) -> None:
 
 
 def _validate_virtual_server_kwargs(args: dict) -> None:
-    """Validates the arguments passed to a virtual server query command.
+    """
+    Validates the arguments passed to a virtual server query command.
 
     :param args: Arguments to validate.
     :type args: dict

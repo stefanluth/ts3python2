@@ -13,7 +13,8 @@ from .ts3query_response import TS3QueryResponse
 
 
 class TS3Query:
-    """A class for interacting with the TeamSpeak 3 ServerQuery interface.
+    """
+    A class for interacting with the TeamSpeak 3 ServerQuery interface.
     If no login and password are provided, the query client will not be logged in.
     You can login with the TS3Query.login() method after the TS3Query has been instantiated.
 
@@ -113,7 +114,8 @@ class TS3Query:
         self.logger.info("Connection closed")
 
     def send(self, command: TS3QueryCommand) -> TS3QueryResponse:
-        """Sends a command to the server.
+        """
+        Sends a command to the server.
 
         :param command: The command to send
         :type command: QueryCommand
@@ -161,7 +163,8 @@ class TS3Query:
             self.logger.debug("Polling thread stopped")
 
     def start_polling(self, polling_rate: float = 1) -> None:
-        """Starts polling the server for events and messages.
+        """
+        Starts polling the server for events and messages.
 
         :param polling_rate: The rate at which to poll the server, defaults to 1
         :type polling_rate: float, optional
