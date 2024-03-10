@@ -13,6 +13,7 @@ class Welcomer(Plugin):
         :type messages: list[str]
         """
         self.client.enable_events_and_messages()
+        self.ready()
 
         while not self.event.is_set():
             self.logger.debug("Checking for new clients...")

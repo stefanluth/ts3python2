@@ -31,6 +31,8 @@ class Doodler(Plugin):
             elif "startDate" in doodle and "endDate" in doodle:
                 transformed[doodle["url"]] = list(date_range(doodle["startDate"], doodle["endDate"]))
 
+        self.ready()
+
         while not self.event.is_set():
             self.logger.debug("Checking doodles...")
 

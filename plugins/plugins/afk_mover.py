@@ -27,6 +27,7 @@ class AFK_Mover(Plugin):
         """
 
         afk_time = afk_time * 1000
+        self.ready()
 
         while not self.event.is_set():
             self.logger.debug("Checking for AFK clients...")

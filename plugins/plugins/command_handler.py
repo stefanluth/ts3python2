@@ -38,12 +38,16 @@ class CommandHandler(Plugin):
         triggers = [command.trigger for command in loaded_commands]
 
         self.client.enable_message_events()
+        self.ready()
 
         while not self.event.is_set():
+            self.logger.debug("Checking for new messages...")
             messages = self.client.get_unread_messages()
 
             for message in messages:
+                self.logger.debug(f"Received message from '{message.invokername}': {message.content}")
                 if not message.content.startswith(prefix):
+                    self.logger.debug(f"Message does not start with prefix '{prefix}'. Skipping...")
                     continue
 
                 message.mark_as_used()
@@ -51,9 +55,12 @@ class CommandHandler(Plugin):
                 trigger = message.content[len(prefix) :].split(" ")[0]
 
                 if trigger not in triggers:
+                    self.logger.debug(f"Trigger '{trigger}' not found. Skipping...")
                     continue
 
                 command = loaded_commands[triggers.index(trigger)]
+
+                self.logger.info(f"Running command '{command.name}'...")
                 command.run(message)
 
             self.event.wait(check_interval)

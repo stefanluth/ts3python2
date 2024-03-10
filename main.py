@@ -40,8 +40,6 @@ def main():
     print("Starting plugins...")
     plugin_manager = PluginManager(ts3_client, config.PLUGINS_CONFIG)
     plugin_manager.run()
-    print("Plugins started.")
-    print("Ready.")
 
     signal.signal(signal.SIGINT, sigint_handler)
     print("Press Ctrl+C to exit")
