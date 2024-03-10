@@ -37,6 +37,8 @@ class CommandHandler(Plugin):
         self.logger.info(f"Loaded {len(loaded_commands)} commands...")
         triggers = [command.trigger for command in loaded_commands]
 
+        self.client.enable_message_events()
+
         while not self.event.is_set():
             messages = self.client.get_unread_messages()
 

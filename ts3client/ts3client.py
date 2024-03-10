@@ -53,7 +53,6 @@ class TS3Client:
             return
 
         self.login(login, password)
-        self.enable_events_and_messages()
 
     def whoami(self) -> TS3ClientResponse:
         return TS3ClientResponse(self.query.commands.whoami())[0]
