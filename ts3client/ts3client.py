@@ -464,6 +464,10 @@ class TS3Client:
         """
         self.query.start_polling(interval)
 
+    def keep_alive(self) -> None:
+        """Keep the connection alive."""
+        self.query.keep_alive()
+
     def stop_polling(self) -> None:
         """Stop polling for events and messages."""
         self.query.stop_polling()

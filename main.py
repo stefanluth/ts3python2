@@ -46,6 +46,8 @@ def main():
     signal.signal(signal.SIGINT, sigint_handler)
     print("Press Ctrl+C to exit")
 
+    ts3_client.keep_alive()
+
 
 if __name__ == "__main__":
     try:

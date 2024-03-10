@@ -153,6 +153,13 @@ class TS3Query:
 
         return response
 
+    def keep_alive(self) -> None:
+        """Waits for the polling thread to stop."""
+        if self._polling_thread and self._polling_thread.is_alive():
+            self.logger.debug("Waiting for polling thread to stop")
+            self._polling_thread.join()
+            self.logger.debug("Polling thread stopped")
+
     def start_polling(self, polling_rate: float = 1) -> None:
         """Starts polling the server for events and messages.
 
