@@ -204,7 +204,10 @@ class TS3Query:
     def _poll(self, stop: threading.Event, polling_rate: float) -> None:
         self.logger.debug("Polling...")
         while not stop.is_set():
-            self.commands.version()
+            try:
+                self.commands.version()
+            except Exception:
+                self.logger.exception("Polling command failed")
             stop.wait(polling_rate)
         self.logger.debug("Polling stopped")
 
