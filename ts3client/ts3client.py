@@ -432,7 +432,7 @@ class TS3Client:
     def enable_channel_events(self) -> None:
         """Enable receiving channel events."""
         self.start_polling()
-        self.query.commands.servernotifyregister(event=NotifyRegisterType.CHANNEL)
+        self.query.commands.servernotifyregister(event=NotifyRegisterType.CHANNEL, id=0)
 
     def disable_channel_events(self) -> None:
         """Disable receiving channel events."""
@@ -445,7 +445,7 @@ class TS3Client:
         self.query.commands.servernotifyregister(event=NotifyRegisterType.TEXT_CHANNEL)
         self.query.commands.servernotifyregister(event=NotifyRegisterType.TEXT_PRIVATE)
         self.query.commands.servernotifyregister(event=NotifyRegisterType.SERVER)
-        self.query.commands.servernotifyregister(event=NotifyRegisterType.CHANNEL)
+        self.query.commands.servernotifyregister(event=NotifyRegisterType.CHANNEL, id=0)
 
     def disable_events_and_messages(self) -> None:
         """Disable receiving all events."""
