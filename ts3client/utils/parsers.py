@@ -1,4 +1,5 @@
 import re
+from dataclasses import fields
 
 from ..constants import EventType
 from ..event import (
@@ -73,42 +74,37 @@ def parse_response(response: bytes) -> tuple[dict, list[Event], list[Message]]:
     return data, events, messages
 
 
+EVENT_CLASSES = {
+    EventType.CHANNEL_CREATED: ChannelCreatedEvent,
+    EventType.CHANNEL_DELETED: ChannelDeletedEvent,
+    EventType.CHANNEL_DESCRIPTION_CHANGED: ChannelDescriptionChangedEvent,
+    EventType.CHANNEL_EDITED: ChannelEditedEvent,
+    EventType.CHANNEL_MOVED: ChannelMovedEvent,
+    EventType.CHANNEL_PASSWORD_CHANGED: ChannelPasswordChangedEvent,
+    EventType.CLIENT_ENTER_VIEW: ClientEnterViewEvent,
+    EventType.CLIENT_LEFT_VIEW: ClientLeftViewEvent,
+    EventType.CLIENT_MOVED: ClientMovedEvent,
+    EventType.SERVER_EDITED: ServerEditedEvent,
+    EventType.TOKEN_USED: TokenUsedEvent,
+}
+
+
 def parse_event_match(re_match: re.Match[str]) -> Event:
     event_type = EventType(re_match.group("event"))
     data = response_to_dict(re_match.group()[re_match.group().index(" ") + 1 :])
+    event_class = EVENT_CLASSES.get(event_type)
+    if event_class is None:
+        return Event()
 
-    match event_type:
-        case EventType.CHANNEL_CREATED:
-            return ChannelCreatedEvent(**data)
-        case EventType.CHANNEL_DELETED:
-            return ChannelDeletedEvent(**data)
-        case EventType.CHANNEL_DESCRIPTION_CHANGED:
-            return ChannelDescriptionChangedEvent(**data)
-        case EventType.CHANNEL_EDITED:
-            return ChannelEditedEvent(**data)
-        case EventType.CHANNEL_MOVED:
-            return ChannelMovedEvent(**data)
-        case EventType.CHANNEL_PASSWORD_CHANGED:
-            return ChannelPasswordChangedEvent(**data)
-        case EventType.CLIENT_ENTER_VIEW:
-            return ClientEnterViewEvent(**data)
-        case EventType.CLIENT_LEFT_VIEW:
-            return ClientLeftViewEvent(**data)
-        case EventType.CLIENT_MOVED:
-            return ClientMovedEvent(**data)
-        case EventType.SERVER_EDITED:
-            return ServerEditedEvent(**data)
-        case EventType.TOKEN_USED:
-            return TokenUsedEvent(**data)
-        case _:
-            return Event()
+    allowed = {field.name for field in fields(event_class)}
+    return event_class(**{key: value for key, value in data.items() if key in allowed})
 
 
 def parse_message_match(match: re.Match[str]) -> Message:
     return Message(
         targetmode=int(match.group("targetmode")),
         msg=match.group("msg"),
-        target=int(match.group("target")),
+        target=int(match.group("target") or 0),
         invokerid=int(match.group("invokerid")),
         invokername=match.group("invokername"),
         invokeruid=match.group("invokeruid"),
