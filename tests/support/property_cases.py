@@ -235,6 +235,20 @@ SERVER_INSTANCE_CASES = {
             lambda ctx: ctx.template_server_group(ctx.info["serverinstance_template_serveradmin_group"]),
         ),
         noop("serverinstance_filetransfer_port", note="changing the file transfer port can break transfers"),
+        noop(
+            "serverinstance_pending_connections_per_ip",
+            note=(
+                "the integration suite configures this limit; the live case verifies the server "
+                "accepts the current value without changing it"
+            ),
+        ),
+        noop(
+            "serverinstance_serverquery_max_connections_per_ip",
+            note=(
+                "the integration suite configures this limit; the live case verifies the server "
+                "accepts the current value without changing it"
+            ),
+        ),
         cycle(
             "serverinstance_max_download_total_bandwidth",
             lambda ctx: _changed_number(ctx.info["serverinstance_max_download_total_bandwidth"], 1_000_000),

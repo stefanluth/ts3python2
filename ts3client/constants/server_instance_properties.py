@@ -65,11 +65,11 @@ SERVER_INSTANCE_PROPERTIES = {
     },
     "SERVERINSTANCE_PENDING_CONNECTIONS_PER_IP": {
         "description": "Maximum number of pending connections per IP address",
-        "changeable": False,
+        "changeable": True,
     },
     "SERVERINSTANCE_SERVERQUERY_MAX_CONNECTIONS_PER_IP": {
         "description": "Maximum number of ServerQuery connections per IP address",
-        "changeable": False,
+        "changeable": True,
     },
     "SERVERINSTANCE_GUEST_SERVERQUERY_GROUP": {
         "description": "Default ServerQuery group ID",

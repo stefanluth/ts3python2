@@ -31,6 +31,17 @@ def test_validators_accept_known_and_reject_unknown_properties(validator, proper
         validator({"not_a_real_property": "value"})
 
 
+@pytest.mark.parametrize(
+    "property_name",
+    [
+        "serverinstance_pending_connections_per_ip",
+        "serverinstance_serverquery_max_connections_per_ip",
+    ],
+)
+def test_server_instance_validator_accepts_query_connection_limits(property_name):
+    assert validators._validate_server_instance_kwargs({property_name: "64"}) == {property_name: "64"}
+
+
 def test_changeable_kwargs_are_lowercased_and_unique():
     assert validators._validate_channel_kwargs({"CHANNEL_TOPIC": "news"}) == {"channel_topic": "news"}
 
