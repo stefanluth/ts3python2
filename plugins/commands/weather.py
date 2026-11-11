@@ -1,5 +1,6 @@
 import json
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any
 
@@ -8,7 +9,8 @@ from ts3client.message import Message
 
 from ..command import Command
 
-API_URL = "http://api.weatherapi.com/v1"
+API_URL = "https://api.weatherapi.com/v1"
+API_TIMEOUT = 10
 
 
 class Weather(Command):
@@ -37,6 +39,9 @@ class Weather(Command):
         except urllib.error.HTTPError:
             self.client.send_private_message(message.invokerid, "Location not found.")
             return
+        except urllib.error.URLError:
+            self.client.send_private_message(message.invokerid, "Weather service unavailable.")
+            return
 
         self.client.send_private_message(
             message.invokerid,
@@ -47,7 +52,8 @@ class Weather(Command):
         )
 
     def get_weather_data(self, location: str) -> dict[str, Any]:
-        api_endpoint = f"{API_URL}/current.json?key={self.api_key}&q={location}"
-        with urllib.request.urlopen(api_endpoint) as response:
+        query = urllib.parse.urlencode({"key": self.api_key, "q": location})
+        api_endpoint = f"{API_URL}/current.json?{query}"
+        with urllib.request.urlopen(api_endpoint, timeout=API_TIMEOUT) as response:
             data = json.loads(response.read())
             return data
