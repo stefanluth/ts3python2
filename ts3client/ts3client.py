@@ -14,21 +14,30 @@ from .utils.logger import create_logger
 class TS3Client:
     """
     A higher level abstraction of the TS3Query class.
-    If no host and port are provided, the TS3Client will not connect to a server.
-    Instead you can use the TS3Client.connect() method to connect to a server.
-    If no login and password are provided, the query client will not be logged in.
-    You can login with the TS3Client.login() method after the TS3Client has been instantiated instead.
+    If no host, port, login or password are provided, the TS3Client will not
+    connect to a server. Instead you can use the TS3Client.connect() method to
+    connect to a server with credentials.
+    The SSH credentials authenticate when the connection is established; there
+    is no separate login or logout step.
 
     :param host: The host of the TeamSpeak 3 server, defaults to None.
     :type host: str, optional
-    :param port: The port of the TeamSpeak 3 server, defaults to None
+    :param port: The SSH query port of the TeamSpeak 3 server, defaults to None
     :type port: int, optional
-    :param login: The login of the TeamSpeak 3 server, defaults to None
+    :param login: The SSH login of the TeamSpeak 3 server, defaults to None
     :type login: str, optional
-    :param password: The password of the TeamSpeak 3 server, defaults to None
+    :param password: The SSH password of the TeamSpeak 3 server, defaults to None
     :type password: str, optional
     :param timeout: The timeout of the TeamSpeak 3 server, defaults to 10
     :type timeout: int, optional
+    :param logger: The logger to use, defaults to None
+    :type logger: logging.Logger, optional
+    :param known_hosts: Path to an SSH known_hosts file, defaults to None
+    :type known_hosts: str, optional
+    :param accept_all_keys: Accept unknown SSH host keys, defaults to False
+    :type accept_all_keys: bool, optional
+    :param use_system_host_keys: Load the system SSH known hosts, defaults to True
+    :type use_system_host_keys: bool, optional
     """
 
     query: Optional[TS3Query] = None
@@ -41,19 +50,33 @@ class TS3Client:
         password: str = None,
         timeout: int = 10,
         logger: logging.Logger = None,
+        known_hosts: str = None,
+        accept_all_keys: bool = False,
+        use_system_host_keys: bool = True,
     ) -> None:
         self.logger = logger or create_logger("TS3Client", "logs/main.log")
+        self.known_hosts = known_hosts
+        self.accept_all_keys = accept_all_keys
+        self.use_system_host_keys = use_system_host_keys
+
         if not host or not port:
             self.logger.info("No host and/or port provided, not connecting to a server")
             return
 
-        self.connect(host, port, timeout)
-
         if not login or not password:
-            self.logger.info("No login and/or password provided, not logging in")
+            self.logger.info("No login and/or password provided, not connecting to a server")
             return
 
-        self.login(login, password)
+        self.connect(
+            host,
+            port,
+            login,
+            password,
+            timeout,
+            known_hosts=known_hosts,
+            accept_all_keys=accept_all_keys,
+            use_system_host_keys=use_system_host_keys,
+        )
 
     def whoami(self) -> TS3ClientResponse:
         return TS3ClientResponse(self.query.commands.whoami())[0]
@@ -103,18 +126,50 @@ class TS3Client:
         """Get the client's server port."""
         return self.query.commands.serverinfo().data[0].get("virtualserver_port")
 
-    def connect(self, host: str, port: int, timeout: int = 10) -> None:
+    def connect(
+        self,
+        host: str,
+        port: int,
+        login: str,
+        password: str,
+        timeout: int = 10,
+        known_hosts: str = None,
+        accept_all_keys: bool = False,
+        use_system_host_keys: bool = True,
+    ) -> None:
         """Connect to a TeamSpeak 3 server.
+
+        The SSH credentials authenticate when the connection is established.
+        There is no separate login or logout step.
 
         :param host: Hostname or IP address of the TeamSpeak 3 server.
         :type host: str
-        :param port: UDP port of the TeamSpeak 3 server.
+        :param port: SSH query port of the TeamSpeak 3 server.
         :type port: int
+        :param login: SSH login for the TeamSpeak 3 server.
+        :type login: str
+        :param password: SSH password for the TeamSpeak 3 server.
+        :type password: str
         :param timeout: Timeout for the connection, defaults to 10.
         :type timeout: int, optional
+        :param known_hosts: Path to an SSH known_hosts file, defaults to None.
+        :type known_hosts: str, optional
+        :param accept_all_keys: Accept unknown SSH host keys, defaults to False.
+        :type accept_all_keys: bool, optional
+        :param use_system_host_keys: Load the system SSH known hosts, defaults to True.
+        :type use_system_host_keys: bool, optional
         """
         self.logger.info(f"Connecting to {host}:{port}...")
-        self.query = TS3Query(host, port, timeout)
+        self.query = TS3Query(
+            host,
+            port,
+            login=login,
+            password=password,
+            timeout=timeout,
+            known_hosts=known_hosts,
+            accept_all_keys=accept_all_keys,
+            use_system_host_keys=use_system_host_keys,
+        )
         self.logger.info("Connected")
 
     def disconnect(self) -> None:
@@ -124,22 +179,6 @@ class TS3Client:
             return
         self.query.exit()
         self.query = None
-
-    def login(self, login: str, password: str) -> None:
-        """Login to the TeamSpeak 3 server.
-
-        :param login: Username to login with.
-        :type login: str
-        :param password: Password to login with.
-        :type password: str
-        """
-        self.logger.info(f"Logging in as {login}...")
-        self.query.login(login, password)
-        self.logger.info("Logged in")
-
-    def logout(self) -> None:
-        """Logout from the TeamSpeak 3 server."""
-        self.query.logout()
 
     def select_server(self, id: int) -> None:
         """Use a server ID to connect to a server.

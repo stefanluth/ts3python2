@@ -46,18 +46,41 @@ Create a `.env` file in the root directory of the TS3Client repository and add t
 
 ```bash
 TS3_SERVER_IP="12.34.56.78"
-TS3_SERVER_PORT=1337
-TS3_TELNET_LOGIN="bot_login"
-TS3_TELNET_PASSWORD="bot_password"
-TS3_TELNET_PORT=1337
+TS3_SERVER_PORT=9987
+TS3_QUERY_LOGIN="bot_login"
+TS3_QUERY_PASSWORD="bot_password"
+TS3_QUERY_PORT=10022
+TS3_SSH_KNOWN_HOSTS="/path/to/known_hosts"
+TS3_SSH_ACCEPT_ALL_KEYS=false
+TS3_SSH_USE_SYSTEM_KEYS=true
 ```
 
-Replace the values with your server's IP address, port, telnet login, telnet password and telnet port.
+Replace the values with your server's IP address, voice port, SSH query login and password, and SSH query port.
+`TS3_SERVER_PORT` is the TeamSpeak 3 voice port (default `9987`), while `TS3_QUERY_PORT` is the SSH ServerQuery
+port (default `10022`). The ServerQuery credentials authenticate during the SSH connection; there is no separate
+login step.
 
-You can generate a telnet login and password by following
+You can create a ServerQuery login and password by following
 [this official guide](https://www.teamspeak3.com/support/teamspeak-3-add-server-query-user.php).
+The account on which you create the login and password should have administrator privileges.
 
-The account on which you create the telnet login and password should have administrator privileges.
+The TS3Client only supports SSH ServerQuery. Enable it on the TeamSpeak 3 server by setting
+`query_protocols=ssh` in the server's `ts3server.ini`, or by starting the server with the
+`TS3SERVER_QUERY_PROTOCOLS=ssh` environment variable. The SSH query port can be configured with
+`query_ssh_port=10022` in `ts3server.ini` or `TS3SERVER_QUERY_SSH_PORT=10022` in the environment. Make sure the
+SSH query port is reachable and, when running in Docker, publish it with `-p 10022:10022`.
+
+#### Pin the SSH Host Key
+
+The client verifies the server's SSH host key. Collect it once with:
+
+```bash
+ssh-keyscan -p 10022 12.34.56.78 > known_hosts
+```
+
+Then set `TS3_SSH_KNOWN_HOSTS` to the path of that file. The client also loads the system known hosts file by
+default; set `TS3_SSH_USE_SYSTEM_KEYS=false` to disable that. `TS3_SSH_ACCEPT_ALL_KEYS=true` disables host key
+verification and is intended for first-run testing only, never for production deployments.
 
 #### Install Dependencies
 

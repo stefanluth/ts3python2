@@ -7,11 +7,32 @@ load_dotenv()
 
 LOGGING_LEVEL = logging.DEBUG
 
+
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+
+    if value is None:
+        return default
+
+    normalized = value.strip().lower()
+
+    if normalized in {"1", "true", "yes", "on", "y", "t"}:
+        return True
+
+    if normalized in {"0", "false", "no", "off", "n", "f", ""}:
+        return False
+
+    return default
+
+
 TS3_SERVER_IP = os.getenv("TS3_SERVER_IP")
-TS3_SERVER_PORT = int(os.getenv("TS3_SERVER_PORT", 10011))
-TS3_TELNET_LOGIN = os.getenv("TS3_TELNET_LOGIN")
-TS3_TELNET_PASSWORD = os.getenv("TS3_TELNET_PASSWORD")
-TS3_TELNET_PORT = int(os.getenv("TS3_TELNET_PORT", 1))
+TS3_SERVER_PORT = int(os.getenv("TS3_SERVER_PORT", 9987))
+TS3_QUERY_LOGIN = os.getenv("TS3_QUERY_LOGIN")
+TS3_QUERY_PASSWORD = os.getenv("TS3_QUERY_PASSWORD")
+TS3_QUERY_PORT = int(os.getenv("TS3_QUERY_PORT", 10022))
+TS3_SSH_KNOWN_HOSTS = os.getenv("TS3_SSH_KNOWN_HOSTS") or None
+TS3_SSH_ACCEPT_ALL_KEYS = _env_bool("TS3_SSH_ACCEPT_ALL_KEYS", False)
+TS3_SSH_USE_SYSTEM_KEYS = _env_bool("TS3_SSH_USE_SYSTEM_KEYS", True)
 
 BOT_CONFIG = {
     "name": "Bot",

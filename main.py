@@ -18,15 +18,23 @@ def main():
 
     SERVER_IP = config.TS3_SERVER_IP
     SERVER_PORT = config.TS3_SERVER_PORT
-    TELNET_LOGIN = config.TS3_TELNET_LOGIN
-    TELNET_PW = config.TS3_TELNET_PASSWORD
-    TELNET_PORT = config.TS3_TELNET_PORT
+    QUERY_LOGIN = config.TS3_QUERY_LOGIN
+    QUERY_PASSWORD = config.TS3_QUERY_PASSWORD
+    QUERY_PORT = config.TS3_QUERY_PORT
 
-    if None in (SERVER_IP, SERVER_PORT, TELNET_LOGIN, TELNET_PW, TELNET_PORT):
+    if None in (SERVER_IP, SERVER_PORT, QUERY_LOGIN, QUERY_PASSWORD, QUERY_PORT):
         raise ValueError("One or more credentials values are missing.")
 
     print("Connecting to server...")
-    ts3_client = TS3Client(SERVER_IP, TELNET_PORT, TELNET_LOGIN, TELNET_PW)
+    ts3_client = TS3Client(
+        SERVER_IP,
+        QUERY_PORT,
+        QUERY_LOGIN,
+        QUERY_PASSWORD,
+        known_hosts=config.TS3_SSH_KNOWN_HOSTS,
+        accept_all_keys=config.TS3_SSH_ACCEPT_ALL_KEYS,
+        use_system_host_keys=config.TS3_SSH_USE_SYSTEM_KEYS,
+    )
     ts3_client.select_server_by_port(SERVER_PORT)
     print("Connected.")
 

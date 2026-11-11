@@ -40,7 +40,7 @@ class CommandsWrapper:
     instance using the ServerQuery interface. For more information, see the
     TeamSpeak 3 Server ServerQuery documentation.
 
-    :param query: A Telnet object that is connected to a TeamSpeak 3 Server instance.
+    :param query: A TS3Query object that is connected to a TeamSpeak 3 Server instance.
     """
 
     def __init__(self, query: TS3Query) -> None:
@@ -62,29 +62,6 @@ class CommandsWrapper:
     def quit(self) -> TS3QueryResponse:
         """Closes the ServerQuery connection to the TeamSpeak 3 Server instance."""
         return self.query.send(TS3QueryCommand("quit"))
-
-    def login(self, client_login_name: str, client_login_password: str) -> TS3QueryResponse:
-        """
-        Authenticates with the TeamSpeak 3 Server instance using given ServerQuery
-        login credentials.
-        """
-
-        return self.query.send(
-            TS3QueryCommand(
-                "login",
-                kwargs={
-                    "client_login_name": client_login_name,
-                    "client_login_password": client_login_password,
-                },
-            )
-        )
-
-    def logout(self) -> TS3QueryResponse:
-        """
-        Deselects the active virtual server and logs out from the server instance.
-        """
-
-        return self.query.send(TS3QueryCommand("logout"))
 
     def version(self) -> TS3QueryResponse:
         """

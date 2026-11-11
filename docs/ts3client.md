@@ -5,27 +5,34 @@
 The `TS3Client` class provides a high-level abstraction for interacting with the TeamSpeak 3 server.
 
 It is built on top of the `TS3Query` class and provides a more intuitive interface for performing common tasks such
-as moving users, receiving and sending messages.
+as moving users, receiving and sending messages. The client uses SSH ServerQuery on port `10022` by default.
 
 ## Initialization
 
-If no host and port are provided, the TS3Client will not connect to a server. Instead you can use the
-`TS3Client.connect()` method to connect to a server.
-If no login and password are provided, the query client will not be logged in.
-You can login with the `TS3Client.login()` method after the TS3Client has been instantiated instead.
+If no host, port, or SSH login and password are provided, the TS3Client will not connect to a server. Instead you can
+use the `TS3Client.connect()` method to connect to a server.
+The SSH credentials authenticate when the connection is established; there is no separate login or logout step.
+
+The SSH host key is verified by default. Pass `known_hosts` to use a specific known hosts file,
+`use_system_host_keys=False` to skip the system known hosts file, or `accept_all_keys=True` to disable verification.
+`accept_all_keys` is intended for first-run testing only. Pin the host key with:
+
+```bash
+ssh-keyscan -p 10022 host > known_hosts
+```
 
 ## Methods
 
 ### Public methods
 
-- `__init__(host: str = None, port: int = None, login: str = None, password: str = None, timeout: int = 10, logger: logging.Logger = None)`:
-Initializes a new TS3Client instance with a given host, port, and optionally, login and password to be used for
-authentication. A logger object can also be optionally passed.
+- `__init__(host: str = None, port: int = None, login: str = None, password: str = None, timeout: int = 10, logger: logging.Logger = None, known_hosts: str = None, accept_all_keys: bool = False, use_system_host_keys: bool = True)`:
+Initializes a new TS3Client instance with a given host, SSH query port, and SSH login and password to be used for
+authentication. `known_hosts`, `accept_all_keys`, and `use_system_host_keys` control SSH host key verification. A
+logger object can also be optionally passed.
 - `whoami()`: Returns information about the client (the bot).
-- `connect(host: str, port: int, timeout: int = 10)`: Connects to a TeamSpeak 3 server.
+- `connect(host: str, port: int, login: str, password: str, timeout: int = 10, known_hosts: str = None, accept_all_keys: bool = False, use_system_host_keys: bool = True)`:
+Connects to a TeamSpeak 3 server over SSH with the given credentials.
 - `disconnect()`: Disconnects from the TeamSpeak 3 server.
-- `login(login: str, password: str)`: Attempts to login to the TeamSpeak 3 server with the given login and password.
-- `logout()`: Attempts to logout from the TeamSpeak 3 server.
 - `select_server(id: int)`: Selects a server by its ID.
 - `select_server_by_port(port: int)`: Selects a server by its port.
 - `set_name(name: str)`: Sets the client's nickname.

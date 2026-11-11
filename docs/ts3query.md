@@ -2,10 +2,12 @@
 
 ## Introduction
 
-The `TS3Query` class facilitates communication with the TeamSpeak 3 ServerQuery interface by establishing a
+The `TS3Query` class facilitates communication with the TeamSpeak 3 ServerQuery interface over SSH by establishing a
 connection to the server upon instantiation.
 
-This class provides methods for logging in and out, sending commands to the server, and exiting the server.
+The class connects to the SSH ServerQuery port (default `10022`) and authenticates with the supplied SSH credentials
+when the connection is established. There is no separate login or logout step. It provides methods for sending
+commands to the server and exiting the server.
 
 Responses from the server are received and parsed into a `TS3QueryResponse` object using the `_receive()` method,
 which is used internally.
@@ -18,10 +20,15 @@ TS3QueryCommand, and `TS3QueryResponse`.
 
 ## Initialization
 
-If login credentials are provided, the client is automatically logged in.
+SSH login and password are required and are used to authenticate when the connection is established.
 
-If no login credentials are provided, the client is not logged in and must be logged in manually using the `login()`
-method.
+The SSH host key is verified by default. Pass `known_hosts` to use a specific known hosts file,
+`use_system_host_keys=False` to skip the system known hosts file, or `accept_all_keys=True` to disable verification.
+`accept_all_keys` is intended for first-run testing only. Pin the host key with:
+
+```bash
+ssh-keyscan -p 10022 host > known_hosts
+```
 
 ## Note
 
@@ -45,12 +52,11 @@ which leads to more efficient development and more maintainable code.
 
 ### Public methods
 
-- `__init__(host: str, port: int, login: str = None, password: str = None, timeout=10, logger: logging.Logger = None)`:
-Initializes a new TS3Query instance with a given host, port, and optionally, login and password to be used for
-authentication. A logger object can also be optionally passed.
+- `__init__(host: str, port: int, login: str = None, password: str = None, timeout=10, known_hosts: str = None, accept_all_keys: bool = False, use_system_host_keys: bool = True, logger: logging.Logger = None)`:
+Initializes a new TS3Query instance and connects to the SSH ServerQuery port with the given SSH login and password.
+`known_hosts`, `accept_all_keys`, and `use_system_host_keys` control SSH host key verification. A logger object can
+also be optionally passed.
 - `connected()`: Checks whether the query client is connected to the TeamSpeak 3 server.
-- `login(login: str, password: str)`: Attempts to login to the TeamSpeak 3 server with the given login and password.
-- `logout()`: Attempts to logout from the TeamSpeak 3 server.
 - `exit()`: Exits the server, closes the connection, and stops polling.
 - `send(command: TS3QueryCommand)`: Sends a command to the server and returns the server's response.
 - `start_polling(polling_rate: int)`: Starts polling the server for events and messages with a given polling rate.

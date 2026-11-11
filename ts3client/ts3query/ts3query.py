@@ -1,33 +1,40 @@
 import logging
-import socket
 import threading
 import time
-from telnetlib import Telnet
 
 from ..event import Event
 from ..message import Message
 from ..utils import patterns
 from ..utils.logger import create_logger
+from .transport import SSHTransport
 from .ts3query_command import CommandsWrapper, TS3QueryCommand
 from .ts3query_response import TS3QueryResponse
 
 
 class TS3Query:
     """
-    A class for interacting with the TeamSpeak 3 ServerQuery interface.
-    If no login and password are provided, the query client will not be logged in.
-    You can login with the TS3Query.login() method after the TS3Query has been instantiated.
+    A class for interacting with the TeamSpeak 3 ServerQuery interface over SSH.
+    The SSH login and password are required and are used when the connection is
+    established; there is no separate login command.
 
     :param host: The host of the TeamSpeak 3 server.
     :type host: str
-    :param port: The port of the TeamSpeak 3 server.
+    :param port: The SSH query port of the TeamSpeak 3 server.
     :type port: int
-    :param login: The login of the TeamSpeak 3 server, defaults to None.
+    :param login: The SSH login of the TeamSpeak 3 server, defaults to None.
     :type login: str, optional
-    :param password: The password of the TeamSpeak 3 server, defaults to None.
+    :param password: The SSH password of the TeamSpeak 3 server, defaults to None.
     :type password: str, optional
     :param timeout: The timeout of the TeamSpeak 3 server, defaults to 10.
     :type timeout: int, optional
+    :param known_hosts: Path to a known_hosts file, defaults to None.
+    :type known_hosts: str, optional
+    :param accept_all_keys: Accept unknown SSH host keys, defaults to False.
+    :type accept_all_keys: bool, optional
+    :param use_system_host_keys: Load the system SSH known hosts, defaults to True.
+    :type use_system_host_keys: bool, optional
+    :param logger: The logger to use, defaults to None.
+    :type logger: logging.Logger, optional
     """
 
     _lock = threading.RLock()
@@ -48,70 +55,69 @@ class TS3Query:
         login: str = None,
         password: str = None,
         timeout=10,
+        known_hosts: str = None,
+        accept_all_keys: bool = False,
+        use_system_host_keys: bool = True,
         logger: logging.Logger = None,
     ) -> None:
         self.logger = logger or create_logger("TS3Query", "logs/main.log")
-        self.logger.info(f"Connecting to {host}:{port}...")
-
-        try:
-            self._telnet = Telnet(host, port, timeout)
-        except AttributeError as e:
-            self.logger.error(e)
-            return
-
-        self.timeout = timeout
-        self.commands = CommandsWrapper(self)
-        self._skip_greeting()
+        self._transport = None
+        self._exiting = False
 
         if not login or not password:
-            self.logger.info("No login and/or password provided, not logging in...")
-            return
+            raise ValueError("SSH login and password are required")
 
-        self.login(login, password)
+        self.logger.info(f"Connecting to {host}:{port}...")
+        self.timeout = timeout
+        self._transport = SSHTransport(
+            host,
+            port,
+            login,
+            password,
+            timeout=timeout,
+            known_hosts=known_hosts,
+            accept_all_keys=accept_all_keys,
+            use_system_host_keys=use_system_host_keys,
+        )
+
+        self.commands = CommandsWrapper(self)
+        self._skip_greeting()
 
     def __del__(self) -> None:
         self.exit()
 
     def connected(self) -> bool:
-        sock = self._telnet.get_socket()
-        if sock is not None and sock.fileno() != -1:
-            try:
-                sock.getsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE)
-            except socket.error:
-                return False
-        else:
-            return False
-
-        return True
-
-    def login(self, login: str, password: str) -> TS3QueryResponse:
-        if not self.connected():
-            return
-
-        self.logger.info("Logging in...")
-        return self.commands.login(login, password)
-
-    def logout(self) -> TS3QueryResponse:
-        if not self.connected():
-            return
-
-        self.logger.info("Logging out...")
-        return self.commands.logout()
+        transport = getattr(self, "_transport", None)
+        return bool(transport and transport.connected())
 
     def exit(self) -> None:
         """Exits the server, closes the connection and stops polling."""
-
-        if not self.connected():
+        transport = getattr(self, "_transport", None)
+        if transport is None:
             return
 
-        if self._polling_thread and self._polling_thread.is_alive():
-            self.stop_polling()
+        if not getattr(self, "_exiting", False):
+            self._exiting = True
 
-        self.logger.info("Exiting")
-        self.commands.quit()
+            try:
+                if self._polling_thread and self._polling_thread.is_alive():
+                    self.stop_polling()
+            except Exception:
+                self.logger.exception("Failed to stop polling")
+
+            if transport.connected():
+                self.logger.info("Exiting")
+                try:
+                    self.commands.quit()
+                except Exception:
+                    self.logger.exception("Failed to send quit")
+
         self.logger.info("Closing connection")
-        self._telnet.close()
-        self.logger.info("Connection closed")
+        try:
+            transport.close()
+            self.logger.info("Connection closed")
+        except Exception:
+            self.logger.exception("Failed to close connection")
 
     def send(self, command: TS3QueryCommand) -> TS3QueryResponse:
         """
@@ -132,7 +138,7 @@ class TS3Query:
 
             self.logger.debug(f"Lock aquired")
             self.logger.debug(f"Sending command: {command.command}")
-            self._telnet.write(command.encoded)
+            self._transport.write(command.encoded)
             response = self._receive()
             self.logger.debug(f"Releasing lock...")
 
@@ -142,7 +148,7 @@ class TS3Query:
 
     def _receive(self) -> TS3QueryResponse:
         self.logger.debug("Receiving response...")
-        response = self._telnet.expect([patterns.RESPONSE_END_BYTES], self.timeout)
+        response = self._transport.expect([patterns.RESPONSE_END_BYTES], self.timeout)
         self.logger.debug(f"Received response: {response}")
 
         response = TS3QueryResponse(*response)
@@ -249,11 +255,8 @@ class TS3Query:
 
         with self._lock:
             self.logger.debug("Skipping greeting")
-            self._telnet.read_until(
-                b'TS3\n\rWelcome to the TeamSpeak 3 ServerQuery interface, type "help" for a list of '
-                b'commands and "help <command>" for information on a specific command.\n\r',
-                self.timeout,
-            )
+            self._transport.read_until(b"\n\r", self.timeout)
+            self._transport.read_until(b"\n\r", self.timeout)
 
     @property
     def flood_protection(self) -> bool:
