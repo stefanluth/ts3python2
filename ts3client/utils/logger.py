@@ -10,10 +10,19 @@ def create_logger(name: str, file: str, level: int = LOGGING_LEVEL):
     logger.propagate = False
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-    os.mkdir("logs") if not os.path.exists("logs") else None
-    file_handler = logging.FileHandler(file)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    target = os.path.abspath(file)
+    has_handler = any(
+        isinstance(handler, logging.FileHandler) and os.path.abspath(handler.baseFilename) == target
+        for handler in logger.handlers
+    )
+
+    if not has_handler:
+        directory = os.path.dirname(target)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        file_handler = logging.FileHandler(file)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
     return logger
 
