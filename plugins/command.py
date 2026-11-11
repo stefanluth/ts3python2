@@ -16,6 +16,12 @@ class Command:
     def run(self, *args: Any, **kwargs: Any) -> None:
         raise ImplementationError(self.__class__.__name__, "Command does not have a run() method.")
 
+    def tick(self) -> None:
+        """Periodic hook called by CommandHandler."""
+
+    def stop(self) -> None:
+        """Called when the handler stops."""
+
     def ready(self) -> None:
         """Broadcasts that the command is ready."""
         self.logger.info(f"{self.name} initialized.")
