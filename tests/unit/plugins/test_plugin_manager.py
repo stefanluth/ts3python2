@@ -1,3 +1,4 @@
+import typing
 from typing import cast
 
 import pytest
@@ -122,3 +123,43 @@ def test_config_validation(plugin_type, config, valid):
     else:
         with pytest.raises(ConfigurationError):
             validate_config(plugin_type(), config)
+
+
+class ExtraKwargsPlugin(Plugin):
+    def __init__(self):
+        pass
+
+    def run(self, value: int = 0, **kwargs):
+        pass
+
+
+class VariadicPlugin(Plugin):
+    def __init__(self):
+        pass
+
+    def run(self, *args):
+        pass
+
+
+@pytest.mark.parametrize(
+    ("value", "annotation", "expected"),
+    [
+        (1, int, True),
+        ("1", int, False),
+        (1, int | str, True),
+        (None, str | None, True),
+        ("a", typing.Literal["a", "b"], True),
+        ("c", typing.Literal["a", "b"], False),
+        (1, typing.Annotated[int, "meta"], True),
+        ("anything", typing.Any, True),
+        ({"a": 1}, dict[str, int], True),
+        ([1, 2], list[int], True),
+    ],
+)
+def test_matches_type(value, annotation, expected):
+    assert plugin_manager_module._matches_type(value, annotation) is expected
+
+
+def test_validate_config_handles_variadic_signatures():
+    validate_config(ExtraKwargsPlugin(), {"value": 1, "extra": "anything"})
+    validate_config(VariadicPlugin(), {})

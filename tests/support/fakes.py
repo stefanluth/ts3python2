@@ -62,9 +62,19 @@ class FakeQuery:
     def __init__(self, commands=None):
         self.commands = commands or FakeCommands()
         self.exit_calls = 0
+        self.started = []
+        self.stopped = 0
+        self.events = []
+        self.messages = []
 
     def exit(self):
         self.exit_calls += 1
+
+    def start_polling(self, interval=1):
+        self.started.append(interval)
+
+    def stop_polling(self):
+        self.stopped += 1
 
 
 class FakeSSHTransport:
@@ -220,6 +230,10 @@ class FakeClient:
         self.sent = []
         self.enabled = []
         self.query = FakeQuery()
+        self.users = []
+        self.user_infos = {}
+        self.moves = []
+        self.events = []
 
     def get_unread_messages(self):
         return self.message_batches.pop(0) if self.message_batches else []
@@ -229,3 +243,18 @@ class FakeClient:
 
     def enable_message_events(self):
         self.enabled.append("message")
+
+    def enable_events_and_messages(self):
+        self.enabled.append("events_and_messages")
+
+    def get_users(self):
+        return self.users
+
+    def get_user_info(self, clid):
+        return self.user_infos[clid]
+
+    def move_user(self, clid, cid):
+        self.moves.append((clid, cid))
+
+    def get_user_entered_events(self):
+        return [event for event in self.events if not event.used]

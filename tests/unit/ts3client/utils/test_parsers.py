@@ -65,3 +65,18 @@ def test_parse_response(payload, expected_data, event_type, event_field, message
     else:
         assert len(messages) == 1
         assert (messages[0].content, messages[0].invokername, messages[0].target) == message_expected
+
+
+def test_response_to_dict_handles_empty_duplicate_and_embedded_equals():
+    assert parsers.response_to_dict("a= b=x=y c") == {"a": "", "b": "x=y", "c": ""}
+    assert parsers.response_to_dict("a=1 a=2") == {"a": 2}
+
+
+def test_identical_notifications_are_all_kept():
+    message = b"notifytextmessage targetmode=1 msg=hi target=1 invokerid=2 invokername=u invokeruid=x\n\r"
+    payload = message + message + b"version=1\n\rerror id=0 msg=ok\n\r"
+
+    data, events, messages = parsers.parse_response(payload)
+
+    assert data == {0: {"version": 1}}
+    assert [parsed.content for parsed in messages] == ["hi", "hi"]

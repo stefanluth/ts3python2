@@ -140,6 +140,14 @@ def test_state_is_per_instance(monkeypatch):
     assert first.events is not second.events
     assert first.messages is not second.messages
 
+    assert first.flood_protection is True
+    first.disable_flood_protection()
+    first.flood_protection_timeout = 0.1
+    assert first.flood_protection is False
+    assert first.flood_protection_timeout == 0.1
+    assert second.flood_protection is True
+    assert second.flood_protection_timeout == 0.5
+
 
 @pytest.mark.parametrize(
     ("attribute", "limit_attribute", "add_method", "make_items"),
@@ -176,3 +184,22 @@ def test_used_items_are_excluded_from_unread_and_removed(monkeypatch):
 
     assert query.messages == [unread_message]
     assert query.events == [unread_event]
+
+
+def test_start_polling_is_idempotent_and_stop_clears_the_thread(monkeypatch):
+    query = make_query(monkeypatch)
+
+    query.stop_polling()
+    assert query._polling_thread is None
+
+    query.start_polling(0.01)
+    thread = query._polling_thread
+    query.start_polling(0.01)
+
+    assert query._polling_thread is thread
+
+    query.stop_polling()
+
+    assert query._polling_thread is None
+    assert thread is not None
+    assert thread.is_alive() is False

@@ -14,3 +14,8 @@ from ts3client.ts3query.ts3query_command import TS3QueryCommand
 )
 def test_command_encoding(command, expected):
     assert command.encoded == expected
+
+
+def test_disabled_positional_options_do_not_leave_empty_tokens():
+    assert TS3QueryCommand("use", args=(("virtual", False),), kwargs={"sid": 1}).encoded == b"use sid=1\n"
+    assert TS3QueryCommand("x", args=(("a", False), ("b", False))).encoded == b"x\n"

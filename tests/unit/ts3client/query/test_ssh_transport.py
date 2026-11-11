@@ -91,9 +91,10 @@ def test_expect_match_consumes_through_match_and_keeps_remainder(ssh_client):
     ("method", "chunks", "timeout_when_empty", "expected"),
     [
         ("expect", [b"partial"], True, (-1, None, b"partial")),
+        ("read_until", [b"partial"], True, b"partial"),
         ("read_until", [], False, None),
     ],
-    ids=["timeout-drains-buffer", "eof-raises"],
+    ids=["timeout-drains-buffer", "read-until-timeout-drains-buffer", "eof-raises"],
 )
 def test_partial_buffer_is_drained_or_eof_is_raised(ssh_client, method, chunks, timeout_when_empty, expected):
     ssh_client.timeout_when_empty = timeout_when_empty
@@ -130,10 +131,29 @@ def test_close_disconnects_and_rejects_writes(ssh_client):
     client.transport.active = True
 
     transport.close()
+    transport.close()
 
     assert transport.connected() is False
     assert client.channel.closed is True
     assert client.closed is True
+
+    with pytest.raises(ConnectionError):
+        transport.write(b"version\n")
+
+
+def test_recv_restores_the_channel_timeout_after_a_failure(ssh_client):
+    transport, _ = make_transport(ssh_client, chunks=[EOFError("boom")], timeout=1)
+
+    with pytest.raises(EOFError):
+        transport._recv(0.2)
+
+    assert transport._channel is not None
+    assert transport._channel.gettimeout() == 1
+
+
+def test_write_rejects_a_closed_stream(ssh_client):
+    transport, _ = make_transport(ssh_client, chunks=[])
+    transport._eof = True
 
     with pytest.raises(ConnectionError):
         transport.write(b"version\n")

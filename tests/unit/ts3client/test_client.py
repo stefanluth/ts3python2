@@ -114,5 +114,116 @@ def test_disconnect_is_idempotent():
     assert query.exit_calls == 1
     assert client._query is None
 
+    with pytest.raises(ConnectionError):
+        _ = client.query
+
     client.disconnect()
     assert query.exit_calls == 1
+
+
+def test_rename_user_only_allows_the_connected_client():
+    commands = FakeCommands()
+    commands.responses["whoami"] = FakeResponse(data={0: {"client_id": 7}})
+    client = make_client(commands)
+
+    with pytest.raises(NotImplementedError):
+        client.rename_user(8, "someone else")
+    assert commands.called("clientupdate") == []
+
+    client.rename_user(7, "new name")
+
+    assert commands.called("clientupdate") == [("clientupdate", (), {"client_nickname": "new name"})]
+
+
+def test_user_entered_events_are_filtered_and_unread():
+    from ts3client.event import ClientEnterViewEvent, Event
+
+    client = make_client()
+    used_event = ClientEnterViewEvent(clid=1)
+    used_event.used = True
+    unread_event = ClientEnterViewEvent(clid=2)
+    other_event = Event()
+    client.query.events = [used_event, unread_event, other_event]
+
+    assert client.get_user_entered_events() == [unread_event]
+
+
+def test_properties_read_the_current_client_and_server():
+    commands = FakeCommands()
+    commands.responses["whoami"] = FakeResponse(
+        data={
+            0: {
+                "client_nickname": "bot",
+                "client_description": "a bot",
+                "client_id": 7,
+                "client_unique_identifier": "uid",
+                "client_database_id": 9,
+            }
+        }
+    )
+    commands.responses["serverinfo"] = FakeResponse(
+        data={
+            0: {
+                "virtualserver_id": 1,
+                "virtualserver_unique_identifier": "server-uid",
+                "virtualserver_name": "server",
+                "virtualserver_port": 9987,
+            }
+        }
+    )
+    client = make_client(commands)
+
+    assert client.name == "bot"
+    assert client.description == "a bot"
+    assert client.id == 7
+    assert client.unique_id == "uid"
+    assert client.database_id == 9
+    assert client.server_id == 1
+    assert client.server_unique_id == "server-uid"
+    assert client.server_name == "server"
+    assert client.server_port == 9987
+
+
+def test_enable_message_events_registers_all_text_sources():
+    from ts3client.constants import NotifyRegisterType
+
+    commands = FakeCommands()
+    client = make_client(commands)
+
+    client.enable_message_events()
+
+    assert client.query.started == [1]
+    assert [call[2]["event"] for call in commands.called("servernotifyregister")] == [
+        NotifyRegisterType.TEXT_SERVER,
+        NotifyRegisterType.TEXT_CHANNEL,
+        NotifyRegisterType.TEXT_PRIVATE,
+    ]
+
+    client.disable_message_events()
+
+    assert len(commands.called("servernotifyunregister")) == 3
+
+
+def test_enable_events_and_messages_registers_every_source():
+    from ts3client.constants import NotifyRegisterType
+
+    commands = FakeCommands()
+    client = make_client(commands)
+
+    client.enable_events_and_messages()
+
+    registrations = commands.called("servernotifyregister")
+    assert client.query.started == [1]
+    assert [call[2]["event"] for call in registrations] == [
+        NotifyRegisterType.TEXT_SERVER,
+        NotifyRegisterType.TEXT_CHANNEL,
+        NotifyRegisterType.TEXT_PRIVATE,
+        NotifyRegisterType.SERVER,
+        NotifyRegisterType.CHANNEL,
+    ]
+    assert registrations[-1][2]["id"] == 0
+
+    client.disable_events_and_messages()
+
+    assert client.query.stopped == 1
+    assert len(commands.called("servernotifyunregister")) == 5
