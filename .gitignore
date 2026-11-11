@@ -52,3 +52,6 @@ config.local.py
 *.db
 *.sqlite
 *.sqlite3
+
+.unlazy
+GATES.md
