@@ -7,7 +7,7 @@ from ..command import Command
 class Help(Command):
     """Send a list of available commands."""
 
-    def run(self, message: Message):
+    def run(self, message: Message) -> None:
         """Send a list of available commands."""
         self.logger.info(f"User {message.invokername} triggered the help command.")
 

@@ -7,15 +7,15 @@ from ..constants import *
 from ..utils import parsers, validators
 
 if TYPE_CHECKING:
-    from ts3query import TS3Query
-    from ts3query_response import TS3QueryResponse
+    from .ts3query import TS3Query
+    from .ts3query_response import TS3QueryResponse
 
 
 @dataclass
 class TS3QueryCommand:
     command: str
-    args: Optional[tuple[tuple[str, bool]]] = field(default_factory=tuple)
-    kwargs: Optional[dict] = field(default_factory=dict)
+    args: tuple[tuple[str, bool], ...] = field(default_factory=tuple)
+    kwargs: dict[str, str | int | float | bool | None] = field(default_factory=dict)
     encoded: bytes = field(init=False)
 
     def __post_init__(self):
@@ -104,7 +104,12 @@ class CommandsWrapper:
         machines. If no subsystem is specified, "voice" is used by default.
         """
 
-        return self.query.send(TS3QueryCommand("bindinglist", kwargs={"subsystem": subsystem.value or Subsystem.VOICE}))
+        return self.query.send(
+            TS3QueryCommand(
+                "bindinglist",
+                kwargs={"subsystem": subsystem.value if subsystem is not None else Subsystem.VOICE.value},
+            )
+        )
 
     def use(
         self,

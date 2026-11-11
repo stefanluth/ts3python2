@@ -1,10 +1,17 @@
+from typing import Any
+
 from .. import commands as all_commands
 from ..command import Command
 from ..plugin import Plugin
 
 
 class CommandHandler(Plugin):
-    def run(self, prefix: str = "!", commands: dict = None, check_interval: int = 1):
+    def run(
+        self,
+        prefix: str = "!",
+        commands: dict[str, Any] | None = None,
+        check_interval: int = 1,
+    ):
         """
         Handles commands.
 

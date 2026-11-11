@@ -1,5 +1,6 @@
 import re
 from dataclasses import fields
+from typing import Any, cast
 
 from ..constants import EventType
 from ..event import (
@@ -29,7 +30,7 @@ def boolean_to_literal(boolean: bool) -> str:
     return "1" if boolean else "0"
 
 
-def response_to_dict(response: str) -> dict:
+def response_to_dict(response: str) -> dict[str, str | int]:
     """Converts a query response to a dict."""
     response_dict = dict()
 
@@ -45,7 +46,7 @@ def response_to_dict(response: str) -> dict:
     return response_dict
 
 
-def dict_to_query_kwargs(parameters: dict) -> list[str]:
+def dict_to_query_kwargs(parameters: dict[str, str | int | float | bool]) -> list[str]:
     """Converts a dict to a list of query kwargs."""
     return [
         f"{key}={boolean_to_literal(value) if isinstance(value, bool) else string_to_query(value)}"
@@ -53,7 +54,7 @@ def dict_to_query_kwargs(parameters: dict) -> list[str]:
     ]
 
 
-def parse_response(response: bytes) -> tuple[dict, list[Event], list[Message]]:
+def parse_response(response: bytes) -> tuple[dict[int | str, Any], list[Event], list[Message]]:
     """Parses a query response to a dict, a list of events and a list of messages."""
     events = []
     messages = []
@@ -69,7 +70,7 @@ def parse_response(response: bytes) -> tuple[dict, list[Event], list[Message]]:
         events.append(parse_event_match(match))
         response_str = response_str.replace(match.group(), "")
 
-    data = {i: response_to_dict(data) for i, data in enumerate(response_str.split("|"))}
+    data: dict[int | str, Any] = {i: response_to_dict(chunk) for i, chunk in enumerate(response_str.split("|"))}
 
     return data, events, messages
 
@@ -97,7 +98,7 @@ def parse_event_match(re_match: re.Match[str]) -> Event:
         return Event()
 
     allowed = {field.name for field in fields(event_class)}
-    return event_class(**{key: value for key, value in data.items() if key in allowed})
+    return cast(Any, event_class)(**{key: value for key, value in data.items() if key in allowed})
 
 
 def parse_message_match(match: re.Match[str]) -> Message:
@@ -111,12 +112,12 @@ def parse_message_match(match: re.Match[str]) -> Message:
     )
 
 
-def parse_help(help: bytes) -> tuple[dict, list[Event], list[Message]]:
+def parse_help(help: bytes) -> tuple[dict[int | str, Any], list[Event], list[Message]]:
     """Parses the help response to a dict."""
 
     _, events, messages = parse_response(help)
     help_text = re.sub(patterns.RESPONSE_END, "", help.decode()).strip()
-    data = {
+    data: dict[int | str, Any] = {
         "help": help_text,
     }
 

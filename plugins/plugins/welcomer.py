@@ -4,7 +4,7 @@ from ..plugin import Plugin
 
 
 class Welcomer(Plugin):
-    def run(self, messages: list = None):
+    def run(self, messages: list[str] | None = None):
         """
         Send a welcome message to new clients.
 
@@ -20,7 +20,7 @@ class Welcomer(Plugin):
         while not self.event.is_set():
             self.logger.debug("Checking for new clients...")
             for event in self.client.get_user_entered_events():
-                if event.client_type == 1:
+                if event.client_type == 1 or event.clid is None:
                     event.used = True
                     continue
                 self.logger.info(f"Sending welcome message to {event.client_nickname}...")

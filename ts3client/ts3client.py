@@ -1,8 +1,9 @@
 import logging
-from typing import Optional
+from typing import Any
 
 from .channel import Channel, ChannelInfo
 from .constants import NotifyRegisterType, ReasonIdentifier, TargetMode
+from .errors import TS3Error
 from .event import ClientEnterViewEvent, Event
 from .message import Message
 from .ts3client_response import TS3ClientResponse
@@ -40,17 +41,27 @@ class TS3Client:
     :type use_system_host_keys: bool, optional
     """
 
-    query: Optional[TS3Query] = None
+    _query: TS3Query | None = None
+
+    @property
+    def query(self) -> TS3Query:
+        if self._query is None:
+            raise ConnectionError("Not connected to a server")
+        return self._query
+
+    @query.setter
+    def query(self, value: TS3Query | None) -> None:
+        self._query = value
 
     def __init__(
         self,
-        host: str = None,
-        port: int = None,
-        login: str = None,
-        password: str = None,
+        host: str | None = None,
+        port: int | None = None,
+        login: str | None = None,
+        password: str | None = None,
         timeout: int = 10,
-        logger: logging.Logger = None,
-        known_hosts: str = None,
+        logger: logging.Logger | None = None,
+        known_hosts: str | None = None,
         accept_all_keys: bool = False,
         use_system_host_keys: bool = True,
     ) -> None:
@@ -78,33 +89,33 @@ class TS3Client:
             use_system_host_keys=use_system_host_keys,
         )
 
-    def whoami(self) -> TS3ClientResponse:
+    def whoami(self) -> dict[str, Any]:
         return TS3ClientResponse(self.query.commands.whoami())[0]
 
     @property
     def name(self) -> str:
         """Get the client's nickname."""
-        return self.whoami().get("client_nickname")
+        return self.whoami()["client_nickname"]
 
     @property
     def description(self) -> str:
         """Get the client's description."""
-        return self.whoami().get("client_description")
+        return self.whoami()["client_description"]
 
     @property
     def id(self) -> int:
         """Get the client's ID."""
-        return self.whoami().get("client_id")
+        return self.whoami()["client_id"]
 
     @property
     def unique_id(self) -> str:
         """Get the client's unique ID."""
-        return self.whoami().get("client_unique_identifier")
+        return self.whoami()["client_unique_identifier"]
 
     @property
     def database_id(self) -> int:
         """Get the client's database ID."""
-        return self.whoami().get("client_database_id")
+        return self.whoami()["client_database_id"]
 
     @property
     def server_id(self) -> int:
@@ -133,7 +144,7 @@ class TS3Client:
         login: str,
         password: str,
         timeout: int = 10,
-        known_hosts: str = None,
+        known_hosts: str | None = None,
         accept_all_keys: bool = False,
         use_system_host_keys: bool = True,
     ) -> None:
@@ -175,10 +186,10 @@ class TS3Client:
     def disconnect(self) -> None:
         """Disconnect from the TeamSpeak 3 server."""
         self.logger.info("Disconnecting...")
-        if self.query is None:
+        if self._query is None:
             return
-        self.query.exit()
-        self.query = None
+        self._query.exit()
+        self._query = None
 
     def select_server(self, id: int) -> None:
         """Use a server ID to connect to a server.
@@ -258,7 +269,13 @@ class TS3Client:
         :return: Response from the server.
         :rtype: TS3ClientResponse
         """
-        return [User(**client) for client in TS3ClientResponse(self.query.commands.clientfind(pattern=name))]
+        try:
+            response = TS3ClientResponse(self.query.commands.clientfind(pattern=name))
+        except TS3Error as error:
+            if error.id == 512:
+                return []
+            raise
+        return [User(**client) for client in response]
 
     def rename_user(self, id: int, name: str) -> TS3ClientResponse:
         """Rename a user.
@@ -272,7 +289,7 @@ class TS3Client:
         """
         return TS3ClientResponse(self.query.commands.clientedit(clid=id, client_nickname=name))
 
-    def move_user(self, id: int, channel_id: int, channel_pw: Optional[str] = None) -> TS3ClientResponse:
+    def move_user(self, id: int, channel_id: int, channel_pw: str | None = None) -> TS3ClientResponse:
         """Move a user to a channel.
 
         :param id: User ID.
@@ -286,7 +303,7 @@ class TS3Client:
         """
         return TS3ClientResponse(self.query.commands.clientmove(clid=id, cid=channel_id, cpw=channel_pw))
 
-    def kick_user_from_channel(self, id: int, reason: Optional[str] = None) -> TS3ClientResponse:
+    def kick_user_from_channel(self, id: int, reason: str | None = None) -> TS3ClientResponse:
         """Kick a user from the channel.
 
         :param id: User ID.
@@ -300,7 +317,7 @@ class TS3Client:
             self.query.commands.clientkick(clid=id, reasonid=ReasonIdentifier.REASON_KICK_CHANNEL, reasonmsg=reason)
         )
 
-    def kick_user_from_server(self, id: int, reason: Optional[str] = None) -> TS3ClientResponse:
+    def kick_user_from_server(self, id: int, reason: str | None = None) -> TS3ClientResponse:
         """Kick a user from the server.
 
         :param id: User ID.
@@ -314,7 +331,7 @@ class TS3Client:
             self.query.commands.clientkick(clid=id, reasonid=ReasonIdentifier.REASON_KICK_SERVER, reasonmsg=reason)
         )
 
-    def ban_user(self, id: int, time: int, reason: Optional[str] = None) -> TS3ClientResponse:
+    def ban_user(self, id: int, time: int, reason: str | None = None) -> TS3ClientResponse:
         """Ban a user.
 
         :param id: User ID.
@@ -354,7 +371,13 @@ class TS3Client:
         :return: Response from the server.
         :rtype: TS3ClientResponse
         """
-        return Channel(**TS3ClientResponse(self.query.commands.channelfind(pattern=name))[0])
+        try:
+            response = TS3ClientResponse(self.query.commands.channelfind(pattern=name))
+        except TS3Error as error:
+            if error.id == 768:
+                return []
+            raise
+        return [Channel(**channel) for channel in response]
 
     def get_messages(self) -> list[Message]:
         """Get a list of all messages.
@@ -404,7 +427,9 @@ class TS3Client:
         :return: Response from the server.
         :rtype: TS3ClientResponse
         """
-        return TS3ClientResponse(self.query.commands.sendtextmessage(targetmode=TargetMode.SERVER, msg=message))
+        return TS3ClientResponse(
+            self.query.commands.sendtextmessage(targetmode=TargetMode.SERVER, target=0, msg=message)
+        )
 
     def send_channel_message(self, message: str) -> TS3ClientResponse:
         """Send a message to the current channel.
@@ -414,7 +439,9 @@ class TS3Client:
         :return: Response from the server.
         :rtype: TS3ClientResponse
         """
-        return TS3ClientResponse(self.query.commands.sendtextmessage(targetmode=TargetMode.CHANNEL, msg=message))
+        return TS3ClientResponse(
+            self.query.commands.sendtextmessage(targetmode=TargetMode.CHANNEL, target=0, msg=message)
+        )
 
     def send_private_message(self, id: int, message: str) -> TS3ClientResponse:
         """Send a private message to a user.
@@ -455,9 +482,9 @@ class TS3Client:
 
     def disable_message_events(self) -> None:
         """Disable receiving all message events."""
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.TEXT_SERVER)
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.TEXT_CHANNEL)
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.TEXT_PRIVATE)
+        self.query.commands.servernotifyunregister()
+        self.query.commands.servernotifyunregister()
+        self.query.commands.servernotifyunregister()
 
     def enable_server_events(self) -> None:
         """Enable receiving server events."""
@@ -466,7 +493,7 @@ class TS3Client:
 
     def disable_server_events(self) -> None:
         """Disable receiving server events."""
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.SERVER)
+        self.query.commands.servernotifyunregister()
 
     def enable_channel_events(self) -> None:
         """Enable receiving channel events."""
@@ -475,7 +502,7 @@ class TS3Client:
 
     def disable_channel_events(self) -> None:
         """Disable receiving channel events."""
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.CHANNEL)
+        self.query.commands.servernotifyunregister()
 
     def enable_events_and_messages(self) -> None:
         """Enable receiving all events."""
@@ -489,11 +516,11 @@ class TS3Client:
     def disable_events_and_messages(self) -> None:
         """Disable receiving all events."""
         self.stop_polling()
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.TEXT_SERVER)
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.TEXT_CHANNEL)
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.TEXT_PRIVATE)
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.SERVER)
-        self.query.commands.servernotifyunregister(event=NotifyRegisterType.CHANNEL)
+        self.query.commands.servernotifyunregister()
+        self.query.commands.servernotifyunregister()
+        self.query.commands.servernotifyunregister()
+        self.query.commands.servernotifyunregister()
+        self.query.commands.servernotifyunregister()
 
     def start_polling(self, interval: int = 1) -> None:
         """Start polling for events and messages.

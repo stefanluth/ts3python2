@@ -1,5 +1,7 @@
 import json
+import urllib.error
 import urllib.request
+from typing import Any
 
 from ts3client import TS3Client
 from ts3client.message import Message
@@ -12,11 +14,11 @@ API_URL = "http://api.weatherapi.com/v1"
 class Weather(Command):
     """Get the weather for a location."""
 
-    def __init__(self, client: TS3Client, trigger: str, api_key: str, *args, **kwargs):
+    def __init__(self, client: TS3Client, trigger: str, api_key: str, *args: Any, **kwargs: Any) -> None:
         super().__init__(client, trigger)
         self.api_key = api_key
 
-    def run(self, message: Message):
+    def run(self, message: Message) -> None:
         """Get the weather for a location.
 
         :param api_key: The API key for WeatherAPI.com.
@@ -44,7 +46,7 @@ class Weather(Command):
             f"{weather_data['current']['wind_dir']}.",
         )
 
-    def get_weather_data(self, location: str) -> dict:
+    def get_weather_data(self, location: str) -> dict[str, Any]:
         api_endpoint = f"{API_URL}/current.json?key={self.api_key}&q={location}"
         with urllib.request.urlopen(api_endpoint) as response:
             data = json.loads(response.read())

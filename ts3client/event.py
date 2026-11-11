@@ -9,7 +9,7 @@ class Event:
     Represents a TeamSpeak event.
     """
 
-    event_type: str = None
+    event_type: EventType | None = None
     used: bool = False
 
 

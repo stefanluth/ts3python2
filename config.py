@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -34,12 +35,12 @@ TS3_SSH_KNOWN_HOSTS = os.getenv("TS3_SSH_KNOWN_HOSTS") or None
 TS3_SSH_ACCEPT_ALL_KEYS = _env_bool("TS3_SSH_ACCEPT_ALL_KEYS", False)
 TS3_SSH_USE_SYSTEM_KEYS = _env_bool("TS3_SSH_USE_SYSTEM_KEYS", True)
 
-BOT_CONFIG = {
+BOT_CONFIG: dict[str, str] = {
     "name": "Bot",
     "description": "Hi there! I'm a bot!",
 }
 
-PLUGINS_CONFIG = {
+PLUGINS_CONFIG: dict[str, dict[str, Any]] = {
     "AFK_Mover": {
         "afk_channel_id": 357515,
         "afk_time": 30 * 60,

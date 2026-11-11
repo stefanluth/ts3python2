@@ -7,7 +7,7 @@ class AFK_Mover(Plugin):
         afk_channel_id: int,
         afk_time: int,
         check_interval: int = 1,
-        ignore_channels: list = None,
+        ignore_channels: list[int] | None = None,
         move_message: str = "You have been moved to the AFK channel.",
     ):
         """
@@ -41,7 +41,8 @@ class AFK_Mover(Plugin):
 
                 user_info = self.client.get_user_info(user.clid)
 
-                if user_info.client_idle_time > afk_time:
+                idle_time = user_info.client_idle_time
+                if idle_time is not None and idle_time > afk_time:
                     self.logger.info(f"Moving {user.client_nickname} to AFK channel...")
                     self.client.move_user(user.clid, afk_channel_id)
                     self.client.send_private_message(user.clid, move_message)

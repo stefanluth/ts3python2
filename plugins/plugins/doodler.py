@@ -1,20 +1,21 @@
+from collections.abc import Iterator
 from datetime import datetime, timedelta
 
 from ..plugin import Plugin
 
 
-def date_range(start_date, end_date) -> str:
-    start_date = datetime.strptime(start_date, "%d-%m-%Y")
-    end_date = datetime.strptime(end_date, "%d-%m-%Y")
+def date_range(start_date: str, end_date: str) -> Iterator[str]:
+    start = datetime.strptime(start_date, "%d-%m-%Y")
+    end = datetime.strptime(end_date, "%d-%m-%Y")
     delta = timedelta(days=1)
-    current_date = start_date
-    while current_date <= end_date:
+    current_date = start
+    while current_date <= end:
         yield current_date.strftime("%d-%m-%Y")
         current_date += delta
 
 
 class Doodler(Plugin):
-    def run(self, default: str, doodles: list[dict] = None):
+    def run(self, default: str, doodles: list[dict[str, str]] | None = None):
         """
         Change the server banner on given dates.
 
@@ -27,7 +28,7 @@ class Doodler(Plugin):
         if doodles is None:
             doodles = []
 
-        transformed = {}
+        transformed: dict[str, list[str]] = {}
         # Transform doodles to a dict with the url as key and the date(s) as value
         for doodle in doodles:
             if "date" in doodle:

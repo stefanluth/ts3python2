@@ -1,4 +1,5 @@
 import threading
+from typing import Any
 
 from plugins.errors import ImplementationError
 from ts3client import TS3Client
@@ -15,7 +16,7 @@ class Plugin:
         self.logger.info(f"Initializing {self.name}...")
         print(f"Initializing {self.name}...")
 
-    def run(self) -> None:
+    def run(self, *args: Any, **kwargs: Any) -> None:
         raise ImplementationError(self.name, "Plugin does not have a run() method.")
 
     def stop(self) -> None:
@@ -28,5 +29,5 @@ class Plugin:
         print(f"{self.name} initialized.")
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.__class__.__name__

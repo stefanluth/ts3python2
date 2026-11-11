@@ -52,16 +52,16 @@ class TS3Query:
         self,
         host: str,
         port: int,
-        login: str = None,
-        password: str = None,
-        timeout=10,
-        known_hosts: str = None,
+        login: str | None = None,
+        password: str | None = None,
+        timeout: float = 10,
+        known_hosts: str | None = None,
         accept_all_keys: bool = False,
         use_system_host_keys: bool = True,
-        logger: logging.Logger = None,
+        logger: logging.Logger | None = None,
     ) -> None:
         self.logger = logger or create_logger("TS3Query", "logs/main.log")
-        self._transport = None
+        self._transport: SSHTransport | None = None
         self._exiting = False
 
         if not login or not password:
@@ -119,6 +119,11 @@ class TS3Query:
         except Exception:
             self.logger.exception("Failed to close connection")
 
+    def _require_transport(self) -> SSHTransport:
+        if self._transport is None:
+            raise ConnectionError("Not connected to a server")
+        return self._transport
+
     def send(self, command: TS3QueryCommand) -> TS3QueryResponse:
         """
         Sends a command to the server.
@@ -129,7 +134,9 @@ class TS3Query:
         :rtype: QueryResponse
         """
         if not self.connected():
-            return
+            raise ConnectionError("Not connected to a server")
+
+        transport = self._require_transport()
 
         self.logger.debug("Aquiring lock...")
         with self._lock:
@@ -138,7 +145,7 @@ class TS3Query:
 
             self.logger.debug("Lock aquired")
             self.logger.debug(f"Sending command: {command.command}")
-            self._transport.write(command.encoded)
+            transport.write(command.encoded)
             response = self._receive()
             self.logger.debug("Releasing lock...")
 
@@ -148,10 +155,16 @@ class TS3Query:
 
     def _receive(self) -> TS3QueryResponse:
         self.logger.debug("Receiving response...")
-        response = self._transport.expect([patterns.RESPONSE_END_BYTES], self.timeout)
-        self.logger.debug(f"Received response: {response}")
+        try:
+            index, match, text = self._require_transport().expect([patterns.RESPONSE_END_BYTES], self.timeout)
+        except EOFError as exc:
+            raise ConnectionError("Connection closed by the server") from exc
 
-        response = TS3QueryResponse(*response)
+        if match is None:
+            raise ConnectionError("No response received from the server")
+
+        self.logger.debug(f"Received response: {(index, match, text)}")
+        response = TS3QueryResponse(index, match, text)
         self.logger.debug(f"Parsed response: {response}")
 
         self._remove_used_events()
@@ -225,7 +238,7 @@ class TS3Query:
         self.logger.info("Disabling flood protection")
         self._flood_protection = False
 
-    def _add_events(self, events: list[Event], limit: int):
+    def _add_events(self, events: list[Event], limit: int) -> None:
         self.logger.debug(f"Adding events: {events}")
         self._events.extend(events)
 
@@ -233,7 +246,7 @@ class TS3Query:
             self.logger.debug("Events limit reached, trimming events")
             self._events = self._events[-limit:]
 
-    def _add_messages(self, messages: list[Message], limit: int):
+    def _add_messages(self, messages: list[Message], limit: int) -> None:
         self.logger.debug(f"Adding messages: {messages}")
         self._messages.extend(messages)
 
@@ -241,11 +254,11 @@ class TS3Query:
             self.logger.debug("Messages limit reached, trimming messages")
             self._messages = self._messages[-limit:]
 
-    def _remove_used_messages(self):
+    def _remove_used_messages(self) -> None:
         self.logger.debug("Removing used messages")
         self._messages = [message for message in self._messages if not message.used]
 
-    def _remove_used_events(self):
+    def _remove_used_events(self) -> None:
         self.logger.debug("Removing used events")
         self._events = [event for event in self._events if not event.used]
 
@@ -253,10 +266,12 @@ class TS3Query:
         if not self.connected():
             return
 
+        transport = self._require_transport()
+
         with self._lock:
             self.logger.debug("Skipping greeting")
-            self._transport.read_until(b"\n\r", self.timeout)
-            self._transport.read_until(b"\n\r", self.timeout)
+            transport.read_until(b"\n\r", self.timeout)
+            transport.read_until(b"\n\r", self.timeout)
 
     @property
     def flood_protection(self) -> bool:

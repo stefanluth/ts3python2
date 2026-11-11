@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 from ..event import Event
 from ..message import Message
@@ -36,11 +36,11 @@ class TS3QueryResponse:
     error_id: int = field(init=False)
     msg: str = field(init=False)
     extra_msg: Optional[str] = field(init=False)
-    data: dict = field(init=False)
+    data: dict[int | str, Any] = field(init=False)
     events: list[Event] = field(init=False)
     messages: list[Message] = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.error_id = int(self.match.group("id").decode())
         self.msg = parsers.query_to_string(self.match.group("msg").decode().strip())
         extra_msg = self.match.group("extramsg")

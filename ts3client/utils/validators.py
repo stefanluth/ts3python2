@@ -3,7 +3,7 @@ from typing import Any
 from ..constants import *
 
 
-def _validate_kwargs(args: dict) -> None:
+def _validate_kwargs(args: dict[str, Any]) -> None:
     """
     Validates the arguments passed to a query command.
 
@@ -36,7 +36,7 @@ def _validate_changeable_kwargs(args: dict[str, Any], changeables: list[str]) ->
             )
 
 
-def _validate_server_instance_kwargs(args: dict) -> None:
+def _validate_server_instance_kwargs(args: dict[str, Any]) -> None:
     """
     Validates the arguments passed to a server instance query command.
 
@@ -48,7 +48,7 @@ def _validate_server_instance_kwargs(args: dict) -> None:
     _validate_changeable_kwargs(args, ChangeableServerInstanceProperties)
 
 
-def _validate_channel_kwargs(args: dict) -> None:
+def _validate_channel_kwargs(args: dict[str, Any]) -> None:
     """
     Validates the arguments passed to a channel query command.
 
@@ -60,7 +60,7 @@ def _validate_channel_kwargs(args: dict) -> None:
     _validate_changeable_kwargs(args, ChangeableChannelProperties)
 
 
-def _validate_client_kwargs(args: dict) -> None:
+def _validate_client_kwargs(args: dict[str, Any]) -> None:
     """
     Validates the arguments passed to a client query command.
 
@@ -72,7 +72,7 @@ def _validate_client_kwargs(args: dict) -> None:
     _validate_changeable_kwargs(args, ChangeableClientProperties)
 
 
-def _validate_virtual_server_kwargs(args: dict) -> None:
+def _validate_virtual_server_kwargs(args: dict[str, Any]) -> None:
     """
     Validates the arguments passed to a virtual server query command.
 

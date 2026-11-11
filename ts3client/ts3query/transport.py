@@ -2,6 +2,7 @@ import os
 import re
 import socket
 import time
+from collections.abc import Sequence
 
 import paramiko
 
@@ -18,7 +19,7 @@ class SSHTransport:
         username: str,
         password: str,
         timeout: float = 10,
-        known_hosts: str = None,
+        known_hosts: str | None = None,
         accept_all_keys: bool = False,
         use_system_host_keys: bool = True,
     ) -> None:
@@ -34,22 +35,23 @@ class SSHTransport:
         self._buffer = b""
         self._eof = False
         self._closed = False
-        self._channel = None
-        self._client = paramiko.SSHClient()
+        self._channel: paramiko.Channel | None = None
+        client = paramiko.SSHClient()
+        self._client: paramiko.SSHClient | None = client
 
         if use_system_host_keys:
-            self._client.load_system_host_keys()
+            client.load_system_host_keys()
 
         if known_hosts and os.path.exists(known_hosts):
-            self._client.load_host_keys(known_hosts)
+            client.load_host_keys(known_hosts)
 
         if accept_all_keys:
-            self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         else:
-            self._client.set_missing_host_key_policy(paramiko.RejectPolicy())
+            client.set_missing_host_key_policy(paramiko.RejectPolicy())
 
         try:
-            self._client.connect(
+            client.connect(
                 hostname=host,
                 port=port,
                 username=username,
@@ -61,12 +63,12 @@ class SSHTransport:
                 auth_timeout=timeout,
             )
 
-            transport = self._client.get_transport()
+            transport = client.get_transport()
             if transport is None:
                 raise paramiko.SSHException("SSH transport unavailable after connect")
 
             transport.set_keepalive(30)
-            self._channel = self._client.invoke_shell("raw")
+            self._channel = client.invoke_shell("raw")
             self._channel.settimeout(timeout)
 
             if accept_all_keys and known_hosts:
@@ -76,6 +78,11 @@ class SSHTransport:
             raise
 
     def _save_host_keys(self) -> None:
+        if self.known_hosts is None:
+            raise ValueError("A known_hosts path is required to save host keys")
+        if self._client is None:
+            raise ConnectionError("SSH client is closed")
+
         directory = os.path.dirname(os.path.abspath(self.known_hosts))
         if directory:
             os.makedirs(directory, exist_ok=True)
@@ -88,10 +95,13 @@ class SSHTransport:
         if self._channel.closed:
             return False
 
+        if self._client is None:
+            return False
+
         transport = self._client.get_transport()
         return transport is not None and transport.is_active()
 
-    def _recv(self, timeout: float):
+    def _recv(self, timeout: float | None) -> bytes | None:
         if self._closed or self._eof or self._channel is None:
             return b""
 
@@ -109,7 +119,7 @@ class SSHTransport:
             if self._channel is not None and not self._channel.closed:
                 self._channel.settimeout(previous_timeout)
 
-    def _remaining(self, deadline):
+    def _remaining(self, deadline: float | None) -> float | None:
         if deadline is None:
             return None
         return deadline - time.monotonic()
@@ -119,7 +129,7 @@ class SSHTransport:
         self._buffer = b""
         return data
 
-    def read_until(self, delimiter: bytes, timeout: float = None) -> bytes:
+    def read_until(self, delimiter: bytes, timeout: float | None = None) -> bytes:
         if timeout is None:
             timeout = self.timeout
 
@@ -149,18 +159,26 @@ class SSHTransport:
 
             self._buffer += data
 
-    def _find_match(self, patterns):
+    def _find_match(self, patterns: Sequence[re.Pattern[bytes]]) -> tuple[int, re.Match[bytes]] | None:
         for index, pattern in enumerate(patterns):
             match = pattern.search(self._buffer)
             if match is not None:
                 return index, match
         return None
 
-    def expect(self, patterns, timeout: float = None):
-        if hasattr(patterns, "search"):
-            patterns = [patterns]
+    def expect(
+        self,
+        patterns: re.Pattern[bytes] | Sequence[re.Pattern[bytes] | bytes],
+        timeout: float | None = None,
+    ) -> tuple[int, re.Match[bytes] | None, bytes]:
+        if isinstance(patterns, re.Pattern):
+            pattern_list: Sequence[re.Pattern[bytes] | bytes] = [patterns]
+        else:
+            pattern_list = patterns
 
-        compiled = [pattern if hasattr(pattern, "search") else re.compile(pattern) for pattern in patterns]
+        compiled: list[re.Pattern[bytes]] = [
+            pattern if isinstance(pattern, re.Pattern) else re.compile(pattern) for pattern in pattern_list
+        ]
 
         if timeout is None:
             timeout = self.timeout
