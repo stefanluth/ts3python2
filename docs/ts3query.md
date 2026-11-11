@@ -59,7 +59,7 @@ also be optionally passed.
 - `connected()`: Checks whether the query client is connected to the TeamSpeak 3 server.
 - `exit()`: Exits the server, closes the connection, and stops polling.
 - `send(command: TS3QueryCommand)`: Sends a command to the server and returns the server's response.
-- `start_polling(polling_rate: int)`: Starts polling the server for events and messages with a given polling rate.
+- `start_polling(polling_rate: float)`: Starts polling the server for events and messages with a given polling rate.
 - `stop_polling()`: Stops polling the server for events and messages.
 - `enable_flood_protection()`: Enables flood protection.
 - `disable_flood_protection()`: Disables flood protection.

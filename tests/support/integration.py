@@ -28,7 +28,7 @@ def running_plugins(client, config, timeout=5):
         assert all(not thread.is_alive() for thread, _ in manager.threads.values())
 
 
-def wait_until(predicate, timeout=10, interval=0.1, message="condition not met"):
+def wait_until(predicate, timeout=10, interval=0.02, message="condition not met"):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         value = predicate()
@@ -92,7 +92,7 @@ def enable_text_receive(query, event=NotifyRegisterType.TEXT_PRIVATE, channel_id
     if channel_id is not None:
         kwargs["id"] = channel_id
     query.commands.servernotifyregister(**kwargs)
-    query.start_polling(0.1)
+    query.start_polling(0.05)
 
 
 def channel_create(query, name, **kwargs):

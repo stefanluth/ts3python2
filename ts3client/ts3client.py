@@ -533,11 +533,11 @@ class TS3Client:
         self.query.commands.servernotifyunregister()
         self.query.commands.servernotifyunregister()
 
-    def start_polling(self, interval: int = 1) -> None:
+    def start_polling(self, interval: float = 1) -> None:
         """Start polling for events and messages.
 
         :param interval: Polling interval in seconds, defaults to 1
-        :type interval: int, optional
+        :type interval: float, optional
         """
         self.query.start_polling(interval)
 

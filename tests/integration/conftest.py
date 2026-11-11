@@ -136,6 +136,7 @@ def fresh_query(server):
 @pytest.fixture
 def fresh_client(server):
     client = _open_client(server)
+    client.start_polling(0.05)
     yield client
     client.disconnect()
 

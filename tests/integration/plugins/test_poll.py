@@ -23,7 +23,7 @@ pytestmark = pytest.mark.integration
 CREATED_POLL_PATTERN = re.compile(r"Created (?:server|channel) poll ([a-z2-9]{3})", re.IGNORECASE)
 
 
-def poll_config(polls_dir, check_interval=0.2):
+def poll_config(polls_dir, check_interval=0.05):
     return {
         "prefix": "!",
         "check_interval": check_interval,
@@ -175,7 +175,7 @@ def test_channel_poll_filters_membership_and_notifies(server, fresh_client, fres
 
             wait_for_source(voter, f"[channel poll {poll_id}", TargetMode.CHANNEL)
             wait_for_private(voter, question)
-            time.sleep(0.5)
+            time.sleep(0.2)
             assert not any(
                 message.source == TargetMode.CLIENT and question in message.content
                 for message in outsider.unread_messages
@@ -220,7 +220,7 @@ def test_multi_choice_anonymous_and_timed_poll(server, fresh_client, fresh_query
             drain(fresh_query, voter)
             send(
                 fresh_query,
-                f"!poll create {question}|{alpha}|{beta}|{gamma} --multi --anonymous --duration 6s",
+                f"!poll create {question}|{alpha}|{beta}|{gamma} --multi --anonymous --duration 2s",
             )
             poll_id, confirmation = wait_for_created_poll(fresh_query)
             assert "anonymous" in confirmation.lower()

@@ -55,7 +55,7 @@ def casino_config(data_dir, **overrides):
         "slots_two_cherry_payout": 2,
     }
     casino.update(overrides)
-    return {"prefix": "!", "check_interval": 0.2, "commands": {"Casino": casino}}
+    return {"prefix": "!", "check_interval": 0.05, "commands": {"Casino": casino}}
 
 
 def player_file(data_dir, uid):
