@@ -57,11 +57,11 @@ class CommandHandler(Plugin):
 
             for message in messages:
                 self.logger.debug(f"Received message from '{message.invokername}': {message.content}")
+                message.mark_as_used()
+
                 if not message.content.startswith(prefix):
                     self.logger.debug(f"Message does not start with prefix '{prefix}'. Skipping...")
                     continue
-
-                message.mark_as_used()
 
                 trigger = message.content[len(prefix) :].split(" ")[0]
 
@@ -72,6 +72,9 @@ class CommandHandler(Plugin):
                 command = loaded_commands[triggers.index(trigger)]
 
                 self.logger.info(f"Running command '{command.name}'...")
-                command.run(message)
+                try:
+                    command.run(message)
+                except Exception:
+                    self.logger.exception(f"Command '{command.name}' failed.")
 
             self.event.wait(check_interval)
