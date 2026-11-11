@@ -278,7 +278,10 @@ class TS3Client:
         return [User(**client) for client in response]
 
     def rename_user(self, id: int, name: str) -> TS3ClientResponse:
-        """Rename a user.
+        """Rename the connected client.
+
+        TeamSpeak only allows a client to change its own nickname, so this
+        method can only rename the current client.
 
         :param id: User ID.
         :type id: int
@@ -286,8 +289,12 @@ class TS3Client:
         :type name: str
         :return: Response from the server.
         :rtype: TS3ClientResponse
+        :raises NotImplementedError: If id does not identify the current client.
         """
-        return TS3ClientResponse(self.query.commands.clientedit(clid=id, client_nickname=name))
+        if id != self.id:
+            raise NotImplementedError("TeamSpeak only allows a client to change its own nickname")
+
+        return TS3ClientResponse(self.query.commands.clientupdate(client_nickname=name))
 
     def move_user(self, id: int, channel_id: int, channel_pw: str | None = None) -> TS3ClientResponse:
         """Move a user to a channel.
