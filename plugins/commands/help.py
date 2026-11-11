@@ -1,5 +1,4 @@
 from config import PLUGINS_CONFIG
-from ts3client import TS3Client
 from ts3client.message import Message
 
 from ..command import Command

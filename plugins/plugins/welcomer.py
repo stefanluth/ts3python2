@@ -1,18 +1,19 @@
 import random
 
-from ts3client import TS3Client
-
 from ..plugin import Plugin
 
 
 class Welcomer(Plugin):
-    def run(self, messages: list = ["Welcome to the server!"]):
+    def run(self, messages: list = None):
         """
         Send a welcome message to new clients.
 
         :param messages: The choice of messages to send to new clients.
         :type messages: list[str]
         """
+        if messages is None:
+            messages = ["Welcome to the server!"]
+
         self.client.enable_events_and_messages()
         self.ready()
 

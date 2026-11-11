@@ -131,18 +131,18 @@ class TS3Query:
         if not self.connected():
             return
 
-        self.logger.debug(f"Aquiring lock...")
+        self.logger.debug("Aquiring lock...")
         with self._lock:
             if self._flood_protection:
                 time.sleep(self._flood_protection_timeout)
 
-            self.logger.debug(f"Lock aquired")
+            self.logger.debug("Lock aquired")
             self.logger.debug(f"Sending command: {command.command}")
             self._transport.write(command.encoded)
             response = self._receive()
-            self.logger.debug(f"Releasing lock...")
+            self.logger.debug("Releasing lock...")
 
-        self.logger.debug(f"Lock released")
+        self.logger.debug("Lock released")
 
         return response
 

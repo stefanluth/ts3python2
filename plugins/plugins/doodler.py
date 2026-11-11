@@ -14,7 +14,7 @@ def date_range(start_date, end_date) -> str:
 
 
 class Doodler(Plugin):
-    def run(self, default: str, doodles: list[dict] = []):
+    def run(self, default: str, doodles: list[dict] = None):
         """
         Change the server banner on given dates.
 
@@ -23,6 +23,9 @@ class Doodler(Plugin):
         :param doodles: The server banners to use on given dates, e.g. [{"date": "25-12-2025", "url": "https://myserver.net/christmas-banner.png"}, {"startDate": "01-01-2025", "endDate": "07-01-2025", "url": "https://myserver.net/new-year-banner.png"}], defaults to []
         :type doodles: list[dict]
         """
+
+        if doodles is None:
+            doodles = []
 
         transformed = {}
         # Transform doodles to a dict with the url as key and the date(s) as value

@@ -43,6 +43,7 @@ So if you wanted to respond to the user who sent the message, you could use the 
 ```python
 from ..command import Command
 
+
 class MyCommand(Command):
     def run(self, message: Message):
         self.client.send_private_message(

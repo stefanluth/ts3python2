@@ -4,7 +4,7 @@ from ..plugin import Plugin
 
 
 class CommandHandler(Plugin):
-    def run(self, prefix: str = "!", commands: dict = {}, check_interval: int = 1):
+    def run(self, prefix: str = "!", commands: dict = None, check_interval: int = 1):
         """
         Handles commands.
 
@@ -15,6 +15,9 @@ class CommandHandler(Plugin):
         :param check_interval: The interval in seconds to check for commands, defaults to 1.
         :type check_interval: int
         """
+
+        if commands is None:
+            commands = {}
 
         if len(commands) == 0:
             self.logger.info("No commands to load.")

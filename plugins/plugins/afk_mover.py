@@ -7,7 +7,7 @@ class AFK_Mover(Plugin):
         afk_channel_id: int,
         afk_time: int,
         check_interval: int = 1,
-        ignore_channels: list = [],
+        ignore_channels: list = None,
         move_message: str = "You have been moved to the AFK channel.",
     ):
         """
@@ -26,6 +26,9 @@ class AFK_Mover(Plugin):
         :param move_message: The message to send to the client when they are moved to the AFK channel, defaults to "You have been moved to the AFK channel.".
         :type move_message: str
         """
+
+        if ignore_channels is None:
+            ignore_channels = []
 
         afk_time = afk_time * 1000
         self.ready()
