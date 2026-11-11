@@ -41,12 +41,8 @@ class TS3Query:
 
     _flood_protection: bool = True
     _flood_protection_timeout: float = 0.5
-    _events: list[Event] = []
     _events_limit: int = 1000
-    _messages: list[Message] = []
     _messages_limit: int = 1000
-    _polling_thread: threading.Thread | None = None
-    _polling_thread_stop = threading.Event()
 
     def __init__(
         self,
@@ -63,6 +59,10 @@ class TS3Query:
         self.logger = logger or create_logger("TS3Query", "logs/main.log")
         self._transport: SSHTransport | None = None
         self._exiting = False
+        self._events: list[Event] = []
+        self._messages: list[Message] = []
+        self._polling_thread: threading.Thread | None = None
+        self._polling_thread_stop = threading.Event()
 
         if not login or not password:
             raise ValueError("SSH login and password are required")
