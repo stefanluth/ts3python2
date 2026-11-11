@@ -59,6 +59,18 @@ SERVER_INSTANCE_PROPERTIES = {
         "description": "Database revision number",
         "changeable": False,
     },
+    "SERVERINSTANCE_PERMISSIONS_VERSION": {
+        "description": "Permissions revision number",
+        "changeable": False,
+    },
+    "SERVERINSTANCE_PENDING_CONNECTIONS_PER_IP": {
+        "description": "Maximum number of pending connections per IP address",
+        "changeable": False,
+    },
+    "SERVERINSTANCE_SERVERQUERY_MAX_CONNECTIONS_PER_IP": {
+        "description": "Maximum number of ServerQuery connections per IP address",
+        "changeable": False,
+    },
     "SERVERINSTANCE_GUEST_SERVERQUERY_GROUP": {
         "description": "Default ServerQuery group ID",
         "changeable": True,
@@ -71,11 +83,11 @@ SERVER_INSTANCE_PROPERTIES = {
         "description": "TCP port used for file transfers",
         "changeable": True,
     },
-    "SERVERINSTANCE_MAX_DOWNLOAD_TOTAL_BANDWITDH": {
+    "SERVERINSTANCE_MAX_DOWNLOAD_TOTAL_BANDWIDTH": {
         "description": "Max bandwidth available for outgoing file transfers (Bytes/s)",
         "changeable": True,
     },
-    "SERVERINSTANCE_MAX_UPLOAD_TOTAL_BANDWITDH": {
+    "SERVERINSTANCE_MAX_UPLOAD_TOTAL_BANDWIDTH": {
         "description": "Max bandwidth available for incoming file transfers (Bytes/s)",
         "changeable": True,
     },
@@ -111,9 +123,17 @@ SERVER_INSTANCE_PROPERTIES = {
         "description": "Timeframe in seconds for commands",
         "changeable": True,
     },
-    "SERVERINSTANCE_SERVERQUERY_FLOOD_BAN_TIME": {
+    "SERVERINSTANCE_SERVERQUERY_BAN_TIME": {
         "description": "Time in seconds used for automatic bans triggered by the ServerQuery flood protection",
         "changeable": True,
+    },
+    "SERVERINSTANCE_SERVERQUERY_FLOOD_BAN_TIME": {
+        "description": "Deprecated alias that the server accepts but ignores",
+        "changeable": False,
+    },
+    "SERVERINSTANCE_TEMPLATE_GUEST_SERVERQUERY_GROUP": {
+        "description": "Default guest ServerQuery group ID used in templates",
+        "changeable": False,
     },
 }
 

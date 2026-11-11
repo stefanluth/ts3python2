@@ -23,6 +23,8 @@ class Codec(Enum):
     CODEC_SPEEX_WIDEBAND = 1
     CODEC_SPEEX_ULTRAWIDEBAND = 2
     CODEC_CELT_MONO = 3
+    CODEC_OPUS_VOICE = 4
+    CODEC_OPUS_MUSIC = 5
 
 
 class CodecEncryptionMode(Enum):

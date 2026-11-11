@@ -23,12 +23,20 @@ CHANNEL_PROPERTIES = {
         "description": "Indicates whether the channel has a password set or not",
         "changeable": False,
     },
+    "CHANNEL_FLAG_PRIVATE": {
+        "description": "Indicates whether the channel is private or not",
+        "changeable": False,
+    },
     "CHANNEL_CODEC": {
         "description": "Codec used by the channel Definitions",
         "changeable": True,
     },
     "CHANNEL_CODEC_QUALITY": {
         "description": "Codec quality used by the channel",
+        "changeable": True,
+    },
+    "CHANNEL_CODEC_LATENCY_FACTOR": {
+        "description": "Packet size multiplier used by the channel codec",
         "changeable": True,
     },
     "CHANNEL_MAXCLIENTS": {
@@ -49,10 +57,6 @@ CHANNEL_PROPERTIES = {
     },
     "CHANNEL_FLAG_SEMI_PERMANENT": {
         "description": "Indicates whether the channel is semi-permanent or not",
-        "changeable": True,
-    },
-    "CHANNEL_FLAG_TEMPORARY": {
-        "description": "Indicates whether the channel is temporary or not",
         "changeable": True,
     },
     "CHANNEL_FLAG_DEFAULT": {
@@ -95,9 +99,45 @@ CHANNEL_PROPERTIES = {
         "description": "Indicates whether speech data transmitted in this channel is encrypted or not",
         "changeable": True,
     },
+    "CHANNEL_SECURITY_SALT": {
+        "description": "Options and salt used for the channel security hash",
+        "changeable": False,
+    },
+    "CHANNEL_DELETE_DELAY": {
+        "description": "Seconds to wait before deleting an empty temporary channel",
+        "changeable": True,
+    },
+    "CHANNEL_UNIQUE_IDENTIFIER": {
+        "description": "Unique identifier of the channel",
+        "changeable": False,
+    },
+    "CHANNEL_BANNER_GFX_URL": {
+        "description": "URL of the channel banner image",
+        "changeable": False,
+    },
+    "CHANNEL_BANNER_MODE": {
+        "description": "Display mode of the channel banner",
+        "changeable": False,
+    },
+    "SECONDS_EMPTY": {
+        "description": "Seconds since the last client left the channel",
+        "changeable": False,
+    },
+    "TOTAL_CLIENTS": {
+        "description": "Number of clients in the channel and its subchannels",
+        "changeable": False,
+    },
+    "CHANNEL_NEEDED_SUBSCRIBE_POWER": {
+        "description": "Talk power needed to subscribe to the channel",
+        "changeable": False,
+    },
     "CPID": {
         "description": "The channels parent ID",
         "changeable": True,
+    },
+    "PID": {
+        "description": "The channels parent ID as returned by channel info commands",
+        "changeable": False,
     },
     "CID": {
         "description": "The channels ID",

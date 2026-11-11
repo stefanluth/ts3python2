@@ -3,6 +3,26 @@ Parsed from the TeamSpeak 3 Server Query documentation
 """
 
 CLIENT_PROPERTIES = {
+    "CLID": {
+        "description": "ID of the client connection",
+        "changeable": False,
+    },
+    "CID": {
+        "description": "ID of the channel the client is in",
+        "changeable": False,
+    },
+    "CLIENT_ID": {
+        "description": "ID of the client connection as returned by whoami",
+        "changeable": False,
+    },
+    "CLIENT_CHANNEL_ID": {
+        "description": "ID of the channel the client is in as returned by whoami",
+        "changeable": False,
+    },
+    "CLIENT_ORIGIN_SERVER_ID": {
+        "description": "ID of the server the client connection originated from",
+        "changeable": False,
+    },
     "CLIENT_UNIQUE_IDENTIFIER": {
         "description": "Unique ID of the client",
         "changeable": False,
@@ -25,6 +45,30 @@ CLIENT_PROPERTIES = {
     },
     "CLIENT_OUTPUT_MUTED": {
         "description": "Indicates whether the client has their speakers muted or not",
+        "changeable": False,
+    },
+    "CLIENT_OUTPUTONLY_MUTED": {
+        "description": "Indicates whether the client has their speakers muted while their microphone is active",
+        "changeable": False,
+    },
+    "CLIENT_IDLE_TIME": {
+        "description": "Time in seconds the client has been idle",
+        "changeable": False,
+    },
+    "CLIENT_META_DATA": {
+        "description": "Metadata attached to the client",
+        "changeable": False,
+    },
+    "CLIENT_IS_RECORDING": {
+        "description": "Indicates whether the client is recording or not",
+        "changeable": False,
+    },
+    "CLIENT_VERSION_SIGN": {
+        "description": "Signature of the client version",
+        "changeable": False,
+    },
+    "CLIENT_SECURITY_HASH": {
+        "description": "Security hash used by the client SDK",
         "changeable": False,
     },
     "CLIENT_INPUT_HARDWARE": {
@@ -51,7 +95,7 @@ CLIENT_PROPERTIES = {
         "description": "Current channel group ID of the client",
         "changeable": False,
     },
-    "CLIENT_SERVER_GROUPS": {
+    "CLIENT_SERVERGROUPS": {
         "description": "Current server group IDs of the client separated by a comma",
         "changeable": False,
     },
@@ -187,8 +231,64 @@ CLIENT_PROPERTIES = {
         "description": "CRC32 checksum of the client icon",
         "changeable": True,
     },
+    "CLIENT_DEFAULT_TOKEN": {
+        "description": "Default privilege key used by the client on its last connection attempt",
+        "changeable": False,
+    },
+    "CLIENT_CHANNEL_GROUP_INHERITED_CHANNEL_ID": {
+        "description": "ID of the channel the client channel group is inherited from",
+        "changeable": False,
+    },
     "CLIENT_COUNTRY": {
         "description": "The country identifier of the client (i.e. DE)",
+        "changeable": False,
+    },
+    "CLIENT_BADGES": {
+        "description": "Icons for partner badges earned by the client",
+        "changeable": False,
+    },
+    "CLIENT_MYTEAMSPEAK_ID": {
+        "description": "myTeamSpeak identifier of the client",
+        "changeable": False,
+    },
+    "CLIENT_INTEGRATIONS": {
+        "description": "Active integrations connected to the client account",
+        "changeable": False,
+    },
+    "CLIENT_MYTEAMSPEAK_AVATAR": {
+        "description": "Avatar URL from the client myTeamSpeak profile",
+        "changeable": False,
+    },
+    "CLIENT_SIGNED_BADGES": {
+        "description": "Signed badge data of the client",
+        "changeable": False,
+    },
+    "CLIENT_ACTIVE_INTEGRATIONS_INFO": {
+        "description": "Subscription information of the client integrations",
+        "changeable": False,
+    },
+    "CLIENT_PERMISSION_HINTS": {
+        "description": "Bitfield containing permission hints for the client",
+        "changeable": False,
+    },
+    "CLIENT_USER_TAG": {
+        "description": "Public chat user tag of the client",
+        "changeable": False,
+    },
+    "CLIENT_HW_ID": {
+        "description": "Unique hardware identifier reported by client library v2",
+        "changeable": False,
+    },
+    "CLIENT_FLAG_IS_TALKING": {
+        "description": "Indicates whether the client is talking right now",
+        "changeable": False,
+    },
+    "CLIENT_BASE64HASHCLIENTUID": {
+        "description": "Base64 encoded client unique identifier used for avatar file names",
+        "changeable": False,
+    },
+    "CONNECTION_CONNECTED_TIME": {
+        "description": "Time in seconds the client has been connected",
         "changeable": False,
     },
 }

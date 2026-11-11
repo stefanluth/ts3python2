@@ -91,6 +91,10 @@ VIRTUAL_SERVER_PROPERTIES = {
         "description": "Interval for reloading the banner on client-side",
         "changeable": True,
     },
+    "VIRTUALSERVER_CHANNEL_TEMP_DELETE_DELAY_DEFAULT": {
+        "description": "Default delay in seconds before empty temporary channels are deleted",
+        "changeable": True,
+    },
     "VIRTUALSERVER_COMPLAIN_AUTOBAN_COUNT": {
         "description": "Number of complaints needed to ban a client automatically",
         "changeable": True,
@@ -333,6 +337,74 @@ VIRTUAL_SERVER_PROPERTIES = {
     },
     "VIRTUALSERVER_FILEBASE": {
         "description": "The directory where the virtual servers filebase is located",
+        "changeable": False,
+    },
+    "VIRTUALSERVER_NICKNAME": {
+        "description": "Nickname of the virtual server",
+        "changeable": False,
+    },
+    "VIRTUALSERVER_CAPABILITY_EXTENSIONS": {
+        "description": "Capability extensions supported by the virtual server",
+        "changeable": False,
+    },
+    "VIRTUALSERVER_FILE_STORAGE_CLASS": {
+        "description": "File storage class of the virtual server",
+        "changeable": False,
+    },
+    "CONNECTION_FILETRANSFER_BYTES_SENT_TOTAL": {
+        "description": "Total amount of file transfer bytes sent",
+        "changeable": False,
+    },
+    "CONNECTION_FILETRANSFER_BYTES_RECEIVED_TOTAL": {
+        "description": "Total amount of file transfer bytes received",
+        "changeable": False,
+    },
+    "CONNECTION_PACKETS_SENT_SPEECH": {
+        "description": "Total amount of speech packets sent",
+        "changeable": False,
+    },
+    "CONNECTION_BYTES_SENT_SPEECH": {
+        "description": "Total amount of speech bytes sent",
+        "changeable": False,
+    },
+    "CONNECTION_PACKETS_RECEIVED_SPEECH": {
+        "description": "Total amount of speech packets received",
+        "changeable": False,
+    },
+    "CONNECTION_BYTES_RECEIVED_SPEECH": {
+        "description": "Total amount of speech bytes received",
+        "changeable": False,
+    },
+    "CONNECTION_PACKETS_SENT_KEEPALIVE": {
+        "description": "Total amount of keepalive packets sent",
+        "changeable": False,
+    },
+    "CONNECTION_BYTES_SENT_KEEPALIVE": {
+        "description": "Total amount of keepalive bytes sent",
+        "changeable": False,
+    },
+    "CONNECTION_PACKETS_RECEIVED_KEEPALIVE": {
+        "description": "Total amount of keepalive packets received",
+        "changeable": False,
+    },
+    "CONNECTION_BYTES_RECEIVED_KEEPALIVE": {
+        "description": "Total amount of keepalive bytes received",
+        "changeable": False,
+    },
+    "CONNECTION_PACKETS_SENT_CONTROL": {
+        "description": "Total amount of control packets sent",
+        "changeable": False,
+    },
+    "CONNECTION_BYTES_SENT_CONTROL": {
+        "description": "Total amount of control bytes sent",
+        "changeable": False,
+    },
+    "CONNECTION_PACKETS_RECEIVED_CONTROL": {
+        "description": "Total amount of control packets received",
+        "changeable": False,
+    },
+    "CONNECTION_BYTES_RECEIVED_CONTROL": {
+        "description": "Total amount of control bytes received",
         "changeable": False,
     },
 }
