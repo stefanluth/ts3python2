@@ -61,6 +61,40 @@ def test_poll_command_config(monkeypatch):
     }
 
 
+def test_casino_command_config(monkeypatch):
+    config = load_config(monkeypatch)
+
+    casino = config.PLUGINS_CONFIG["CommandHandler"]["commands"]["Casino"]
+
+    assert casino["trigger"] == "casino"
+    assert casino["data_dir"] == "casino"
+    assert casino["starting_balance"] == 500
+    assert casino["daily_reward"] == 100
+    assert casino["min_bet"] == 1
+    assert casino["max_bet"] == 10000
+    assert casino["blackjack_payout"] == 1.5
+    assert set(casino) == {
+        "trigger",
+        "description",
+        "data_dir",
+        "currency_name",
+        "currency_symbol",
+        "starting_balance",
+        "daily_reward",
+        "daily_cooldown",
+        "min_bet",
+        "max_bet",
+        "leaderboard_size",
+        "blackjack_payout",
+        "blackjack_decks",
+        "dealer_hits_soft_17",
+        "slots_symbols",
+        "slots_weights",
+        "slots_payouts",
+        "slots_two_cherry_payout",
+    }
+
+
 def load_config(monkeypatch, **env):
     for name in CONFIG_ENV:
         monkeypatch.delenv(name, raising=False)

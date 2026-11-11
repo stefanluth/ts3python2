@@ -70,6 +70,26 @@ PLUGINS_CONFIG: dict[str, dict[str, Any]] = {
                 "notify_query_clients": False,
                 "prefix": "!",
             },
+            "Casino": {
+                "trigger": "casino",
+                "description": "Play casino games with virtual currency.",
+                "data_dir": "casino",
+                "currency_name": "chips",
+                "currency_symbol": "",
+                "starting_balance": 500,
+                "daily_reward": 100,
+                "daily_cooldown": 86400,
+                "min_bet": 1,
+                "max_bet": 10000,
+                "leaderboard_size": 10,
+                "blackjack_payout": 1.5,
+                "blackjack_decks": 1,
+                "dealer_hits_soft_17": False,
+                "slots_symbols": ["cherry", "lemon", "bell", "bar", "seven"],
+                "slots_weights": [30, 25, 20, 15, 10],
+                "slots_payouts": {"cherry": 4, "lemon": 5, "bell": 10, "bar": 20, "seven": 50},
+                "slots_two_cherry_payout": 2,
+            },
             # # Uncomment this to enable the Weather plugin
             # # Be sure to add the WEATHERAPI_COM_API_KEY environment variable to your .env file
             # "Weather": {
