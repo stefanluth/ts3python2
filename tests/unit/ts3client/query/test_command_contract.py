@@ -14,24 +14,6 @@ from ts3client.ts3query.ts3query_response import TS3QueryResponse
 from ts3client.utils import patterns
 
 
-class RecordingQuery:
-    def __init__(self, responses=None):
-        self.sent = []
-        self.responses = responses or {}
-
-    def send(self, command):
-        self.sent.append(command)
-        return self.responses.get(command.command, FakeResponse())
-
-
-def encode(method, *args, **kwargs):
-    query = RecordingQuery()
-    getattr(CommandsWrapper(query), method)(*args, **kwargs)
-
-    assert len(query.sent) == 1
-    return query.sent[0].encoded
-
-
 @pytest.mark.parametrize(
     ("method", "args", "kwargs", "expected"),
     [
@@ -106,3 +88,21 @@ def test_help_reparses_the_response_body():
 
     assert response.data["help"] == "help text"
     assert response.error_id == 0
+
+
+class RecordingQuery:
+    def __init__(self, responses=None):
+        self.sent = []
+        self.responses = responses or {}
+
+    def send(self, command):
+        self.sent.append(command)
+        return self.responses.get(command.command, FakeResponse())
+
+
+def encode(method, *args, **kwargs):
+    query = RecordingQuery()
+    getattr(CommandsWrapper(query), method)(*args, **kwargs)
+
+    assert len(query.sent) == 1
+    return query.sent[0].encoded

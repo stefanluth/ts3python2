@@ -17,30 +17,6 @@ from ts3client.ts3query.ts3query_command import CommandsWrapper, TS3QueryCommand
 from ts3client.utils import patterns
 
 
-def make_query(monkeypatch, **kwargs):
-    monkeypatch.setattr("ts3client.ts3query.ts3query.SSHTransport", FakeSSHTransport)
-    query = TS3Query("host", 1, login="user", password="secret", logger=FakeLogger(), **kwargs)
-    query.exit = lambda: None
-    return query
-
-
-def transport_of(query: TS3Query) -> FakeSSHTransport:
-    transport = query._transport
-    assert isinstance(transport, FakeSSHTransport)
-    return transport
-
-
-def make_message(text="hi"):
-    return Message(
-        targetmode=TargetMode.SERVER.value,
-        msg=text,
-        target=0,
-        invokerid=1,
-        invokername="user",
-        invokeruid="uid",
-    )
-
-
 @pytest.mark.parametrize("login, password", [(None, "secret"), ("user", None)])
 def test_missing_credentials_raise_value_error(login, password):
     with pytest.raises(ValueError):
@@ -107,17 +83,6 @@ def test_exit_closes_transport_and_sends_quit_only_when_connected(monkeypatch, c
     assert bool(commands.called("quit")) is sends_quit
     assert transport.closed
     assert transport.close_calls == 1
-
-
-class FlakyCommands:
-    def __init__(self):
-        self.calls = 0
-
-    def version(self):
-        self.calls += 1
-        if self.calls == 1:
-            raise RuntimeError("boom")
-        return FakeResponse()
 
 
 def test_poll_survives_command_exception(monkeypatch):
@@ -203,3 +168,38 @@ def test_start_polling_is_idempotent_and_stop_clears_the_thread(monkeypatch):
     assert query._polling_thread is None
     assert thread is not None
     assert thread.is_alive() is False
+
+
+def make_query(monkeypatch, **kwargs):
+    monkeypatch.setattr("ts3client.ts3query.ts3query.SSHTransport", FakeSSHTransport)
+    query = TS3Query("host", 1, login="user", password="secret", logger=FakeLogger(), **kwargs)
+    query.exit = lambda: None
+    return query
+
+
+def transport_of(query: TS3Query) -> FakeSSHTransport:
+    transport = query._transport
+    assert isinstance(transport, FakeSSHTransport)
+    return transport
+
+
+def make_message(text="hi"):
+    return Message(
+        targetmode=TargetMode.SERVER.value,
+        msg=text,
+        target=0,
+        invokerid=1,
+        invokername="user",
+        invokeruid="uid",
+    )
+
+
+class FlakyCommands:
+    def __init__(self):
+        self.calls = 0
+
+    def version(self):
+        self.calls += 1
+        if self.calls == 1:
+            raise RuntimeError("boom")
+        return FakeResponse()

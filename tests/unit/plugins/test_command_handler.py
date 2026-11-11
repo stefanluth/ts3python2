@@ -5,39 +5,6 @@ from plugins.plugins.command_handler import CommandHandler
 from tests.support.fakes import FakeClient, FakeLogger, FakeMessage, FakeStopEvent
 
 
-class RecordingCommand:
-    calls = []
-    should_raise = False
-
-    def __init__(self, client, trigger, **kwargs):
-        self.client = client
-        self.trigger = trigger
-        self.name = "RecordingCommand"
-
-    def run(self, message):
-        RecordingCommand.calls.append(message)
-        if RecordingCommand.should_raise:
-            raise RuntimeError("command failed")
-
-
-class FakeCommandsNamespace:
-    __all__ = ["RecordingCommand"]
-    RecordingCommand = RecordingCommand
-
-
-@pytest.fixture(autouse=True)
-def reset_command_state():
-    RecordingCommand.calls = []
-    RecordingCommand.should_raise = False
-
-
-def make_handler(monkeypatch, client, stop):
-    monkeypatch.setattr(command_handler_module, "all_commands", FakeCommandsNamespace)
-    handler = CommandHandler(client, stop)
-    handler.logger = FakeLogger()
-    return handler
-
-
 @pytest.mark.parametrize(
     ("commands", "expected_enabled"),
     [
@@ -88,3 +55,36 @@ def test_command_exception_does_not_kill_loop(monkeypatch):
     handler.run(prefix="!", commands={"RecordingCommand": {"trigger": "help"}}, check_interval=0)
 
     assert RecordingCommand.calls == [first, second]
+
+
+def make_handler(monkeypatch, client, stop):
+    monkeypatch.setattr(command_handler_module, "all_commands", FakeCommandsNamespace)
+    handler = CommandHandler(client, stop)
+    handler.logger = FakeLogger()
+    return handler
+
+
+@pytest.fixture(autouse=True)
+def reset_command_state():
+    RecordingCommand.calls = []
+    RecordingCommand.should_raise = False
+
+
+class RecordingCommand:
+    calls = []
+    should_raise = False
+
+    def __init__(self, client, trigger, **kwargs):
+        self.client = client
+        self.trigger = trigger
+        self.name = "RecordingCommand"
+
+    def run(self, message):
+        RecordingCommand.calls.append(message)
+        if RecordingCommand.should_raise:
+            raise RuntimeError("command failed")
+
+
+class FakeCommandsNamespace:
+    __all__ = ["RecordingCommand"]
+    RecordingCommand = RecordingCommand

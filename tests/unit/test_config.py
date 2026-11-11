@@ -16,22 +16,6 @@ CONFIG_ENV = (
 )
 
 
-def load_config(monkeypatch, **env):
-    for name in CONFIG_ENV:
-        monkeypatch.delenv(name, raising=False)
-    for name, value in env.items():
-        monkeypatch.setenv(name, value)
-
-    monkeypatch.setattr("dotenv.load_dotenv", lambda: None)
-
-    spec = importlib.util.spec_from_file_location("config_under_test", CONFIG_PATH)
-    assert spec is not None
-    assert spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 @pytest.mark.parametrize(
     ("env", "expected"),
     [
@@ -53,3 +37,19 @@ def test_ssh_settings_from_environment(monkeypatch, env, expected):
 
     actual = (config.TS3_SSH_KNOWN_HOSTS, config.TS3_SSH_ACCEPT_ALL_KEYS, config.TS3_SSH_USE_SYSTEM_KEYS)
     assert actual == expected
+
+
+def load_config(monkeypatch, **env):
+    for name in CONFIG_ENV:
+        monkeypatch.delenv(name, raising=False)
+    for name, value in env.items():
+        monkeypatch.setenv(name, value)
+
+    monkeypatch.setattr("dotenv.load_dotenv", lambda: None)
+
+    spec = importlib.util.spec_from_file_location("config_under_test", CONFIG_PATH)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module

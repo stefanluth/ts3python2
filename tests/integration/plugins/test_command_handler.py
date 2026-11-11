@@ -12,18 +12,6 @@ from ts3client.constants import NotifyRegisterType, TargetMode
 pytestmark = pytest.mark.integration
 
 
-def command_config(commands, prefix="!", check_interval=1):
-    return {"prefix": prefix, "check_interval": check_interval, "commands": commands}
-
-
-def run_command_handler(fresh_client, config):
-    return running_plugins(fresh_client, {"CommandHandler": config})
-
-
-def send_command(fresh_query, content):
-    fresh_query.commands.sendtextmessage(targetmode=TargetMode.SERVER, target=0, msg=content)
-
-
 def test_help_lists_configured_commands_and_descriptions(monkeypatch, fresh_client, fresh_query):
     config = command_config(
         {
@@ -42,3 +30,15 @@ def test_help_lists_configured_commands_and_descriptions(monkeypatch, fresh_clie
 
     assert "!help - Show help." in reply.content
     assert "!weather - No description available." in reply.content
+
+
+def command_config(commands, prefix="!", check_interval=1):
+    return {"prefix": prefix, "check_interval": check_interval, "commands": commands}
+
+
+def run_command_handler(fresh_client, config):
+    return running_plugins(fresh_client, {"CommandHandler": config})
+
+
+def send_command(fresh_query, content):
+    fresh_query.commands.sendtextmessage(targetmode=TargetMode.SERVER, target=0, msg=content)

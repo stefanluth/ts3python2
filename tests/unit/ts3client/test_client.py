@@ -5,16 +5,10 @@ import pytest
 import ts3client.ts3client as ts3client_module
 from tests.support.fakes import FakeCommands, FakeLogger, FakeQuery, FakeResponse
 from ts3client import TS3Client
-from ts3client.constants import TargetMode
+from ts3client.constants import NotifyRegisterType, TargetMode
+from ts3client.event import ClientEnterViewEvent, Event
 from ts3client.ts3query import TS3Query
 from ts3client.user import User
-
-
-def make_client(commands=None):
-    client = object.__new__(TS3Client)
-    client.query = cast(TS3Query, FakeQuery(commands))
-    client.logger = FakeLogger()
-    return client
 
 
 def test_get_users_returns_users():
@@ -136,8 +130,6 @@ def test_rename_user_only_allows_the_connected_client():
 
 
 def test_user_entered_events_are_filtered_and_unread():
-    from ts3client.event import ClientEnterViewEvent, Event
-
     client = make_client()
     used_event = ClientEnterViewEvent(clid=1)
     used_event.used = True
@@ -185,8 +177,6 @@ def test_properties_read_the_current_client_and_server():
 
 
 def test_enable_message_events_registers_all_text_sources():
-    from ts3client.constants import NotifyRegisterType
-
     commands = FakeCommands()
     client = make_client(commands)
 
@@ -205,8 +195,6 @@ def test_enable_message_events_registers_all_text_sources():
 
 
 def test_enable_events_and_messages_registers_every_source():
-    from ts3client.constants import NotifyRegisterType
-
     commands = FakeCommands()
     client = make_client(commands)
 
@@ -227,3 +215,10 @@ def test_enable_events_and_messages_registers_every_source():
 
     assert client.query.stopped == 1
     assert len(commands.called("servernotifyunregister")) == 5
+
+
+def make_client(commands=None):
+    client = object.__new__(TS3Client)
+    client.query = cast(TS3Query, FakeQuery(commands))
+    client.logger = FakeLogger()
+    return client

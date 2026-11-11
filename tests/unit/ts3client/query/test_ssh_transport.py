@@ -7,23 +7,6 @@ from ts3client.ts3query.transport import SSHTransport
 from ts3client.utils import patterns
 
 
-@pytest.fixture
-def ssh_client(monkeypatch):
-    monkeypatch.setattr(transport_module.paramiko, "SSHClient", FakeParamikoClient)
-    FakeParamikoClient.next_chunks = None
-    FakeParamikoClient.timeout_when_empty = False
-    FakeParamikoClient.connect_error = None
-    FakeParamikoClient.instances = []
-    return FakeParamikoClient
-
-
-def make_transport(ssh_client, chunks=None, **kwargs):
-    ssh_client.next_chunks = chunks
-    kwargs.setdefault("timeout", 1)
-    transport = SSHTransport("host", 22, "user", "password", **kwargs)
-    return transport, transport._client
-
-
 def test_constructor_configures_ssh_client(ssh_client):
     _, client = make_transport(ssh_client, chunks=[], timeout=3)
 
@@ -157,3 +140,20 @@ def test_write_rejects_a_closed_stream(ssh_client):
 
     with pytest.raises(ConnectionError):
         transport.write(b"version\n")
+
+
+@pytest.fixture
+def ssh_client(monkeypatch):
+    monkeypatch.setattr(transport_module.paramiko, "SSHClient", FakeParamikoClient)
+    FakeParamikoClient.next_chunks = None
+    FakeParamikoClient.timeout_when_empty = False
+    FakeParamikoClient.connect_error = None
+    FakeParamikoClient.instances = []
+    return FakeParamikoClient
+
+
+def make_transport(ssh_client, chunks=None, **kwargs):
+    ssh_client.next_chunks = chunks
+    kwargs.setdefault("timeout", 1)
+    transport = SSHTransport("host", 22, "user", "password", **kwargs)
+    return transport, transport._client

@@ -7,26 +7,6 @@ from tests.support.fakes import FakeClient, FakeLogger, FakeResponse, FakeStopEv
 TODAY = "25-12-2025"
 
 
-class FixedDatetime(real_datetime):
-    @classmethod
-    def today(cls):
-        return cls(2025, 12, 25, 12, 0)
-
-
-def make_doodler(monkeypatch, client, stop):
-    monkeypatch.setattr(doodler_module, "datetime", FixedDatetime)
-    monkeypatch.setattr("plugins.plugin.create_logger", lambda *args, **kwargs: FakeLogger())
-    return Doodler(client, stop)
-
-
-def make_client(current_banner):
-    client = FakeClient()
-    client.query.commands.responses["serverinfo"] = FakeResponse(
-        data={0: {"virtualserver_hostbanner_gfx_url": current_banner}}
-    )
-    return client
-
-
 def test_date_range_is_inclusive():
     assert list(date_range("01-01-2025", "03-01-2025")) == ["01-01-2025", "02-01-2025", "03-01-2025"]
     assert list(date_range("01-01-2025", "01-01-2025")) == ["01-01-2025"]
@@ -72,6 +52,35 @@ def test_doodler_falls_back_to_default_without_an_edit_when_it_matches(monkeypat
     assert client.query.commands.called("serveredit") == []
 
 
+def test_doodler_survives_a_failed_check(monkeypatch):
+    client = FlakyServerInfoClient()
+    plugin = make_doodler(monkeypatch, client, FakeStopEvent(stop_after_waits=2))
+
+    plugin.run(default="https://example.com/default.png", doodles=[])
+
+    assert client.calls == 2
+
+
+class FixedDatetime(real_datetime):
+    @classmethod
+    def today(cls):
+        return cls(2025, 12, 25, 12, 0)
+
+
+def make_doodler(monkeypatch, client, stop):
+    monkeypatch.setattr(doodler_module, "datetime", FixedDatetime)
+    monkeypatch.setattr("plugins.plugin.create_logger", lambda *args, **kwargs: FakeLogger())
+    return Doodler(client, stop)
+
+
+def make_client(current_banner):
+    client = FakeClient()
+    client.query.commands.responses["serverinfo"] = FakeResponse(
+        data={0: {"virtualserver_hostbanner_gfx_url": current_banner}}
+    )
+    return client
+
+
 class FlakyServerInfoClient(FakeClient):
     def __init__(self):
         super().__init__()
@@ -84,12 +93,3 @@ class FlakyServerInfoClient(FakeClient):
             return FakeResponse(data={0: {"virtualserver_hostbanner_gfx_url": "https://example.com/default.png"}})
 
         self.query.commands.responses["serverinfo"] = serverinfo
-
-
-def test_doodler_survives_a_failed_check(monkeypatch):
-    client = FlakyServerInfoClient()
-    plugin = make_doodler(monkeypatch, client, FakeStopEvent(stop_after_waits=2))
-
-    plugin.run(default="https://example.com/default.png", doodles=[])
-
-    assert client.calls == 2

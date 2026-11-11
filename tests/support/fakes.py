@@ -77,6 +77,72 @@ class FakeQuery:
         self.stopped += 1
 
 
+class FakeClient:
+    def __init__(self):
+        self.message_batches = []
+        self.sent = []
+        self.enabled = []
+        self.query = FakeQuery()
+        self.users = []
+        self.user_infos = {}
+        self.moves = []
+        self.events = []
+
+    def get_unread_messages(self):
+        return self.message_batches.pop(0) if self.message_batches else []
+
+    def send_private_message(self, clid, message):
+        self.sent.append((clid, message))
+
+    def enable_message_events(self):
+        self.enabled.append("message")
+
+    def enable_events_and_messages(self):
+        self.enabled.append("events_and_messages")
+
+    def get_users(self):
+        return self.users
+
+    def get_user_info(self, clid):
+        return self.user_infos[clid]
+
+    def move_user(self, clid, cid):
+        self.moves.append((clid, cid))
+
+    def get_user_entered_events(self):
+        return [event for event in self.events if not event.used]
+
+
+class FakeMessage:
+    def __init__(self, content, invokername="user", invokerid=1):
+        self.content = content
+        self.invokername = invokername
+        self.invokerid = invokerid
+        self.used = False
+
+    def mark_as_used(self):
+        self.used = True
+
+
+class FakeStopEvent:
+    def __init__(self, stop_after_waits=1):
+        self.stop_after_waits = stop_after_waits
+        self.waits = 0
+        self.stopped = False
+
+    def is_set(self):
+        return self.stopped
+
+    def set(self):
+        self.stopped = True
+
+    def wait(self, timeout=None):
+        self.waits += 1
+        if self.waits >= self.stop_after_waits:
+            self.stopped = True
+        return self.stopped
+
+
 class FakeSSHTransport:
     def __init__(self, *args, **kwargs):
         self.written = []
@@ -192,69 +258,3 @@ class FakeParamikoClient:
 
     def close(self):
         self.closed = True
-
-
-class FakeStopEvent:
-    def __init__(self, stop_after_waits=1):
-        self.stop_after_waits = stop_after_waits
-        self.waits = 0
-        self.stopped = False
-
-    def is_set(self):
-        return self.stopped
-
-    def set(self):
-        self.stopped = True
-
-    def wait(self, timeout=None):
-        self.waits += 1
-        if self.waits >= self.stop_after_waits:
-            self.stopped = True
-        return self.stopped
-
-
-class FakeMessage:
-    def __init__(self, content, invokername="user", invokerid=1):
-        self.content = content
-        self.invokername = invokername
-        self.invokerid = invokerid
-        self.used = False
-
-    def mark_as_used(self):
-        self.used = True
-
-
-class FakeClient:
-    def __init__(self):
-        self.message_batches = []
-        self.sent = []
-        self.enabled = []
-        self.query = FakeQuery()
-        self.users = []
-        self.user_infos = {}
-        self.moves = []
-        self.events = []
-
-    def get_unread_messages(self):
-        return self.message_batches.pop(0) if self.message_batches else []
-
-    def send_private_message(self, clid, message):
-        self.sent.append((clid, message))
-
-    def enable_message_events(self):
-        self.enabled.append("message")
-
-    def enable_events_and_messages(self):
-        self.enabled.append("events_and_messages")
-
-    def get_users(self):
-        return self.users
-
-    def get_user_info(self, clid):
-        return self.user_infos[clid]
-
-    def move_user(self, clid, cid):
-        self.moves.append((clid, cid))
-
-    def get_user_entered_events(self):
-        return [event for event in self.events if not event.used]

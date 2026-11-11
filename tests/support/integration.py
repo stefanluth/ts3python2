@@ -10,21 +10,6 @@ from ts3client.ts3query import TS3Query
 TRANSIENT_ERRORS = (EOFError, ConnectionError, OSError, paramiko.SSHException)
 
 
-def retry(attempt, retries=3, description="an operation", error_types=TRANSIENT_ERRORS):
-    """Run attempt() until it succeeds, retrying transient transport errors."""
-    last_error = None
-    for index in range(retries):
-        try:
-            return attempt()
-        except paramiko.AuthenticationException:
-            raise
-        except error_types as error:
-            last_error = error
-            if index + 1 < retries:
-                time.sleep(1.5 * (index + 1))
-    raise AssertionError(f"could not {description}: {last_error}")
-
-
 @contextmanager
 def running_plugins(client, config, timeout=5):
     manager = PluginManager(client, config)
@@ -95,6 +80,40 @@ def restore_server_banner(query, banner):
     )
 
 
+def enable_text_receive(query, event=NotifyRegisterType.TEXT_PRIVATE, channel_id=None):
+    kwargs = {"event": event}
+    if channel_id is not None:
+        kwargs["id"] = channel_id
+    query.commands.servernotifyregister(**kwargs)
+    query.start_polling(0.1)
+
+
+def channel_create(query, name, **kwargs):
+    kwargs.setdefault("channel_flag_permanent", True)
+    response = query.commands.channelcreate(channel_name=name, **kwargs)
+    assert response.error_id == 0, response
+    return response.data[0]["cid"]
+
+
+def channel_delete(query, cid):
+    query.commands.channeldelete(cid=cid, force=True)
+
+
+def retry(attempt, retries=3, description="an operation", error_types=TRANSIENT_ERRORS):
+    """Run attempt() until it succeeds, retrying transient transport errors."""
+    last_error = None
+    for index in range(retries):
+        try:
+            return attempt()
+        except paramiko.AuthenticationException:
+            raise
+        except error_types as error:
+            last_error = error
+            if index + 1 < retries:
+                time.sleep(1.5 * (index + 1))
+    raise AssertionError(f"could not {description}: {last_error}")
+
+
 def configure_server_flood(host, port, password, retries=5):
     def attempt():
         query = TS3Query(host, port, "serveradmin", password, timeout=5, accept_all_keys=True)
@@ -156,22 +175,3 @@ def open_used_query(host, port, server_port, password, retries=3):
         server_port=server_port,
         retries=retries,
     )
-
-
-def enable_text_receive(query, event=NotifyRegisterType.TEXT_PRIVATE, channel_id=None):
-    kwargs = {"event": event}
-    if channel_id is not None:
-        kwargs["id"] = channel_id
-    query.commands.servernotifyregister(**kwargs)
-    query.start_polling(0.1)
-
-
-def channel_create(query, name, **kwargs):
-    kwargs.setdefault("channel_flag_permanent", True)
-    response = query.commands.channelcreate(channel_name=name, **kwargs)
-    assert response.error_id == 0, response
-    return response.data[0]["cid"]
-
-
-def channel_delete(query, cid):
-    query.commands.channeldelete(cid=cid, force=True)

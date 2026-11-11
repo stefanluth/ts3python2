@@ -6,20 +6,6 @@ from ts3client.constants import NotifyRegisterType, TargetMode
 pytestmark = pytest.mark.integration
 
 
-def send_message(client, query, kind, text):
-    if kind == "server":
-        return client.send_server_message(text)
-    if kind == "channel":
-        return client.send_channel_message(text)
-    return client.send_private_message(query.commands.whoami().data[0]["client_id"], text)
-
-
-def expected_target(query, kind):
-    if kind == "private":
-        return query.commands.whoami().data[0]["client_id"]
-    return 0
-
-
 @pytest.mark.parametrize(
     ("kind", "event", "channel_id", "source"),
     [
@@ -41,3 +27,17 @@ def test_send_message(bot_client, fresh_query, kind, event, channel_id, source):
     assert message.invokerid == bot_client.id
     assert message.invokername == bot_client.name
     assert message.invokeruid == bot_client.unique_id
+
+
+def send_message(client, query, kind, text):
+    if kind == "server":
+        return client.send_server_message(text)
+    if kind == "channel":
+        return client.send_channel_message(text)
+    return client.send_private_message(query.commands.whoami().data[0]["client_id"], text)
+
+
+def expected_target(query, kind):
+    if kind == "private":
+        return query.commands.whoami().data[0]["client_id"]
+    return 0

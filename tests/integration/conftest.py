@@ -17,22 +17,6 @@ class ServerConfig:
     password: str
 
 
-def _env(name, default):
-    return os.getenv(name, default)
-
-
-def _wait_for_ssh_port(host, port, timeout=60):
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        try:
-            with socket.create_connection((host, port), timeout=1):
-                return
-        except OSError:
-            pass
-        time.sleep(0.5)
-    raise AssertionError(f"TS3 SSH query port {host}:{port} did not become reachable")
-
-
 def pytest_collection_modifyitems(config, items):
     if os.getenv("TS3_INTEGRATION") == "1" and os.getenv("QUERY_ADMIN_PASSWORD"):
         return
@@ -68,6 +52,43 @@ def used_query(server):
     connection.exit()
 
 
+@pytest.fixture(scope="session")
+def bot_client(server):
+    client = _open_client(server)
+    yield client
+    client.disconnect()
+
+
+@pytest.fixture
+def fresh_query(server):
+    connection = open_used_query(server.host, server.query_port, server.server_port, server.password)
+    yield connection
+    connection.exit()
+
+
+@pytest.fixture
+def fresh_client(server):
+    client = _open_client(server)
+    yield client
+    client.disconnect()
+
+
+def _env(name, default):
+    return os.getenv(name, default)
+
+
+def _wait_for_ssh_port(host, port, timeout=60):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return
+        except OSError:
+            pass
+        time.sleep(0.5)
+    raise AssertionError(f"TS3 SSH query port {host}:{port} did not become reachable")
+
+
 def _connect_client(server):
     client = TS3Client(
         server.host,
@@ -93,24 +114,3 @@ def _open_client(server):
         server_port=server.server_port,
         description="open the bot query connection",
     )
-
-
-@pytest.fixture(scope="session")
-def bot_client(server):
-    client = _open_client(server)
-    yield client
-    client.disconnect()
-
-
-@pytest.fixture
-def fresh_query(server):
-    connection = open_used_query(server.host, server.query_port, server.server_port, server.password)
-    yield connection
-    connection.exit()
-
-
-@pytest.fixture
-def fresh_client(server):
-    client = _open_client(server)
-    yield client
-    client.disconnect()

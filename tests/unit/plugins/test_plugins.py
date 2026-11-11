@@ -5,11 +5,6 @@ from ts3client.event import ClientEnterViewEvent
 from ts3client.user import User, UserInfo
 
 
-def make_plugin(plugin_type, monkeypatch, client, stop):
-    monkeypatch.setattr("plugins.plugin.create_logger", lambda *args, **kwargs: FakeLogger())
-    return plugin_type(client, stop)
-
-
 def test_afk_mover_only_moves_clients_over_the_idle_threshold(monkeypatch):
     client = FakeClient()
     client.users = [
@@ -32,18 +27,6 @@ def test_afk_mover_only_moves_clients_over_the_idle_threshold(monkeypatch):
 
     assert client.moves == [(5, 10)]
     assert client.sent == [(5, "go away")]
-
-
-class FlakyUsersClient(FakeClient):
-    def __init__(self):
-        super().__init__()
-        self.calls = 0
-
-    def get_users(self):
-        self.calls += 1
-        if self.calls == 1:
-            raise RuntimeError("boom")
-        return []
 
 
 def test_afk_mover_survives_a_failed_check(monkeypatch):
@@ -70,6 +53,32 @@ def test_welcomer_skips_query_clients_and_incomplete_events(monkeypatch):
     assert all(event.used for event in client.events)
 
 
+def test_welcomer_survives_a_failed_check(monkeypatch):
+    client = FlakyEventsClient()
+    plugin = make_plugin(Welcomer, monkeypatch, client, FakeStopEvent(stop_after_waits=2))
+
+    plugin.run(messages=["hello"])
+
+    assert client.calls == 2
+
+
+def make_plugin(plugin_type, monkeypatch, client, stop):
+    monkeypatch.setattr("plugins.plugin.create_logger", lambda *args, **kwargs: FakeLogger())
+    return plugin_type(client, stop)
+
+
+class FlakyUsersClient(FakeClient):
+    def __init__(self):
+        super().__init__()
+        self.calls = 0
+
+    def get_users(self):
+        self.calls += 1
+        if self.calls == 1:
+            raise RuntimeError("boom")
+        return []
+
+
 class FlakyEventsClient(FakeClient):
     def __init__(self):
         super().__init__()
@@ -80,12 +89,3 @@ class FlakyEventsClient(FakeClient):
         if self.calls == 1:
             raise RuntimeError("boom")
         return []
-
-
-def test_welcomer_survives_a_failed_check(monkeypatch):
-    client = FlakyEventsClient()
-    plugin = make_plugin(Welcomer, monkeypatch, client, FakeStopEvent(stop_after_waits=2))
-
-    plugin.run(messages=["hello"])
-
-    assert client.calls == 2

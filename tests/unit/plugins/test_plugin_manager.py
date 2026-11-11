@@ -35,50 +35,6 @@ class OptionalPlugin(Plugin):
         pass
 
 
-class RecordingPlugin:
-    instances = []
-
-    def __init__(self, client, event):
-        self.client = client
-        self.event = event
-        RecordingPlugin.instances.append(self)
-
-    def run(self, value: int = 0):
-        pass
-
-
-class FakePlugins:
-    __all__ = ["RecordingPlugin"]
-    RecordingPlugin = RecordingPlugin
-
-
-class FakeThread:
-    def __init__(self, target=None, kwargs=None):
-        self.target = target
-        self.kwargs = kwargs
-        self.name = None
-        self.ident = id(self)
-        self.started = False
-        self.joined = []
-
-    def start(self):
-        self.started = True
-
-    def join(self, timeout=None):
-        self.joined.append(timeout)
-
-
-@pytest.fixture(autouse=True)
-def reset_plugin_state():
-    RecordingPlugin.instances = []
-
-
-def make_manager(monkeypatch, config, client: FakeClient | None = None):
-    monkeypatch.setattr(plugin_manager_module, "all_plugins", FakePlugins)
-    monkeypatch.setattr(plugin_manager_module, "Thread", FakeThread)
-    return PluginManager(cast(TS3Client, client or FakeClient()), config)
-
-
 def test_run_rejects_an_unknown_plugin(monkeypatch):
     manager = make_manager(monkeypatch, {"Missing": {}})
 
@@ -125,22 +81,6 @@ def test_config_validation(plugin_type, config, valid):
             validate_config(plugin_type(), config)
 
 
-class ExtraKwargsPlugin(Plugin):
-    def __init__(self):
-        pass
-
-    def run(self, value: int = 0, **kwargs):
-        pass
-
-
-class VariadicPlugin(Plugin):
-    def __init__(self):
-        pass
-
-    def run(self, *args):
-        pass
-
-
 @pytest.mark.parametrize(
     ("value", "annotation", "expected"),
     [
@@ -163,3 +103,63 @@ def test_matches_type(value, annotation, expected):
 def test_validate_config_handles_variadic_signatures():
     validate_config(ExtraKwargsPlugin(), {"value": 1, "extra": "anything"})
     validate_config(VariadicPlugin(), {})
+
+
+@pytest.fixture(autouse=True)
+def reset_plugin_state():
+    RecordingPlugin.instances = []
+
+
+def make_manager(monkeypatch, config, client: FakeClient | None = None):
+    monkeypatch.setattr(plugin_manager_module, "all_plugins", FakePlugins)
+    monkeypatch.setattr(plugin_manager_module, "Thread", FakeThread)
+    return PluginManager(cast(TS3Client, client or FakeClient()), config)
+
+
+class RecordingPlugin:
+    instances = []
+
+    def __init__(self, client, event):
+        self.client = client
+        self.event = event
+        RecordingPlugin.instances.append(self)
+
+    def run(self, value: int = 0):
+        pass
+
+
+class FakePlugins:
+    __all__ = ["RecordingPlugin"]
+    RecordingPlugin = RecordingPlugin
+
+
+class FakeThread:
+    def __init__(self, target=None, kwargs=None):
+        self.target = target
+        self.kwargs = kwargs
+        self.name = None
+        self.ident = id(self)
+        self.started = False
+        self.joined = []
+
+    def start(self):
+        self.started = True
+
+    def join(self, timeout=None):
+        self.joined.append(timeout)
+
+
+class ExtraKwargsPlugin(Plugin):
+    def __init__(self):
+        pass
+
+    def run(self, value: int = 0, **kwargs):
+        pass
+
+
+class VariadicPlugin(Plugin):
+    def __init__(self):
+        pass
+
+    def run(self, *args):
+        pass

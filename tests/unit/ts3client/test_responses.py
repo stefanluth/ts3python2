@@ -7,12 +7,6 @@ from ts3client.ts3query.ts3query_response import TS3QueryResponse
 from ts3client.utils import patterns
 
 
-def make_query_response(payload):
-    match = patterns.RESPONSE_END_BYTES.search(payload)
-    assert match is not None
-    return TS3QueryResponse(0, match, payload)
-
-
 def test_query_response_parses_data_and_unescapes_the_message():
     response = make_query_response(b"clid=1 client_nickname=foo\\sbar\n\rerror id=0 msg=ok\n\r")
 
@@ -61,3 +55,9 @@ def test_client_response_behaves_like_a_mapping():
     assert response["new"] == "value"
     del response["new"]
     assert "new" not in response
+
+
+def make_query_response(payload):
+    match = patterns.RESPONSE_END_BYTES.search(payload)
+    assert match is not None
+    return TS3QueryResponse(0, match, payload)

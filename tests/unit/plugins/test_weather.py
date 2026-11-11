@@ -22,34 +22,6 @@ PAYLOAD = {
 }
 
 
-class FakeHTTPResponse:
-    def __init__(self, payload=None):
-        self.payload = json.dumps(PAYLOAD if payload is None else payload).encode()
-
-    def read(self):
-        return self.payload
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        return False
-
-
-def make_weather():
-    weather = Weather(cast(TS3Client, FakeClient()), "weather", "KEY")
-    weather.logger = FakeLogger()
-    return weather
-
-
-def fake_urlopen(captured):
-    def call(url, timeout=None):
-        captured.append((url, timeout))
-        return FakeHTTPResponse()
-
-    return call
-
-
 @pytest.mark.bug
 def test_weather_request_is_safe_and_replied_to(monkeypatch):
     captured = []
@@ -102,3 +74,31 @@ def test_network_failure_replies_instead_of_crashing(monkeypatch, error, expecte
     weather.run(FakeMessage("!weather Atlantis", invokerid=7))
 
     assert weather.client.sent == [(7, expected_reply)]
+
+
+class FakeHTTPResponse:
+    def __init__(self, payload=None):
+        self.payload = json.dumps(PAYLOAD if payload is None else payload).encode()
+
+    def read(self):
+        return self.payload
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+
+def make_weather():
+    weather = Weather(cast(TS3Client, FakeClient()), "weather", "KEY")
+    weather.logger = FakeLogger()
+    return weather
+
+
+def fake_urlopen(captured):
+    def call(url, timeout=None):
+        captured.append((url, timeout))
+        return FakeHTTPResponse()
+
+    return call

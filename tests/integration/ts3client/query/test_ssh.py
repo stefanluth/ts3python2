@@ -6,25 +6,6 @@ from ts3client.ts3query import TS3Query
 pytestmark = pytest.mark.integration
 
 
-def make_query(server, **kwargs):
-    return TS3Query(
-        server.host,
-        server.query_port,
-        "serveradmin",
-        server.password,
-        timeout=5,
-        **kwargs,
-    )
-
-
-def open_ssh_query(server, retries=3, **kwargs):
-    return retry(
-        lambda: make_query(server, **kwargs),
-        retries=retries,
-        description="open an SSH query connection",
-    )
-
-
 def test_known_hosts_is_saved_and_reused(server, tmp_path):
     known_hosts = tmp_path / "known_hosts"
 
@@ -52,3 +33,22 @@ def test_known_hosts_is_saved_and_reused(server, tmp_path):
         assert second.connected()
     finally:
         second.exit()
+
+
+def make_query(server, **kwargs):
+    return TS3Query(
+        server.host,
+        server.query_port,
+        "serveradmin",
+        server.password,
+        timeout=5,
+        **kwargs,
+    )
+
+
+def open_ssh_query(server, retries=3, **kwargs):
+    return retry(
+        lambda: make_query(server, **kwargs),
+        retries=retries,
+        description="open an SSH query connection",
+    )
