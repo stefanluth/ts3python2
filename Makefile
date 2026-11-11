@@ -1,4 +1,4 @@
-PYTHON ?= python3.12
+PYTHON ?= python3.14
 PYTEST := .venv/bin/python -m pytest
 RUFF := .venv/bin/python -m ruff
 TY := .venv/bin/ty

@@ -84,7 +84,7 @@ def _matches_type(value: object, annotation: object) -> bool:
 def validate_config(plugin: Plugin, config: dict[str, Any]) -> None:
     try:
         signature = inspect.signature(plugin.run, eval_str=True)
-    except (NameError, TypeError):
+    except NameError, TypeError:
         signature = inspect.signature(plugin.run)
 
     for param_name, param in signature.parameters.items():

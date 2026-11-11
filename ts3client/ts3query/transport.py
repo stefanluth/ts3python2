@@ -109,9 +109,9 @@ class SSHTransport:
         self._channel.settimeout(timeout)
         try:
             return self._channel.recv(self._BUFFER_SIZE)
-        except (socket.timeout, TimeoutError):
+        except socket.timeout, TimeoutError:
             return None
-        except (EOFError, paramiko.SSHException):
+        except EOFError, paramiko.SSHException:
             if self._channel is None or self._channel.closed:
                 return b""
             raise

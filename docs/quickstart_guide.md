@@ -9,7 +9,7 @@ activating the `AFK Mover` and `Welcomer` plugins.
 
 Before you begin, you should have the following installed on your computer:
 
-- Python 3.10 or higher
+- Python 3.14 or higher
 - Git
 
 It should be noted that the TS3Client has only been tested on Linux. It may work on Windows and MacOS, but this is not
