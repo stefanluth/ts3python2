@@ -39,24 +39,28 @@ class Doodler(Plugin):
         self.ready()
 
         while not self.event.is_set():
-            self.logger.debug("Checking doodles...")
+            try:
+                self.logger.debug("Checking doodles...")
 
-            current_date = datetime.today().strftime("%d-%m-%Y")
-            new_banner = default
+                current_date = datetime.today().strftime("%d-%m-%Y")
+                new_banner = default
 
-            for url, dates in transformed.items():
-                if current_date in dates:
-                    new_banner = url
-                    break
+                for url, dates in transformed.items():
+                    if current_date in dates:
+                        new_banner = url
+                        break
 
-            server_info = self.client.query.commands.serverinfo().data[0]
-            current_banner = server_info.get("virtualserver_hostbanner_gfx_url")
-            if current_banner != new_banner:
-                self.logger.info(f"Setting server banner to {new_banner}")
-                self.client.query.commands.serveredit(
-                    virtualserver_hostbanner_gfx_url=new_banner,
-                    virtualserver_hostbanner_mode=2,
-                )
+                server_info = self.client.query.commands.serverinfo().data[0]
+                current_banner = server_info.get("virtualserver_hostbanner_gfx_url")
+                if current_banner != new_banner:
+                    self.logger.info(f"Setting server banner to {new_banner}")
+                    self.client.query.commands.serveredit(
+                        virtualserver_hostbanner_gfx_url=new_banner,
+                        virtualserver_hostbanner_mode=2,
+                    )
 
-            hours_until_midnight = 24 - datetime.today().hour
+                hours_until_midnight = 24 - datetime.today().hour
+            except Exception:
+                self.logger.exception("Failed to update the server banner.")
+                hours_until_midnight = 1
             self.event.wait(60 * 60 * hours_until_midnight)

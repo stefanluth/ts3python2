@@ -34,17 +34,20 @@ class AFK_Mover(Plugin):
         self.ready()
 
         while not self.event.is_set():
-            self.logger.debug("Checking for AFK clients...")
-            for user in self.client.get_users():
-                if user.cid == afk_channel_id or user.cid in ignore_channels:
-                    continue
+            try:
+                self.logger.debug("Checking for AFK clients...")
+                for user in self.client.get_users():
+                    if user.cid == afk_channel_id or user.cid in ignore_channels:
+                        continue
 
-                user_info = self.client.get_user_info(user.clid)
+                    user_info = self.client.get_user_info(user.clid)
 
-                idle_time = user_info.client_idle_time
-                if idle_time is not None and idle_time > afk_time:
-                    self.logger.info(f"Moving {user.client_nickname} to AFK channel...")
-                    self.client.move_user(user.clid, afk_channel_id)
-                    self.client.send_private_message(user.clid, move_message)
-            self.logger.debug(f"Sleeping for {check_interval} seconds...")
+                    idle_time = user_info.client_idle_time
+                    if idle_time is not None and idle_time > afk_time:
+                        self.logger.info(f"Moving {user.client_nickname} to AFK channel...")
+                        self.client.move_user(user.clid, afk_channel_id)
+                        self.client.send_private_message(user.clid, move_message)
+                self.logger.debug(f"Sleeping for {check_interval} seconds...")
+            except Exception:
+                self.logger.exception("Failed to check for AFK clients.")
             self.event.wait(check_interval)

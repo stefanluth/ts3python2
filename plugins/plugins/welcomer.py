@@ -18,12 +18,15 @@ class Welcomer(Plugin):
         self.ready()
 
         while not self.event.is_set():
-            self.logger.debug("Checking for new clients...")
-            for event in self.client.get_user_entered_events():
-                if event.client_type == 1 or event.clid is None:
+            try:
+                self.logger.debug("Checking for new clients...")
+                for event in self.client.get_user_entered_events():
+                    if event.client_type == 1 or event.clid is None:
+                        event.used = True
+                        continue
+                    self.logger.info(f"Sending welcome message to {event.client_nickname}...")
+                    self.client.send_private_message(event.clid, random.choice(messages))
                     event.used = True
-                    continue
-                self.logger.info(f"Sending welcome message to {event.client_nickname}...")
-                self.client.send_private_message(event.clid, random.choice(messages))
-                event.used = True
+            except Exception:
+                self.logger.exception("Failed to welcome new clients.")
             self.event.wait(1)
