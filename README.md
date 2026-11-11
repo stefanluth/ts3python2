@@ -32,12 +32,12 @@ Currently, the following plugins and commands are available:
 ### Commands
 
 - [Help](./docs/commands/help.md) - Displays a list of available commands.
+- [Poll](./docs/commands/poll.md) - Create single- or multi-choice polls with timed, anonymous, server-wide, or channel voting.
 - [Weather](./docs/commands/weather.md) - Displays the current weather for a given location.
 
 ### Planned Plugins
 
 - Casino - A plugin that allows users to gamble with virtual currency.
-- Poll - A plugin that allows users to create polls and surveys.
 - Auto-Channel - A plugin that automatically creates channels when needed.
 
 ## Contributing
