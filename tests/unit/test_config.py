@@ -39,6 +39,28 @@ def test_ssh_settings_from_environment(monkeypatch, env, expected):
     assert actual == expected
 
 
+def test_poll_command_config(monkeypatch):
+    config = load_config(monkeypatch)
+
+    poll = config.PLUGINS_CONFIG["CommandHandler"]["commands"]["Poll"]
+
+    assert poll["trigger"] == "poll"
+    assert poll["polls_dir"] == "polls"
+    assert poll["notify_users"] is True
+    assert poll["notify_query_clients"] is False
+    assert set(poll) == {
+        "trigger",
+        "description",
+        "polls_dir",
+        "max_options",
+        "max_question_length",
+        "default_duration",
+        "notify_users",
+        "notify_query_clients",
+        "prefix",
+    }
+
+
 def load_config(monkeypatch, **env):
     for name in CONFIG_ENV:
         monkeypatch.delenv(name, raising=False)

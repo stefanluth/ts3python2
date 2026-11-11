@@ -58,6 +58,17 @@ PLUGINS_CONFIG: dict[str, dict[str, Any]] = {
                 "trigger": "help",
                 "description": "Send a list of available commands.",
             },
+            "Poll": {
+                "trigger": "poll",
+                "description": "Create and vote in polls and surveys.",
+                "polls_dir": "polls",
+                "max_options": 10,
+                "max_question_length": 200,
+                "default_duration": None,
+                "notify_users": True,
+                "notify_query_clients": False,
+                "prefix": "!",
+            },
             # # Uncomment this to enable the Weather plugin
             # # Be sure to add the WEATHERAPI_COM_API_KEY environment variable to your .env file
             # "Weather": {
