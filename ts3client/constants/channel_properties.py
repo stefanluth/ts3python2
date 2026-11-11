@@ -87,7 +87,7 @@ CHANNEL_PROPERTIES = {
         "description": "Indicates whether the channel is silenced or not",
         "changeable": False,
     },
-    "CHANNEL_ICON_ID ": {
+    "CHANNEL_ICON_ID": {
         "description": "CRC32 checksum of the channel icon",
         "changeable": True,
     },

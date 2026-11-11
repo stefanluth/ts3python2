@@ -83,7 +83,7 @@ SERVER_INSTANCE_PROPERTIES = {
         "description": "Default server group ID used in templates",
         "changeable": True,
     },
-    "SERVERINSTANCE_TEMPLATE_CHANNELDEFAULT_GROUP ": {
+    "SERVERINSTANCE_TEMPLATE_CHANNELDEFAULT_GROUP": {
         "description": "Default channel group ID used in templates",
         "changeable": True,
     },
