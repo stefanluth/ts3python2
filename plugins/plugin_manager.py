@@ -111,3 +111,13 @@ def validate_config(plugin: Plugin, config: dict[str, Any]) -> None:
             plugin.__class__.__name__,
             f"Configuration parameter '{param_name}' should be of type {type_name}, but got {type(param_value).__name__}.",
         )
+
+    parameters = signature.parameters
+    accepts_extra = any(param.kind is inspect.Parameter.VAR_KEYWORD for param in parameters.values())
+    if not accepts_extra:
+        unknown = sorted(set(config) - set(parameters))
+        if unknown:
+            raise ConfigurationError(
+                plugin.__class__.__name__,
+                f"Unknown configuration parameter(s): {', '.join(unknown)}.",
+            )
