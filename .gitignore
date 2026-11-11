@@ -52,7 +52,8 @@ config.local.py
 *.db
 *.sqlite
 *.sqlite3
-/polls/
+polls/
+casino/
 
 .unlazy
 GATES.md
