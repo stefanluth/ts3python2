@@ -2,10 +2,12 @@ import os
 import socket
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 import pytest
 
-from tests.support.integration import Group, configure_server_flood, open_used_connection, open_used_query
+from tests.support.containers import start_container, worker_name
+from tests.support.integration import Group, configure_server_limits, open_used_connection, open_used_query
 from ts3client import TS3Client
 
 
@@ -28,21 +30,38 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(scope="session")
-def server():
+def server(request):
     password = os.getenv("QUERY_ADMIN_PASSWORD")
     if os.getenv("TS3_INTEGRATION") != "1" or not password:
         pytest.skip("set TS3_INTEGRATION=1 and QUERY_ADMIN_PASSWORD to run live tests")
 
-    config = ServerConfig(
-        host=_env("TS3_QUERY_HOST", "127.0.0.1"),
-        query_port=int(_env("TS3_QUERY_PORT", "10022")),
-        server_port=int(_env("TS3_SERVER_PORT", "9987")),
-        password=password,
-    )
-    _wait_for_ssh_port(config.host, config.query_port)
-    if _env("TS3_SET_FLOOD_LIMITS", "1") == "1":
-        configure_server_flood(config.host, config.query_port, config.password)
-    return config
+    container = None
+    if _env("TS3_MANAGE_CONTAINER", "0") == "1":
+        container = start_container(_env("TS3_TEST_IMAGE", "teamspeak:3.13.9"), password)
+        config = ServerConfig(
+            host=container.host,
+            query_port=container.query_port,
+            server_port=int(_env("TS3_SERVER_PORT", "9987")),
+            password=password,
+        )
+    else:
+        config = ServerConfig(
+            host=_env("TS3_QUERY_HOST", "127.0.0.1"),
+            query_port=int(_env("TS3_QUERY_PORT", "10022")),
+            server_port=int(_env("TS3_SERVER_PORT", "9987")),
+            password=password,
+        )
+
+    try:
+        _wait_for_ssh_port(config.host, config.query_port)
+        if _env("TS3_SET_FLOOD_LIMITS", "1") == "1":
+            configure_server_limits(config.host, config.query_port, config.password)
+        yield config
+    finally:
+        if container is not None:
+            if request.session.testsfailed:
+                _dump_container_logs(container)
+            container.stop()
 
 
 @pytest.fixture(scope="session")
@@ -116,6 +135,13 @@ def fresh_client(server):
 
 def _env(name, default):
     return os.getenv(name, default)
+
+
+def _dump_container_logs(container):
+    try:
+        Path(f"ts3-server-{worker_name()}.log").write_text(container.logs(), encoding="utf-8")
+    except OSError:
+        pass
 
 
 def _wait_for_ssh_port(host, port, timeout=60):

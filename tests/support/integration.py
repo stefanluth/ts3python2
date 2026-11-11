@@ -127,7 +127,16 @@ def retry(attempt, retries=3, description="an operation", error_types=TRANSIENT_
     raise AssertionError(f"could not {description}: {last_error}")
 
 
-def configure_server_flood(host, port, password, retries=5):
+QUERY_MAX_CONNECTIONS_PER_IP = 64
+QUERY_PENDING_CONNECTIONS_PER_IP = 0
+
+
+def configure_server_limits(host, port, password, retries=5):
+    limits = {
+        "serverinstance_serverquery_max_connections_per_ip": QUERY_MAX_CONNECTIONS_PER_IP,
+        "serverinstance_pending_connections_per_ip": QUERY_PENDING_CONNECTIONS_PER_IP,
+    }
+
     def attempt():
         query = TS3Query(host, port, "serveradmin", password, timeout=5, accept_all_keys=True)
         try:
@@ -136,19 +145,29 @@ def configure_server_flood(host, port, password, retries=5):
                 serverinstance_serverquery_flood_commands=10000,
                 serverinstance_serverquery_flood_time=1,
                 serverinstance_serverquery_ban_time=1,
+                **limits,
             )
-            if response.error_id == 0:
-                return
-            if response.error_id != 524:
+            if response.error_id != 0:
+                if response.error_id == 524:
+                    raise ConnectionError(f"flood limits not applied yet: {response}")
                 raise AssertionError(response)
-            raise ConnectionError(f"flood limits not applied yet: {response}")
+
+            info = query.commands.instanceinfo().data[0]
+            try:
+                applied = {key: int(info[key]) for key in limits}
+            except (KeyError, ValueError) as error:
+                raise AssertionError(f"TS3 server did not report query connection limits: {info}") from error
+            if applied != limits:
+                raise AssertionError(
+                    f"TS3 server did not apply query connection limits: expected {limits}, got {applied}"
+                )
         finally:
             try:
                 query.exit()
             except Exception:
                 pass
 
-    retry(attempt, retries=retries, description="configure TS3 flood limits")
+    retry(attempt, retries=retries, description="configure TS3 server limits")
 
 
 def _connect_query(host, port, password):
