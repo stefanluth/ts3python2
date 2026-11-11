@@ -38,65 +38,41 @@ def make_handler(monkeypatch, client, stop):
     return handler
 
 
-def test_registers_message_events(monkeypatch):
+@pytest.mark.parametrize(
+    ("commands", "expected_enabled"),
+    [
+        ({"RecordingCommand": {"trigger": "help"}}, ["message"]),
+        ({"NotACommand": {"trigger": "help"}}, []),
+    ],
+    ids=["known-command", "unknown-command"],
+)
+def test_registers_message_events_only_for_loaded_commands(monkeypatch, commands, expected_enabled):
     client = FakeClient()
     handler = make_handler(monkeypatch, client, FakeStopEvent())
 
-    handler.run(prefix="!", commands={"RecordingCommand": {"trigger": "help"}}, check_interval=0)
+    handler.run(prefix="!", commands=commands, check_interval=0)
 
-    assert client.enabled == ["message"]
+    assert client.enabled == expected_enabled
 
 
-def test_matching_message_runs_the_command_and_marks_it_used(monkeypatch):
+@pytest.mark.parametrize(
+    ("content", "expects_run"),
+    [
+        ("!help", True),
+        ("!nope", False),
+        pytest.param("hello", False, marks=pytest.mark.bug),
+    ],
+    ids=["matching-trigger", "unknown-trigger", "non-prefix"],
+)
+def test_messages_are_used_and_run_only_on_a_known_trigger(monkeypatch, content, expects_run):
     client = FakeClient()
-    message = FakeMessage("!help")
+    message = FakeMessage(content)
     client.message_batches = [[message]]
     handler = make_handler(monkeypatch, client, FakeStopEvent())
 
     handler.run(prefix="!", commands={"RecordingCommand": {"trigger": "help"}}, check_interval=0)
 
-    assert RecordingCommand.calls == [message]
-    assert message.used is True
-
-
-def test_unknown_trigger_does_not_run_a_command(monkeypatch):
-    client = FakeClient()
-    message = FakeMessage("!nope")
-    client.message_batches = [[message]]
-    handler = make_handler(monkeypatch, client, FakeStopEvent())
-
-    handler.run(prefix="!", commands={"RecordingCommand": {"trigger": "help"}}, check_interval=0)
-
-    assert RecordingCommand.calls == []
-
-
-def test_unknown_command_name_returns_without_enabling_events(monkeypatch):
-    client = FakeClient()
-    handler = make_handler(monkeypatch, client, FakeStopEvent())
-
-    handler.run(prefix="!", commands={"NotACommand": {"trigger": "help"}}, check_interval=0)
-
-    assert client.enabled == []
-
-
-def test_empty_commands_returns_without_enabling_events(monkeypatch):
-    client = FakeClient()
-    handler = make_handler(monkeypatch, client, FakeStopEvent())
-
-    handler.run(prefix="!", commands={}, check_interval=0)
-
-    assert client.enabled == []
-
-
-@pytest.mark.bug
-def test_non_prefix_message_is_marked_used(monkeypatch):
-    client = FakeClient()
-    message = FakeMessage("hello")
-    client.message_batches = [[message]]
-    handler = make_handler(monkeypatch, client, FakeStopEvent())
-
-    handler.run(prefix="!", commands={"RecordingCommand": {"trigger": "help"}}, check_interval=0)
-
+    assert RecordingCommand.calls == ([message] if expects_run else [])
     assert message.used is True
 
 

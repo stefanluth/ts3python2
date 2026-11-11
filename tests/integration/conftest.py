@@ -3,10 +3,9 @@ import socket
 import time
 from dataclasses import dataclass
 
-import paramiko
 import pytest
 
-from tests.support.integration import configure_server_flood, open_used_query
+from tests.support.integration import configure_server_flood, open_used_connection, open_used_query
 from ts3client import TS3Client
 
 
@@ -69,38 +68,31 @@ def used_query(server):
     connection.exit()
 
 
+def _connect_client(server):
+    client = TS3Client(
+        server.host,
+        server.query_port,
+        "serveradmin",
+        server.password,
+        timeout=5,
+        accept_all_keys=True,
+        use_system_host_keys=False,
+    )
+    try:
+        client.query.disable_flood_protection()
+    except Exception:
+        client.disconnect()
+        raise
+    return client
+
+
 def _open_client(server):
-    last_error = None
-    for attempt in range(3):
-        client = None
-        try:
-            client = TS3Client(
-                server.host,
-                server.query_port,
-                "serveradmin",
-                server.password,
-                timeout=5,
-                accept_all_keys=True,
-                use_system_host_keys=False,
-            )
-            client.query.disable_flood_protection()
-            response = client.query.commands.use(port=server.server_port)
-            if response.error_id == 0:
-                return client
-            last_error = response
-        except paramiko.AuthenticationException:
-            raise
-        except (EOFError, ConnectionError, OSError, paramiko.SSHException) as error:
-            last_error = error
-
-        if client is not None:
-            try:
-                client.disconnect()
-            except Exception:
-                pass
-        time.sleep(1.5 * (attempt + 1))
-
-    raise AssertionError(f"could not open the bot query connection: {last_error}")
+    return open_used_connection(
+        lambda: _connect_client(server),
+        close=lambda client: client.disconnect(),
+        server_port=server.server_port,
+        description="open the bot query connection",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -110,23 +102,11 @@ def bot_client(server):
     client.disconnect()
 
 
-@pytest.fixture(scope="session")
-def trigger_query(server):
-    connection = open_used_query(server.host, server.query_port, server.server_port, server.password)
-    yield connection
-    connection.exit()
-
-
 @pytest.fixture
 def fresh_query(server):
     connection = open_used_query(server.host, server.query_port, server.server_port, server.password)
     yield connection
     connection.exit()
-
-
-@pytest.fixture
-def listener_query(fresh_query):
-    return fresh_query
 
 
 @pytest.fixture

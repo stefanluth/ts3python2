@@ -3,9 +3,10 @@ import pytest
 from tests.support.integration import (
     channel_create,
     channel_delete,
-    register_text_receive,
+    enable_text_receive,
     running_plugins,
     unique_name,
+    wait_for_message,
     wait_until,
     whoami,
 )
@@ -21,7 +22,7 @@ def test_afk_mover_moves_an_idle_client_to_the_afk_channel(bot_client, used_quer
     move_message = unique_name("afk-move")
     try:
         assert used_query.commands.clientmove(clid=target_clid, cid=waiting_cid).error_id == 0
-        register_text_receive(fresh_query, event=NotifyRegisterType.TEXT_PRIVATE)
+        enable_text_receive(fresh_query, event=NotifyRegisterType.TEXT_PRIVATE)
 
         ignore_channels = [channel.cid for channel in bot_client.get_channels() if channel.cid != waiting_cid]
 
@@ -43,16 +44,7 @@ def test_afk_mover_moves_an_idle_client_to_the_afk_channel(bot_client, used_quer
                 message="AFK_Mover did not move the idle client",
             )
 
-            def has_move_message():
-                fresh_query.commands.version()
-                return any(message.content == move_message for message in fresh_query.unread_messages)
-
-            wait_until(
-                has_move_message,
-                timeout=15,
-                interval=0.5,
-                message="AFK_Mover did not send the move message",
-            )
+            wait_for_message(fresh_query, move_message)
     finally:
         channel_delete(used_query, afk_cid)
         channel_delete(used_query, waiting_cid)

@@ -50,8 +50,10 @@ def fake_urlopen(captured):
     return call
 
 
-def test_replies_with_the_current_weather(monkeypatch):
-    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen([]))
+@pytest.mark.bug
+def test_weather_request_is_safe_and_replied_to(monkeypatch):
+    captured = []
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen(captured))
     weather = make_weather()
 
     weather.run(FakeMessage("!weather New York", invokerid=7))
@@ -62,6 +64,13 @@ def test_replies_with_the_current_weather(monkeypatch):
             "Current weather for New York: Sunny, 20°C, feels like 19°C, humidity 50%, wind 10 kph, N.",
         )
     ]
+
+    url, timeout = captured[0]
+    assert url.startswith("https://")
+    assert " " not in url
+    assert "New%20York" in url or "New+York" in url
+    assert timeout is not None
+    assert timeout > 0
 
 
 def test_prompts_for_a_location_without_calling_the_api(monkeypatch):
@@ -75,61 +84,21 @@ def test_prompts_for_a_location_without_calling_the_api(monkeypatch):
     assert captured == []
 
 
-def test_http_error_replies_location_not_found(monkeypatch):
+@pytest.mark.parametrize(
+    ("error", "expected_reply"),
+    [
+        (urllib.error.HTTPError("https://example.com", 404, "Not Found", EmailMessage(), None), "Location not found."),
+        pytest.param(urllib.error.URLError("network down"), "Weather service unavailable.", marks=pytest.mark.bug),
+    ],
+    ids=["http-error", "network-error"],
+)
+def test_network_failure_replies_instead_of_crashing(monkeypatch, error, expected_reply):
     def fail(url, timeout=None):
-        raise urllib.error.HTTPError(url, 404, "Not Found", EmailMessage(), None)
+        raise error
 
     monkeypatch.setattr("urllib.request.urlopen", fail)
     weather = make_weather()
 
     weather.run(FakeMessage("!weather Atlantis", invokerid=7))
 
-    assert weather.client.sent == [(7, "Location not found.")]
-
-
-@pytest.mark.bug
-def test_uses_https(monkeypatch):
-    captured = []
-    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen(captured))
-    weather = make_weather()
-
-    weather.run(FakeMessage("!weather New York", invokerid=7))
-
-    assert captured[0][0].startswith("https://")
-
-
-@pytest.mark.bug
-def test_url_encodes_location(monkeypatch):
-    captured = []
-    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen(captured))
-    weather = make_weather()
-
-    weather.run(FakeMessage("!weather New York", invokerid=7))
-
-    assert " " not in captured[0][0]
-    assert "New%20York" in captured[0][0] or "New+York" in captured[0][0]
-
-
-@pytest.mark.bug
-def test_passes_timeout(monkeypatch):
-    captured = []
-    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen(captured))
-    weather = make_weather()
-
-    weather.run(FakeMessage("!weather New York", invokerid=7))
-
-    assert captured[0][1] is not None
-    assert captured[0][1] > 0
-
-
-@pytest.mark.bug
-def test_network_error_replies_instead_of_crashing(monkeypatch):
-    def fail(url, timeout=None):
-        raise urllib.error.URLError("network down")
-
-    monkeypatch.setattr("urllib.request.urlopen", fail)
-    weather = make_weather()
-
-    weather.run(FakeMessage("!weather New York", invokerid=7))
-
-    assert weather.client.sent[0][1] != ""
+    assert weather.client.sent == [(7, expected_reply)]

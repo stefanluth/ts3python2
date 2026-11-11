@@ -1,12 +1,28 @@
 import time
 from contextlib import contextmanager
-from datetime import date
 
 import paramiko
 
 from plugins.plugin_manager import PluginManager
 from ts3client.constants import NotifyRegisterType
 from ts3client.ts3query import TS3Query
+
+TRANSIENT_ERRORS = (EOFError, ConnectionError, OSError, paramiko.SSHException)
+
+
+def retry(attempt, retries=3, description="an operation", error_types=TRANSIENT_ERRORS):
+    """Run attempt() until it succeeds, retrying transient transport errors."""
+    last_error = None
+    for index in range(retries):
+        try:
+            return attempt()
+        except paramiko.AuthenticationException:
+            raise
+        except error_types as error:
+            last_error = error
+            if index + 1 < retries:
+                time.sleep(1.5 * (index + 1))
+    raise AssertionError(f"could not {description}: {last_error}")
 
 
 @contextmanager
@@ -30,12 +46,20 @@ def wait_until(predicate, timeout=10, interval=0.1, message="condition not met")
     raise AssertionError(message)
 
 
+def wait_for_message(query, text, timeout=15, contains=False):
+    def matches(message):
+        return text in message.content if contains else message.content == text
+
+    kind = "containing " if contains else ""
+    return wait_until(
+        lambda: next((message for message in query.unread_messages if matches(message)), None),
+        timeout=timeout,
+        message=f"did not receive message {kind}{text!r}",
+    )
+
+
 def unique_name(prefix="test"):
     return f"{prefix}-{time.time_ns()}"
-
-
-def today_ts3():
-    return date.today().strftime("%d-%m-%Y")
 
 
 def ts3_date(day):
@@ -71,28 +95,10 @@ def restore_server_banner(query, banner):
     )
 
 
-def wait_for_private_message(query, text, timeout=15):
-    return wait_until(
-        lambda: next((message for message in query.unread_messages if message.content == text), None),
-        timeout=timeout,
-        message=f"did not receive private message {text!r}",
-    )
-
-
-def wait_for_private_message_containing(query, needle, timeout=15):
-    return wait_until(
-        lambda: next((message for message in query.unread_messages if needle in message.content), None),
-        timeout=timeout,
-        message=f"did not receive private message containing {needle!r}",
-    )
-
-
 def configure_server_flood(host, port, password, retries=5):
-    last_error = None
-    for attempt in range(retries):
-        query = None
+    def attempt():
+        query = TS3Query(host, port, "serveradmin", password, timeout=5, accept_all_keys=True)
         try:
-            query = TS3Query(host, port, "serveradmin", password, timeout=5, accept_all_keys=True)
             query.flood_protection_timeout = 1.2
             response = query.commands.instanceedit(
                 serverinstance_serverquery_flood_commands=10000,
@@ -101,67 +107,62 @@ def configure_server_flood(host, port, password, retries=5):
             )
             if response.error_id == 0:
                 return
-            last_error = response
             if response.error_id != 524:
                 raise AssertionError(response)
-        except paramiko.AuthenticationException:
-            raise
-        except (EOFError, ConnectionError, OSError, paramiko.SSHException) as error:
-            last_error = error
+            raise ConnectionError(f"flood limits not applied yet: {response}")
         finally:
-            if query is not None:
-                try:
-                    query.exit()
-                except Exception:
-                    pass
-        time.sleep(1.5 * (attempt + 1))
-    raise AssertionError(f"could not configure TS3 flood limits: {last_error}")
+            try:
+                query.exit()
+            except Exception:
+                pass
+
+    retry(attempt, retries=retries, description="configure TS3 flood limits")
 
 
-def open_query(host, port, password, retries=3):
-    last_error = None
-    for attempt in range(retries):
-        query = None
+def _connect_query(host, port, password):
+    query = TS3Query(host, port, "serveradmin", password, timeout=5, accept_all_keys=True)
+    try:
+        query.flood_protection_timeout = 1.2
+        query.disable_flood_protection()
+        return query
+    except Exception:
+        query.exit()
+        raise
+
+
+def open_used_connection(connect, close, server_port, retries=3, description="select a TS3 virtual server"):
+    def attempt():
+        connection = connect()
         try:
-            query = TS3Query(host, port, "serveradmin", password, timeout=5, accept_all_keys=True)
-            query.flood_protection_timeout = 1.2
-            query.disable_flood_protection()
-            return query
-        except paramiko.AuthenticationException:
+            query = getattr(connection, "query", connection)
+            response = query.commands.use(port=server_port)
+            if response.error_id == 0:
+                return connection
+            raise ConnectionError(f"could not select a TS3 virtual server: {response}")
+        except Exception:
+            try:
+                close(connection)
+            except Exception:
+                pass
             raise
-        except (EOFError, ConnectionError, OSError, paramiko.SSHException) as error:
-            last_error = error
-            if query is not None:
-                try:
-                    query.exit()
-                except Exception:
-                    pass
-        time.sleep(1.5 * (attempt + 1))
-    raise AssertionError(f"could not open a TS3 query connection: {last_error}")
+
+    return retry(attempt, retries=retries, description=description)
 
 
 def open_used_query(host, port, server_port, password, retries=3):
-    last_error = None
-    for attempt in range(retries):
-        query = open_query(host, port, password)
-        response = query.commands.use(port=server_port)
-        if response.error_id == 0:
-            return query
-        last_error = response
-        query.exit()
-        time.sleep(1.5 * (attempt + 1))
-    raise AssertionError(f"could not select a TS3 virtual server: {last_error}")
+    return open_used_connection(
+        lambda: _connect_query(host, port, password),
+        close=lambda query: query.exit(),
+        server_port=server_port,
+        retries=retries,
+    )
 
 
-def register_text_receive(query, event=NotifyRegisterType.TEXT_PRIVATE, channel_id=None):
+def enable_text_receive(query, event=NotifyRegisterType.TEXT_PRIVATE, channel_id=None):
     kwargs = {"event": event}
     if channel_id is not None:
         kwargs["id"] = channel_id
     query.commands.servernotifyregister(**kwargs)
-
-
-def enable_text_receive(query, event=NotifyRegisterType.TEXT_PRIVATE, channel_id=None):
-    register_text_receive(query, event=event, channel_id=channel_id)
     query.start_polling(0.1)
 
 

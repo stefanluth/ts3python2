@@ -2,11 +2,11 @@ import pytest
 
 from tests.support.integration import (
     drain_events,
+    enable_text_receive,
     open_used_query,
-    register_text_receive,
     running_plugins,
     unique_name,
-    wait_for_private_message,
+    wait_for_message,
     wait_until,
     whoami,
 )
@@ -42,12 +42,11 @@ def test_welcomer_sends_a_message_to_a_joining_client(server, fresh_client):
         assert event.client_type == 1
         event.client_type = 0
 
-        register_text_receive(joining, event=NotifyRegisterType.TEXT_PRIVATE)
+        enable_text_receive(joining, event=NotifyRegisterType.TEXT_PRIVATE)
 
         message = unique_name("welcome")
         with running_plugins(fresh_client, {"Welcomer": {"messages": [message]}}):
-            joining.start_polling(0.1)
-            wait_for_private_message(joining, message)
+            wait_for_message(joining, message)
             assert event.used is True
     finally:
         joining.stop_polling()

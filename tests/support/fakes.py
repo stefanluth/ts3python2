@@ -1,43 +1,39 @@
 import logging
 import re
+import socket
 
 from ts3client.ts3query.ts3query_response import TS3QueryResponse
+
+_EMPTY_MATCH = re.match(b"", b"")
 
 
 class FakeLogger(logging.Logger):
     def __init__(self):
         super().__init__("fake")
-        self.records = []
-
-    def _record(self, level, message):
-        self.records.append((level, message))
 
     def debug(self, message, *args, **kwargs):
-        self._record("debug", message)
+        pass
 
     def info(self, message, *args, **kwargs):
-        self._record("info", message)
+        pass
 
     def warning(self, message, *args, **kwargs):
-        self._record("warning", message)
+        pass
 
     def error(self, message, *args, **kwargs):
-        self._record("error", message)
+        pass
 
     def exception(self, message, *args, **kwargs):
-        self._record("exception", message)
+        pass
 
 
 class FakeResponse(TS3QueryResponse):
     def __init__(self, data=None, error_id=0, msg="ok", events=None, messages=None, response=b""):
-        match = re.search(b"", b"")
-        assert match is not None
         self.index = 0
-        self.match = match
+        self.match = _EMPTY_MATCH
         self.response = response
         self.error_id = error_id
         self.msg = msg
-        self.extra_msg = None
         self.data = {0: {}} if data is None else data
         self.events = [] if events is None else events
         self.messages = [] if messages is None else messages
@@ -65,50 +61,17 @@ class FakeCommands:
 class FakeQuery:
     def __init__(self, commands=None):
         self.commands = commands or FakeCommands()
-        self.messages = []
-        self.events = []
-        self.unread_messages = []
-        self.unread_events = []
-        self.sent = []
-        self.polling = False
-        self.keep_alive_calls = 0
         self.exit_calls = 0
-        self.login_calls = []
-
-    def login(self, login, password):
-        self.login_calls.append((login, password))
-
-    def logout(self):
-        self.logout_calls = getattr(self, "logout_calls", 0) + 1
-
-    def start_polling(self, *args, **kwargs):
-        self.polling = True
-
-    def stop_polling(self):
-        self.polling = False
-
-    def keep_alive(self):
-        self.keep_alive_calls += 1
 
     def exit(self):
         self.exit_calls += 1
 
-    def send(self, command):
-        self.sent.append(command)
-        return FakeResponse()
-
 
 class FakeSSHTransport:
     def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
         self.written = []
         self.expect_result = (0, None, b"")
         self.expect_error = None
-        self.expect_calls = []
-        self.read_until_result = b""
-        self.read_until_results = []
-        self.read_until_calls = []
         self.connected_flag = True
         self.closed = False
         self.close_calls = 0
@@ -120,20 +83,105 @@ class FakeSSHTransport:
         self.written.append(data)
 
     def expect(self, patterns, timeout=None):
-        self.expect_calls.append((patterns, timeout))
         if self.expect_error is not None:
             raise self.expect_error
         return self.expect_result
 
     def read_until(self, delimiter, timeout=None):
-        self.read_until_calls.append((delimiter, timeout))
-        if self.read_until_results:
-            return self.read_until_results.pop(0)
-        return self.read_until_result
+        return b""
 
     def close(self):
         self.closed = True
         self.close_calls += 1
+
+
+class FakeParamikoChannel:
+    def __init__(self, chunks=None, timeout_when_empty=False):
+        self.chunks = list(chunks or [])
+        self.timeout_when_empty = timeout_when_empty
+        self.sent = []
+        self.timeout = None
+        self.closed = False
+
+    def recv(self, size):
+        if self.chunks:
+            item = self.chunks.pop(0)
+            if isinstance(item, BaseException):
+                raise item
+            return item
+        if self.timeout_when_empty:
+            raise socket.timeout()
+        return b""
+
+    def sendall(self, data):
+        self.sent.append(data)
+
+    def settimeout(self, timeout):
+        self.timeout = timeout
+
+    def gettimeout(self):
+        return self.timeout
+
+    def close(self):
+        self.closed = True
+
+
+class FakeParamikoTransport:
+    def __init__(self):
+        self.active = True
+
+    def set_keepalive(self, seconds):
+        pass
+
+    def is_active(self):
+        return self.active
+
+
+class FakeParamikoClient:
+    next_chunks = None
+    timeout_when_empty = False
+    connect_error: BaseException | None = None
+    instances: list["FakeParamikoClient"] = []
+
+    def __init__(self):
+        type(self).instances.append(self)
+        self.policy = None
+        self.system_keys_loaded = False
+        self.loaded_host_keys = []
+        self.saved_host_keys = []
+        self.connect_kwargs = None
+        self.shell_term = None
+        self.channel = FakeParamikoChannel(self.next_chunks, self.timeout_when_empty)
+        self.transport = FakeParamikoTransport()
+        self.closed = False
+
+    def set_missing_host_key_policy(self, policy):
+        self.policy = policy
+
+    def load_system_host_keys(self):
+        self.system_keys_loaded = True
+
+    def load_host_keys(self, filename):
+        self.loaded_host_keys.append(filename)
+
+    def connect(self, **kwargs):
+        error = type(self).connect_error
+        if error is not None:
+            raise error
+        self.connect_kwargs = kwargs
+
+    def get_transport(self):
+        return self.transport
+
+    def invoke_shell(self, term):
+        self.shell_term = term
+        return self.channel
+
+    def save_host_keys(self, filename):
+        self.saved_host_keys.append(filename)
+
+    def close(self):
+        self.closed = True
 
 
 class FakeStopEvent:
@@ -169,7 +217,6 @@ class FakeMessage:
 class FakeClient:
     def __init__(self):
         self.message_batches = []
-        self.events = []
         self.sent = []
         self.enabled = []
         self.query = FakeQuery()
@@ -177,14 +224,8 @@ class FakeClient:
     def get_unread_messages(self):
         return self.message_batches.pop(0) if self.message_batches else []
 
-    def get_user_entered_events(self):
-        return self.events
-
     def send_private_message(self, clid, message):
         self.sent.append((clid, message))
 
     def enable_message_events(self):
         self.enabled.append("message")
-
-    def enable_events_and_messages(self):
-        self.enabled.append("all")

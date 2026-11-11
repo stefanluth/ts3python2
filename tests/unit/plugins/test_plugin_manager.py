@@ -18,14 +18,6 @@ class RequiredPlugin(Plugin):
         pass
 
 
-class WrongTypePlugin(Plugin):
-    def __init__(self):
-        pass
-
-    def run(self, x: int):
-        pass
-
-
 class GenericListPlugin(Plugin):
     def __init__(self):
         pass
@@ -93,7 +85,7 @@ def test_run_rejects_an_unknown_plugin(monkeypatch):
         manager.run()
 
 
-def test_run_starts_a_thread_with_the_plugin_config(monkeypatch):
+def test_run_starts_a_thread_and_stop_settles_it(monkeypatch):
     client = FakeClient()
     manager = make_manager(monkeypatch, {"RecordingPlugin": {"value": 2}}, client=client)
 
@@ -107,37 +99,26 @@ def test_run_starts_a_thread_with_the_plugin_config(monkeypatch):
     assert thread.kwargs == {"value": 2}
     assert stop.is_set() is False
 
-
-def test_stop_sets_the_event_and_joins_every_thread(monkeypatch):
-    manager = make_manager(monkeypatch, {"RecordingPlugin": {"value": 2}})
-    manager.run()
-    thread, stop = next(iter(manager.threads.values()))
-
     manager.stop(timeout=1)
 
     assert stop.is_set() is True
     assert thread.joined == [1]
 
 
-def test_missing_required_parameter_raises():
-    with pytest.raises(ConfigurationError):
-        validate_config(RequiredPlugin(), {})
-
-
-def test_wrong_type_raises():
-    with pytest.raises(ConfigurationError):
-        validate_config(WrongTypePlugin(), {"x": "bad"})
-
-
-def test_generic_list_annotation_does_not_crash():
-    validate_config(GenericListPlugin(), {"doodles": []})
-
-
-def test_optional_annotation_accepts_none():
-    validate_config(OptionalPlugin(), {"value": None})
-
-
-@pytest.mark.bug
-def test_unknown_config_key_raises():
-    with pytest.raises(ConfigurationError):
-        validate_config(RequiredPlugin(), {"x": 1, "typo": 2})
+@pytest.mark.parametrize(
+    ("plugin_type", "config", "valid"),
+    [
+        (RequiredPlugin, {}, False),
+        (RequiredPlugin, {"x": "bad"}, False),
+        pytest.param(RequiredPlugin, {"x": 1, "typo": 2}, False, marks=pytest.mark.bug),
+        (GenericListPlugin, {"doodles": []}, True),
+        (OptionalPlugin, {"value": None}, True),
+    ],
+    ids=["missing-required", "wrong-type", "unknown-key", "generic-list", "optional-none"],
+)
+def test_config_validation(plugin_type, config, valid):
+    if valid:
+        validate_config(plugin_type(), config)
+    else:
+        with pytest.raises(ConfigurationError):
+            validate_config(plugin_type(), config)
