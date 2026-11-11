@@ -146,13 +146,13 @@ def test_properties_read_the_current_client_and_server():
         data={
             0: {
                 "client_nickname": "bot",
-                "client_description": "a bot",
                 "client_id": 7,
                 "client_unique_identifier": "uid",
                 "client_database_id": 9,
             }
         }
     )
+    commands.responses["clientinfo"] = FakeResponse(data={0: {"client_description": "a bot"}})
     commands.responses["serverinfo"] = FakeResponse(
         data={
             0: {
