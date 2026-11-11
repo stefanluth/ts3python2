@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.support.containers import start_container, worker_name
+from tests.support.containers import ManagedContainer, start_container, worker_name
 from tests.support.integration import Group, configure_server_limits, open_used_connection, open_used_query
 from ts3client import TS3Client
 
@@ -19,6 +19,15 @@ class ServerConfig:
     password: str
 
 
+@dataclass
+class _ServerSession:
+    config: ServerConfig
+    container: ManagedContainer | None = None
+
+
+_server_session: _ServerSession | None = None
+
+
 def pytest_collection_modifyitems(config, items):
     if os.getenv("TS3_INTEGRATION") == "1" and os.getenv("QUERY_ADMIN_PASSWORD"):
         return
@@ -29,39 +38,37 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip)
 
 
+@pytest.hookimpl(trylast=True)
+def pytest_collection_finish(session):
+    global _server_session
+
+    if _server_session is not None or _is_xdist_controller(session.config):
+        return
+    if not _integration_enabled(session.config):
+        return
+    if not any(item.get_closest_marker("integration") for item in session.items):
+        return
+
+    _server_session = _start_server(os.environ["QUERY_ADMIN_PASSWORD"])
+
+
+def pytest_sessionfinish(session, exitstatus):
+    global _server_session
+
+    server_session, _server_session = _server_session, None
+    if server_session is None or server_session.container is None:
+        return
+
+    if session.testsfailed:
+        _dump_container_logs(server_session.container)
+    server_session.container.stop()
+
+
 @pytest.fixture(scope="session")
-def server(request):
-    password = os.getenv("QUERY_ADMIN_PASSWORD")
-    if os.getenv("TS3_INTEGRATION") != "1" or not password:
+def server():
+    if _server_session is None:
         pytest.skip("set TS3_INTEGRATION=1 and QUERY_ADMIN_PASSWORD to run live tests")
-
-    container = None
-    if _env("TS3_MANAGE_CONTAINER", "0") == "1":
-        container = start_container(_env("TS3_TEST_IMAGE", "teamspeak:3.13.9"), password)
-        config = ServerConfig(
-            host=container.host,
-            query_port=container.query_port,
-            server_port=int(_env("TS3_SERVER_PORT", "9987")),
-            password=password,
-        )
-    else:
-        config = ServerConfig(
-            host=_env("TS3_QUERY_HOST", "127.0.0.1"),
-            query_port=int(_env("TS3_QUERY_PORT", "10022")),
-            server_port=int(_env("TS3_SERVER_PORT", "9987")),
-            password=password,
-        )
-
-    try:
-        _wait_for_ssh_port(config.host, config.query_port)
-        if _env("TS3_SET_FLOOD_LIMITS", "1") == "1":
-            configure_server_limits(config.host, config.query_port, config.password)
-        yield config
-    finally:
-        if container is not None:
-            if request.session.testsfailed:
-                _dump_container_logs(container)
-            container.stop()
+    return _server_session.config
 
 
 @pytest.fixture(scope="session")
@@ -131,6 +138,47 @@ def fresh_client(server):
     client = _open_client(server)
     yield client
     client.disconnect()
+
+
+def _integration_enabled(config):
+    return (
+        os.getenv("TS3_INTEGRATION") == "1"
+        and bool(os.getenv("QUERY_ADMIN_PASSWORD"))
+        and not config.getvalue("collectonly")
+    )
+
+
+def _is_xdist_controller(config):
+    return getattr(config.option, "dist", "no") != "no" and not hasattr(config, "workerinput")
+
+
+def _start_server(password):
+    container = None
+    try:
+        if _env("TS3_MANAGE_CONTAINER", "0") == "1":
+            container = start_container(_env("TS3_TEST_IMAGE", "teamspeak:3.13.9"), password)
+            config = ServerConfig(
+                host=container.host,
+                query_port=container.query_port,
+                server_port=int(_env("TS3_SERVER_PORT", "9987")),
+                password=password,
+            )
+        else:
+            config = ServerConfig(
+                host=_env("TS3_QUERY_HOST", "127.0.0.1"),
+                query_port=int(_env("TS3_QUERY_PORT", "10022")),
+                server_port=int(_env("TS3_SERVER_PORT", "9987")),
+                password=password,
+            )
+
+        _wait_for_ssh_port(config.host, config.query_port)
+        if _env("TS3_SET_FLOOD_LIMITS", "1") == "1":
+            configure_server_limits(config.host, config.query_port, config.password)
+        return _ServerSession(config=config, container=container)
+    except BaseException:
+        if container is not None:
+            container.stop()
+        raise
 
 
 def _env(name, default):
