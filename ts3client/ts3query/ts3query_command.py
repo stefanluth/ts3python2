@@ -19,7 +19,11 @@ class TS3QueryCommand:
     encoded: bytes = field(init=False)
 
     def __post_init__(self):
-        args = [parsers.boolean_to_option(option, value) for option, value in self.args]
+        args = []
+        for option, value in self.args:
+            encoded_option = parsers.boolean_to_option(option, value)
+            if encoded_option:
+                args.append(encoded_option)
 
         kwargs = {k: v for k, v in self.kwargs.items() if v is not None}
 
@@ -94,7 +98,7 @@ class CommandsWrapper:
         information, see Server Instance Properties.
         """
 
-        validators._validate_server_instance_kwargs(kwargs)
+        kwargs = validators._validate_server_instance_kwargs(kwargs)
 
         return self.query.send(TS3QueryCommand("instanceedit", kwargs=kwargs))
 
@@ -188,9 +192,9 @@ class CommandsWrapper:
         information, see Virtual Server Properties.
         """
 
-        validators._validate_virtual_server_kwargs(kwargs)
+        kwargs = validators._validate_virtual_server_kwargs(kwargs)
 
-        return self.query.send(TS3QueryCommand("servercreate", kwargs={**kwargs}))
+        return self.query.send(TS3QueryCommand("servercreate", kwargs=kwargs))
 
     def serverstart(self, sid: int) -> TS3QueryResponse:
         """
@@ -279,7 +283,7 @@ class CommandsWrapper:
         information, see Virtual Server Properties.
         """
 
-        validators._validate_virtual_server_kwargs(kwargs)
+        kwargs = validators._validate_virtual_server_kwargs(kwargs)
 
         return self.query.send(TS3QueryCommand("serveredit", kwargs=kwargs))
 
@@ -661,7 +665,7 @@ class CommandsWrapper:
         see Channel Properties.
         """
 
-        validators._validate_channel_kwargs(kwargs)
+        kwargs = validators._validate_channel_kwargs(kwargs)
 
         return self.query.send(TS3QueryCommand("channelcreate", kwargs={"channel_name": channel_name, **kwargs}))
 
@@ -682,7 +686,7 @@ class CommandsWrapper:
         Properties.
         """
 
-        validators._validate_channel_kwargs(kwargs)
+        kwargs = validators._validate_channel_kwargs(kwargs)
 
         return self.query.send(TS3QueryCommand("channeledit", kwargs={"cid": cid, **kwargs}))
 
@@ -980,7 +984,7 @@ class CommandsWrapper:
         Client Properties.
         """
 
-        validators._validate_client_kwargs(kwargs)
+        kwargs = validators._validate_client_kwargs(kwargs)
 
         return self.query.send(TS3QueryCommand("clientedit", kwargs={"clid": clid, **kwargs}))
 
@@ -1027,7 +1031,7 @@ class CommandsWrapper:
         see Client Properties.
         """
 
-        validators._validate_client_kwargs(kwargs)
+        kwargs = validators._validate_client_kwargs(kwargs)
 
         return self.query.send(TS3QueryCommand("clientdbedit", kwargs={"cldbid": cldbid, **kwargs}))
 
@@ -1094,7 +1098,7 @@ class CommandsWrapper:
         information, see Client Properties.
         """
 
-        validators._validate_client_kwargs(kwargs)
+        kwargs = validators._validate_client_kwargs(kwargs)
 
         return self.query.send(TS3QueryCommand("clientupdate", kwargs=kwargs))
 
