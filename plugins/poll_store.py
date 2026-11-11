@@ -9,7 +9,7 @@ import random
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from ts3client.utils.logger import create_logger
+from ts3client.utils.logger import create_logger, log_path
 
 CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"
 CODE_LENGTH = 3
@@ -300,7 +300,7 @@ class PollStore:
 
     def _get_logger(self) -> logging.Logger:
         if self.logger is None:
-            self.logger = create_logger("PollStore", "logs/plugins.log")
+            self.logger = create_logger("PollStore", log_path("plugins.log"))
         return self.logger
 
 

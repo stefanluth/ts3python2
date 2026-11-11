@@ -9,7 +9,7 @@ from .message import Message
 from .ts3client_response import TS3ClientResponse
 from .ts3query import TS3Query
 from .user import User, UserInfo
-from .utils.logger import create_logger
+from .utils.logger import create_logger, log_path
 
 
 class TS3Client:
@@ -65,7 +65,7 @@ class TS3Client:
         accept_all_keys: bool = False,
         use_system_host_keys: bool = True,
     ) -> None:
-        self.logger = logger or create_logger("TS3Client", "logs/main.log")
+        self.logger = logger or create_logger("TS3Client", log_path("main.log"))
         self.known_hosts = known_hosts
         self.accept_all_keys = accept_all_keys
         self.use_system_host_keys = use_system_host_keys

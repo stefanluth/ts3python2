@@ -2,7 +2,7 @@ from typing import Any
 
 from plugins.errors import ImplementationError
 from ts3client import TS3Client
-from ts3client.utils.logger import create_logger
+from ts3client.utils.logger import create_logger, log_path
 
 
 class Command:
@@ -11,7 +11,7 @@ class Command:
     def __init__(self, client: TS3Client, trigger: str, *args: Any, **kwargs: Any):
         self.client = client
         self.trigger = trigger
-        self.logger = create_logger(self.__class__.__name__, "logs/main.log")
+        self.logger = create_logger(self.__class__.__name__, log_path("main.log"))
 
     def run(self, *args: Any, **kwargs: Any) -> None:
         raise ImplementationError(self.__class__.__name__, "Command does not have a run() method.")

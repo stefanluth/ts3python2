@@ -3,7 +3,7 @@ from typing import Any
 
 from plugins.errors import ImplementationError
 from ts3client import TS3Client
-from ts3client.utils.logger import create_logger
+from ts3client.utils.logger import create_logger, log_path
 
 
 class Plugin:
@@ -12,7 +12,7 @@ class Plugin:
     def __init__(self, client: TS3Client, event: threading.Event):
         self.client = client
         self.event = event
-        self.logger = create_logger(self.name, "logs/plugins.log")
+        self.logger = create_logger(self.name, log_path("plugins.log"))
         self.logger.info(f"Initializing {self.name}...")
         print(f"Initializing {self.name}...")
 

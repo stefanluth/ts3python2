@@ -3,9 +3,9 @@ from typing import Any
 
 from .errors import TS3Error
 from .ts3query.ts3query_response import TS3QueryResponse
-from .utils.logger import create_logger
+from .utils.logger import create_logger, log_path
 
-logger = create_logger("ClientResponse", "logs/main.log")
+logger = create_logger("ClientResponse", log_path("main.log"))
 
 
 class TS3ClientResponse:

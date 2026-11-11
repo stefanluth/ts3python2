@@ -5,7 +5,7 @@ import time
 from ..event import Event
 from ..message import Message
 from ..utils import patterns
-from ..utils.logger import create_logger
+from ..utils.logger import create_logger, log_path
 from .transport import SSHTransport
 from .ts3query_command import CommandsWrapper, TS3QueryCommand
 from .ts3query_response import TS3QueryResponse
@@ -56,7 +56,7 @@ class TS3Query:
         use_system_host_keys: bool = True,
         logger: logging.Logger | None = None,
     ) -> None:
-        self.logger = logger or create_logger("TS3Query", "logs/main.log")
+        self.logger = logger or create_logger("TS3Query", log_path("main.log"))
         self._transport: SSHTransport | None = None
         self._exiting = False
         self._events: list[Event] = []

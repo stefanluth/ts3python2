@@ -1,7 +1,11 @@
 import logging
 import os
 
-from config import LOGGING_LEVEL
+from config import LOGGING_LEVEL, TS3_LOG_DIR
+
+
+def log_path(filename: str) -> str:
+    return os.path.join(TS3_LOG_DIR, filename)
 
 
 def create_logger(name: str, file: str, level: int = LOGGING_LEVEL):

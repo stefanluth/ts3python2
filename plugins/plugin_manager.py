@@ -5,13 +5,13 @@ from threading import Event, Thread
 from typing import Any
 
 from ts3client import TS3Client
-from ts3client.utils.logger import create_logger
+from ts3client.utils.logger import create_logger, log_path
 
 from . import plugins as all_plugins
 from .errors import ConfigurationError, ImplementationError
 from .plugin import Plugin
 
-logger = create_logger("PluginManager", "logs/main.log")
+logger = create_logger("PluginManager", log_path("main.log"))
 
 
 class PluginManager:

@@ -3,9 +3,9 @@ import signal
 import config
 from plugins import PluginManager
 from ts3client import TS3Client
-from ts3client.utils.logger import create_logger
+from ts3client.utils.logger import create_logger, log_path
 
-logger = create_logger("main", "logs/main.log")
+logger = create_logger("main", log_path("main.log"))
 
 
 def main():

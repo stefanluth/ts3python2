@@ -34,6 +34,7 @@ TS3_QUERY_PORT = int(os.getenv("TS3_QUERY_PORT", 10022))
 TS3_SSH_KNOWN_HOSTS = os.getenv("TS3_SSH_KNOWN_HOSTS") or None
 TS3_SSH_ACCEPT_ALL_KEYS = _env_bool("TS3_SSH_ACCEPT_ALL_KEYS", False)
 TS3_SSH_USE_SYSTEM_KEYS = _env_bool("TS3_SSH_USE_SYSTEM_KEYS", True)
+TS3_LOG_DIR = os.getenv("TS3_LOG_DIR", "logs")
 
 BOT_CONFIG: dict[str, str] = {
     "name": "Bot",
