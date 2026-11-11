@@ -16,8 +16,11 @@ class Event:
 @dataclass
 class ChannelCreatedEvent(Event):
     event_type = EventType.CHANNEL_CREATED
-    channel_topic: Optional[str] = None
     cid: Optional[int] = None
+    cpid: Optional[int] = None
+    channel_name: Optional[str] = None
+    channel_order: Optional[int] = None
+    channel_topic: Optional[str] = None
     invokerid: Optional[int] = None
     invokername: Optional[str] = None
     invokeruid: Optional[str] = None
