@@ -79,6 +79,7 @@ class FakeQuery:
 
 class FakeClient:
     def __init__(self):
+        self.id = 1
         self.message_batches = []
         self.sent = []
         self.enabled = []
@@ -87,12 +88,25 @@ class FakeClient:
         self.user_infos = {}
         self.moves = []
         self.events = []
+        self.channels = []
+        self.channel_sent = []
+        self.server_sent = []
+        self.messages_sent = []
 
     def get_unread_messages(self):
         return self.message_batches.pop(0) if self.message_batches else []
 
     def send_private_message(self, clid, message):
         self.sent.append((clid, message))
+
+    def send_channel_message(self, message):
+        self.channel_sent.append(message)
+
+    def send_server_message(self, message):
+        self.server_sent.append(message)
+
+    def send_message(self, target, target_mode, message):
+        self.messages_sent.append((target, target_mode, message))
 
     def enable_message_events(self):
         self.enabled.append("message")
@@ -114,10 +128,13 @@ class FakeClient:
 
 
 class FakeMessage:
-    def __init__(self, content, invokername="user", invokerid=1):
+    def __init__(self, content, invokername="user", invokerid=1, invokeruid="uid-1", targetmode=1, target=0):
         self.content = content
         self.invokername = invokername
         self.invokerid = invokerid
+        self.invokeruid = invokeruid
+        self.targetmode = targetmode
+        self.target = target
         self.used = False
 
     def mark_as_used(self):
