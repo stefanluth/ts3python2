@@ -70,7 +70,8 @@ def parse_response(response: bytes) -> tuple[dict[int | str, Any], list[Event], 
         events.append(parse_event_match(match))
         response_str = response_str.replace(match.group(), "")
 
-    data: dict[int | str, Any] = {i: response_to_dict(chunk) for i, chunk in enumerate(response_str.split("|"))}
+    chunks = [chunk for chunk in response_str.split("|") if chunk.strip()]
+    data: dict[int | str, Any] = {i: response_to_dict(chunk) for i, chunk in enumerate(chunks)}
 
     return data, events, messages
 
@@ -107,7 +108,7 @@ def parse_message_match(match: re.Match[str]) -> Message:
         msg=match.group("msg"),
         target=int(match.group("target") or 0),
         invokerid=int(match.group("invokerid")),
-        invokername=match.group("invokername"),
+        invokername=query_to_string(match.group("invokername")),
         invokeruid=match.group("invokeruid"),
     )
 
