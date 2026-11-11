@@ -1,5 +1,6 @@
 import time
 from contextlib import contextmanager
+from dataclasses import dataclass
 
 import paramiko
 
@@ -8,6 +9,12 @@ from ts3client.constants import NotifyRegisterType
 from ts3client.ts3query import TS3Query
 
 TRANSIENT_ERRORS = (EOFError, ConnectionError, OSError, paramiko.SSHException)
+
+
+@dataclass(frozen=True)
+class Group:
+    id: int
+    type: int = 1
 
 
 @contextmanager
@@ -89,7 +96,8 @@ def enable_text_receive(query, event=NotifyRegisterType.TEXT_PRIVATE, channel_id
 
 
 def channel_create(query, name, **kwargs):
-    kwargs.setdefault("channel_flag_permanent", True)
+    if not any(key.startswith("channel_flag_") for key in kwargs):
+        kwargs["channel_flag_permanent"] = True
     response = query.commands.channelcreate(channel_name=name, **kwargs)
     assert response.error_id == 0, response
     return response.data[0]["cid"]
@@ -97,6 +105,11 @@ def channel_create(query, name, **kwargs):
 
 def channel_delete(query, cid):
     query.commands.channeldelete(cid=cid, force=True)
+
+
+def default_channel_id(query):
+    channels = query.commands.channellist(flags=True).data
+    return next(int(channel["cid"]) for channel in channels.values() if channel.get("channel_flag_default"))
 
 
 def retry(attempt, retries=3, description="an operation", error_types=TRANSIENT_ERRORS):
@@ -122,7 +135,7 @@ def configure_server_flood(host, port, password, retries=5):
             response = query.commands.instanceedit(
                 serverinstance_serverquery_flood_commands=10000,
                 serverinstance_serverquery_flood_time=1,
-                serverinstance_serverquery_flood_ban_time=1,
+                serverinstance_serverquery_ban_time=1,
             )
             if response.error_id == 0:
                 return

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from tests.support.integration import configure_server_flood, open_used_connection, open_used_query
+from tests.support.integration import Group, configure_server_flood, open_used_connection, open_used_query
 from ts3client import TS3Client
 
 
@@ -50,6 +50,47 @@ def used_query(server):
     connection = open_used_query(server.host, server.query_port, server.server_port, server.password)
     yield connection
     connection.exit()
+
+
+@pytest.fixture(scope="session")
+def server_groups(used_query):
+    return tuple(
+        Group(int(entry["sgid"]), int(entry.get("type", 1)))
+        for entry in used_query.commands.servergrouplist().data.values()
+    )
+
+
+@pytest.fixture(scope="session")
+def channel_groups(used_query):
+    return tuple(
+        Group(int(entry["cgid"]), int(entry.get("type", 1)))
+        for entry in used_query.commands.channelgrouplist().data.values()
+    )
+
+
+@pytest.fixture(scope="session")
+def regular_server_group_ids(server_groups):
+    return tuple(group.id for group in server_groups if group.type == 1)
+
+
+@pytest.fixture(scope="session")
+def query_server_group_ids(server_groups):
+    return tuple(group.id for group in server_groups if group.type == 2)
+
+
+@pytest.fixture(scope="session")
+def template_server_group_ids(server_groups):
+    return tuple(group.id for group in server_groups if group.type == 0)
+
+
+@pytest.fixture(scope="session")
+def regular_channel_group_ids(channel_groups):
+    return tuple(group.id for group in channel_groups if group.type == 1)
+
+
+@pytest.fixture(scope="session")
+def template_channel_group_ids(channel_groups):
+    return tuple(group.id for group in channel_groups if group.type == 0)
 
 
 @pytest.fixture(scope="session")
