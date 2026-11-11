@@ -100,7 +100,7 @@ class TS3Client:
     @property
     def description(self) -> str:
         """Get the client's description."""
-        return self.whoami()["client_description"]
+        return self.get_user_info(self.id).client_description or ""
 
     @property
     def id(self) -> int:
@@ -246,7 +246,9 @@ class TS3Client:
         :return: Response from the server.
         :rtype: TS3ClientResponse
         """
-        return UserInfo(**TS3ClientResponse(self.query.commands.clientinfo(clid=id))[0])
+        info = TS3ClientResponse(self.query.commands.clientinfo(clid=id))[0]
+        info["clid"] = id
+        return UserInfo(**info)
 
     def set_user_description(self, id: int, description: str) -> TS3ClientResponse:
         """Set the description of a user.
@@ -368,7 +370,9 @@ class TS3Client:
         :return: Response from the server.
         :rtype: TS3ClientResponse
         """
-        return ChannelInfo(**TS3ClientResponse(self.query.commands.channelinfo(cid=id))[0])
+        info = TS3ClientResponse(self.query.commands.channelinfo(cid=id))[0]
+        info["cid"] = id
+        return ChannelInfo(**info)
 
     def find_channel(self, name: str) -> list[Channel]:
         """Find channels by name.

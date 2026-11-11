@@ -4,6 +4,7 @@ from typing import Optional
 
 @dataclass
 class UserInfo:
+    clid: Optional[int] = None
     cid: Optional[int] = None
     client_idle_time: Optional[int] = None
     client_unique_identifier: Optional[str] = None
@@ -23,7 +24,7 @@ class UserInfo:
     client_login_name: Optional[str] = None
     client_database_id: Optional[int] = None
     client_channel_group_id: Optional[int] = None
-    client_servergroups: Optional[int] = None
+    client_servergroups: Optional[str] = None
     client_created: Optional[int] = None
     client_lastconnected: Optional[int] = None
     client_totalconnections: Optional[int] = None
@@ -54,6 +55,7 @@ class UserInfo:
     client_integrations: Optional[str] = None
     client_myteamspeak_avatar: Optional[str] = None
     client_signed_badges: Optional[str] = None
+    client_flag_is_talking: Optional[int] = None
     client_base64HashClientUID: Optional[str] = None
     connection_filetransfer_bandwidth_sent: Optional[int] = None
     connection_filetransfer_bandwidth_received: Optional[int] = None

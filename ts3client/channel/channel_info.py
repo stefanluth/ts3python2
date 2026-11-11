@@ -4,6 +4,7 @@ from typing import Optional
 
 @dataclass
 class ChannelInfo:
+    cid: Optional[int] = None
     pid: Optional[int] = None
     channel_name: Optional[str] = None
     channel_topic: Optional[str] = None
@@ -16,6 +17,7 @@ class ChannelInfo:
     channel_order: Optional[int] = None
     channel_flag_permanent: Optional[int] = None
     channel_flag_semi_permanent: Optional[int] = None
+    channel_flag_private: Optional[int] = None
     channel_flag_default: Optional[int] = None
     channel_flag_password: Optional[int] = None
     channel_codec_latency_factor: Optional[int] = None
