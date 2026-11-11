@@ -1,6 +1,6 @@
 import pytest
 
-from ts3client.event import TokenUsedEvent
+from ts3client.event import ChannelCreatedEvent, TokenUsedEvent
 from ts3client.utils import parsers
 
 
@@ -68,6 +68,7 @@ def test_parse_response_tokenused_event():
 def test_parse_response_keeps_last_notification():
     _, events, _ = parsers.parse_response(b"notifychannelcreated cid=1\n\rerror id=0 msg=ok\n\r")
     assert len(events) == 1
+    assert isinstance(events[0], ChannelCreatedEvent)
     assert events[0].cid == 1
 
 
@@ -76,4 +77,5 @@ def test_parse_event_ignores_unknown_field():
         b"notifychannelcreated cid=1 future_field=1\n\rversion=1\n\rerror id=0 msg=ok\n\r"
     )
     assert len(events) == 1
+    assert isinstance(events[0], ChannelCreatedEvent)
     assert events[0].cid == 1

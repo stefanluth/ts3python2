@@ -1,15 +1,18 @@
+from typing import cast
+
 import pytest
 
 import ts3client.ts3client as ts3client_module
 from tests.support.fakes import FakeCommands, FakeLogger, FakeQuery, FakeResponse
 from ts3client import TS3Client
 from ts3client.constants import TargetMode
+from ts3client.ts3query import TS3Query
 from ts3client.user import User
 
 
 def make_client(commands=None):
     client = object.__new__(TS3Client)
-    client.query = FakeQuery(commands)
+    client.query = cast(TS3Query, FakeQuery(commands))
     client.logger = FakeLogger()
     return client
 

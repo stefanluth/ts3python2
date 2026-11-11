@@ -1,3 +1,5 @@
+from typing import cast
+
 import pytest
 
 from tests.support.fakes import (
@@ -11,7 +13,7 @@ from ts3client.constants import TargetMode
 from ts3client.event import Event
 from ts3client.message import Message
 from ts3client.ts3query import TS3Query
-from ts3client.ts3query.ts3query_command import TS3QueryCommand
+from ts3client.ts3query.ts3query_command import CommandsWrapper, TS3QueryCommand
 from ts3client.utils import patterns
 
 
@@ -22,9 +24,15 @@ def make_query(monkeypatch, **kwargs):
     return query
 
 
+def transport_of(query: TS3Query) -> FakeSSHTransport:
+    transport = query._transport
+    assert isinstance(transport, FakeSSHTransport)
+    return transport
+
+
 def make_message(text="hi"):
     return Message(
-        targetmode=TargetMode.SERVER,
+        targetmode=TargetMode.SERVER.value,
         msg=text,
         target=0,
         invokerid=1,
@@ -65,7 +73,7 @@ def test_constructor_skips_two_greeting_lines(monkeypatch):
 
     query = TS3Query("host", 1, login="user", password="secret", timeout=4, logger=FakeLogger())
 
-    assert query._transport.read_until_calls == [(b"\n\r", 4), (b"\n\r", 4)]
+    assert transport_of(query).read_until_calls == [(b"\n\r", 4), (b"\n\r", 4)]
 
 
 def test_receive_returns_parsed_response(monkeypatch):
@@ -107,26 +115,26 @@ def test_exit_sends_quit_and_closes_transport(monkeypatch):
     monkeypatch.setattr("ts3client.ts3query.ts3query.SSHTransport", FakeSSHTransport)
     query = TS3Query("host", 1, login="user", password="secret", logger=FakeLogger())
     commands = FakeCommands()
-    query.commands = commands
+    query.commands = cast(CommandsWrapper, commands)
 
     query.exit()
 
     assert commands.called("quit")
-    assert query._transport.closed
-    assert query._transport.close_calls == 1
+    assert transport_of(query).closed
+    assert transport_of(query).close_calls == 1
 
 
 def test_exit_closes_transport_when_disconnected(monkeypatch):
     monkeypatch.setattr("ts3client.ts3query.ts3query.SSHTransport", FakeSSHTransport)
     query = TS3Query("host", 1, login="user", password="secret", logger=FakeLogger())
     commands = FakeCommands()
-    query.commands = commands
-    query._transport.connected_flag = False
+    query.commands = cast(CommandsWrapper, commands)
+    transport_of(query).connected_flag = False
 
     query.exit()
 
     assert not commands.called("quit")
-    assert query._transport.closed
+    assert transport_of(query).closed
 
 
 def test_receive_timeout_raises_connection_error(monkeypatch):

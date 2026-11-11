@@ -1,27 +1,43 @@
+from typing import cast
+
 import pytest
 
 import plugins.plugin_manager as plugin_manager_module
 from plugins.errors import ConfigurationError, ImplementationError
+from plugins.plugin import Plugin
 from plugins.plugin_manager import PluginManager, validate_config
 from tests.support.fakes import FakeClient
+from ts3client import TS3Client
 
 
-class RequiredPlugin:
+class RequiredPlugin(Plugin):
+    def __init__(self):
+        pass
+
     def run(self, x: int):
         pass
 
 
-class WrongTypePlugin:
+class WrongTypePlugin(Plugin):
+    def __init__(self):
+        pass
+
     def run(self, x: int):
         pass
 
 
-class GenericListPlugin:
-    def run(self, doodles: list[dict] = None):
+class GenericListPlugin(Plugin):
+    def __init__(self):
+        pass
+
+    def run(self, doodles: list[dict] | None = None):
         pass
 
 
-class OptionalPlugin:
+class OptionalPlugin(Plugin):
+    def __init__(self):
+        pass
+
     def run(self, value: str | None = None):
         pass
 
@@ -64,10 +80,10 @@ def reset_plugin_state():
     RecordingPlugin.instances = []
 
 
-def make_manager(monkeypatch, config, client=None):
+def make_manager(monkeypatch, config, client: FakeClient | None = None):
     monkeypatch.setattr(plugin_manager_module, "all_plugins", FakePlugins)
     monkeypatch.setattr(plugin_manager_module, "Thread", FakeThread)
-    return PluginManager(client or FakeClient(), config)
+    return PluginManager(cast(TS3Client, client or FakeClient()), config)
 
 
 def test_run_rejects_an_unknown_plugin(monkeypatch):

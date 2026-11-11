@@ -62,7 +62,7 @@ class FakeSSHTransport:
 class FakeSSHClient:
     next_chunks = None
     timeout_when_empty = False
-    connect_error = None
+    connect_error: BaseException | None = None
     instances = []
 
     def __init__(self):
@@ -87,8 +87,9 @@ class FakeSSHClient:
         self.loaded_host_keys.append(filename)
 
     def connect(self, **kwargs):
-        if type(self).connect_error is not None:
-            raise type(self).connect_error
+        error = type(self).connect_error
+        if error is not None:
+            raise error
         self.connect_kwargs = kwargs
 
     def get_transport(self):

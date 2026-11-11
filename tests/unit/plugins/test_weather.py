@@ -1,10 +1,13 @@
 import json
 import urllib.error
+from email.message import Message as EmailMessage
+from typing import cast
 
 import pytest
 
 from plugins.commands.weather import Weather
 from tests.support.fakes import FakeClient, FakeLogger, FakeMessage
+from ts3client import TS3Client
 
 PAYLOAD = {
     "location": {"name": "New York"},
@@ -34,7 +37,7 @@ class FakeHTTPResponse:
 
 
 def make_weather():
-    weather = Weather(FakeClient(), "weather", "KEY")
+    weather = Weather(cast(TS3Client, FakeClient()), "weather", "KEY")
     weather.logger = FakeLogger()
     return weather
 
@@ -74,7 +77,7 @@ def test_prompts_for_a_location_without_calling_the_api(monkeypatch):
 
 def test_http_error_replies_location_not_found(monkeypatch):
     def fail(url, timeout=None):
-        raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+        raise urllib.error.HTTPError(url, 404, "Not Found", EmailMessage(), None)
 
     monkeypatch.setattr("urllib.request.urlopen", fail)
     weather = make_weather()

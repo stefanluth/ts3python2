@@ -1,34 +1,46 @@
-class FakeLogger:
+import logging
+import re
+
+from ts3client.ts3query.ts3query_response import TS3QueryResponse
+
+
+class FakeLogger(logging.Logger):
     def __init__(self):
+        super().__init__("fake")
         self.records = []
 
-    def _log(self, level, message):
+    def _record(self, level, message):
         self.records.append((level, message))
 
     def debug(self, message, *args, **kwargs):
-        self._log("debug", message)
+        self._record("debug", message)
 
     def info(self, message, *args, **kwargs):
-        self._log("info", message)
+        self._record("info", message)
 
     def warning(self, message, *args, **kwargs):
-        self._log("warning", message)
+        self._record("warning", message)
 
     def error(self, message, *args, **kwargs):
-        self._log("error", message)
+        self._record("error", message)
 
     def exception(self, message, *args, **kwargs):
-        self._log("exception", message)
+        self._record("exception", message)
 
 
-class FakeResponse:
+class FakeResponse(TS3QueryResponse):
     def __init__(self, data=None, error_id=0, msg="ok", events=None, messages=None, response=b""):
-        self.data = {0: {}} if data is None else data
+        match = re.search(b"", b"")
+        assert match is not None
+        self.index = 0
+        self.match = match
+        self.response = response
         self.error_id = error_id
         self.msg = msg
+        self.extra_msg = None
+        self.data = {0: {}} if data is None else data
         self.events = [] if events is None else events
         self.messages = [] if messages is None else messages
-        self.response = response
 
 
 class FakeCommands:
