@@ -335,6 +335,7 @@ def test_casino_survives_plugin_restart(server, fresh_client, fresh_query, tmp_p
             result = wait_for_private(fresh_query, "Blackjack result:")
             assert "Your hand:" in result.content
         else:
+            send_text(fresh_query, "!casino blackjack")
             usage = wait_for_private(fresh_query, "Use: !casino blackjack <bet>.")
             assert "Blackjack result:" not in usage.content
 
