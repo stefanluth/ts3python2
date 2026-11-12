@@ -95,6 +95,43 @@ def test_casino_command_config(monkeypatch):
     }
 
 
+def test_time_tracker_plugin_config(monkeypatch):
+    config = load_config(monkeypatch)
+
+    tracker = config.PLUGINS_CONFIG["TimeTracker"]
+
+    assert tracker["data_dir"] == "time_tracker"
+    assert tracker["check_interval"] == 60
+    assert tracker["idle_threshold"] == 900
+    assert tracker["afk_channel_ids"] == []
+    assert tracker["include_query_clients"] is False
+    assert set(tracker) == {
+        "data_dir",
+        "check_interval",
+        "idle_threshold",
+        "afk_channel_ids",
+        "include_query_clients",
+    }
+
+
+def test_tracker_command_config(monkeypatch):
+    config = load_config(monkeypatch)
+
+    tracker = config.PLUGINS_CONFIG["CommandHandler"]["commands"]["Tracker"]
+
+    assert tracker["trigger"] == "tracker"
+    assert tracker["data_dir"] == "time_tracker"
+    assert tracker["leaderboard_size"] == 10
+    assert "top_scope" not in tracker
+    assert "default_metric" not in tracker
+    assert set(tracker) == {
+        "trigger",
+        "description",
+        "data_dir",
+        "leaderboard_size",
+    }
+
+
 def load_config(monkeypatch, **env):
     for name in CONFIG_ENV:
         monkeypatch.delenv(name, raising=False)

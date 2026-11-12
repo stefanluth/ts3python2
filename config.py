@@ -48,6 +48,13 @@ PLUGINS_CONFIG: dict[str, dict[str, Any]] = {
         "check_interval": 5,
         "ignore_channels": [425000, 357512, 357513, 357514],
     },
+    "TimeTracker": {
+        "data_dir": "time_tracker",
+        "check_interval": 60,
+        "idle_threshold": 900,
+        "afk_channel_ids": [],
+        "include_query_clients": False,
+    },
     "Welcomer": {
         "messages": ["Howdy!", "Hi there!"],
     },
@@ -69,6 +76,12 @@ PLUGINS_CONFIG: dict[str, dict[str, Any]] = {
                 "notify_users": True,
                 "notify_query_clients": False,
                 "prefix": "!",
+            },
+            "Tracker": {
+                "trigger": "tracker",
+                "description": "Show connection, idle, and AFK time.",
+                "data_dir": "time_tracker",
+                "leaderboard_size": 10,
             },
             "Casino": {
                 "trigger": "casino",

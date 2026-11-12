@@ -54,6 +54,7 @@ config.local.py
 *.sqlite3
 polls/
 casino/
+time_tracker/
 
 .unlazy
 GATES.md
