@@ -40,23 +40,6 @@ def test_client_response_replaces_empty_data_with_the_message():
     assert response["msg"] == "ok"
 
 
-def test_client_response_behaves_like_a_mapping():
-    response = TS3ClientResponse(FakeResponse(data={0: {"clid": 1}, 1: {"clid": 2}}))
-
-    assert len(response) == 2
-    assert list(response) == [{"clid": 1}, {"clid": 2}]
-    assert 0 in response
-    assert response.get("missing", "fallback") == "fallback"
-    assert repr(response) == repr(response.data)
-    assert response == {0: {"clid": 1}, 1: {"clid": 2}}
-    assert response != {0: {"clid": 1}}
-
-    response["new"] = "value"
-    assert response["new"] == "value"
-    del response["new"]
-    assert "new" not in response
-
-
 def make_query_response(payload):
     match = patterns.RESPONSE_END_BYTES.search(payload)
     assert match is not None

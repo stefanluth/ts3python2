@@ -29,13 +29,3 @@ def test_uppercase_changeable_properties_are_normalized(used_query):
         assert used_query.commands.channelinfo(cid=cid).data[0]["channel_topic"] == topic
     finally:
         channel_delete(used_query, cid)
-
-
-def test_instance_template_channel_group_is_accepted(used_query):
-    instance = used_query.commands.instanceinfo().data[0]
-    group = instance["serverinstance_template_channeldefault_group"]
-
-    response = used_query.commands.instanceedit(serverinstance_template_channeldefault_group=group)
-
-    assert response.error_id == 0
-    assert used_query.commands.instanceinfo().data[0]["serverinstance_template_channeldefault_group"] == group

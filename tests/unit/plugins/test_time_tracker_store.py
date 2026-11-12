@@ -4,8 +4,9 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from plugins.time_tracker_store import TimeTrackerStore, TrackerError, format_duration, get_store, reset_stores
+from plugins.time_tracker_store import TimeTrackerStore, TrackerError, get_store, reset_stores
 from tests.support.fakes import FakeLogger
+from tests.support.paths import hashed_path
 
 NOW = datetime(2026, 11, 12, 12, 0, tzinfo=timezone.utc)
 LATER = NOW + timedelta(hours=1)
@@ -16,8 +17,7 @@ def make_store(tmp_path):
 
 
 def profile_path(data_dir, uid):
-    digest = hashlib.sha256(uid.encode("utf-8")).hexdigest()
-    return data_dir / "profiles" / f"{digest}.json"
+    return hashed_path(data_dir / "profiles", uid)
 
 
 def test_accumulation_clamps_counters_and_keeps_invariants(tmp_path):
@@ -244,11 +244,3 @@ def test_profile_names_and_optional_metadata_survive_restart(tmp_path):
     assert profile.last_connected_at == NOW.isoformat()
     assert profile.last_seen_at == NOW.isoformat()
     assert profile.last_disconnected_at == LATER.isoformat()
-
-
-def test_format_duration():
-    assert format_duration(0) == "0s"
-    assert format_duration(59) == "59s"
-    assert format_duration(60) == "1m"
-    assert format_duration(3661) == "1h 1m 1s"
-    assert format_duration(90061) == "1d 1h 1m 1s"

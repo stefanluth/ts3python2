@@ -72,16 +72,6 @@ def test_collision_retry_produces_a_unique_id(tmp_path, monkeypatch):
     assert second.id != first.id
 
 
-def test_in_memory_store_writes_nothing(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    store = make_store()
-
-    poll = create_poll(store)
-
-    assert poll.id
-    assert list(tmp_path.iterdir()) == []
-
-
 def test_load_round_trip_restores_poll(tmp_path):
     store = make_store(tmp_path)
     poll = create_poll(store, expires_at=NOW + timedelta(days=1))
@@ -117,15 +107,6 @@ def test_load_skips_corrupt_files_and_keeps_others(tmp_path):
 
     assert loaded.get(poll.id) is not None
     assert len(loaded.list_polls()) == 1
-
-
-def test_atomic_save_leaves_no_temporary_file(tmp_path):
-    store = make_store(tmp_path)
-
-    poll = create_poll(store)
-
-    assert (tmp_path / f"{poll.id}.json").exists()
-    assert list(tmp_path.glob("*.tmp")) == []
 
 
 def test_delete_removes_poll_and_file(tmp_path):

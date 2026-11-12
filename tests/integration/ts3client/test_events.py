@@ -194,36 +194,3 @@ def test_server_edited_event_reports_name(bot_client, used_query):
         assert event.virtualserver_name == name
     finally:
         used_query.commands.serveredit(virtualserver_name=before)
-
-
-@pytest.mark.skip(reason="server query clients cannot use privilege keys (error 516)")
-def test_token_used_event_reports_token(bot_client, used_query, server, regular_server_group_ids):
-    bot_client.enable_events_and_messages()
-    group = regular_server_group_ids[0]
-    response = used_query.commands.tokenadd(
-        tokentype=0,
-        tokenid1=group,
-        tokenid2=0,
-        tokendescription=unique_name("token-event"),
-    )
-    assert response.error_id == 0, response
-    token = response.data[0]["token"]
-    query = open_used_query(server.host, server.query_port, server.server_port, server.password)
-    try:
-        assert query.commands.tokenuse(token=token).error_id == 0
-        event = wait_until(
-            lambda: next(
-                (
-                    event
-                    for event in bot_client.get_events()
-                    if event.event_type == EventType.TOKEN_USED and getattr(event, "token", None) == token
-                ),
-                None,
-            ),
-            message="bot did not receive token used event",
-        )
-
-        assert event.token == token
-    finally:
-        query.exit()
-        used_query.commands.tokendelete(token=token)

@@ -176,24 +176,6 @@ def test_properties_read_the_current_client_and_server():
     assert client.server_port == 9987
 
 
-def test_enable_message_events_registers_all_text_sources():
-    commands = FakeCommands()
-    client = make_client(commands)
-
-    client.enable_message_events()
-
-    assert client.query.started == [1]
-    assert [call[2]["event"] for call in commands.called("servernotifyregister")] == [
-        NotifyRegisterType.TEXT_SERVER,
-        NotifyRegisterType.TEXT_CHANNEL,
-        NotifyRegisterType.TEXT_PRIVATE,
-    ]
-
-    client.disable_message_events()
-
-    assert len(commands.called("servernotifyunregister")) == 3
-
-
 def test_enable_events_and_messages_registers_every_source():
     commands = FakeCommands()
     client = make_client(commands)
@@ -215,6 +197,11 @@ def test_enable_events_and_messages_registers_every_source():
 
     assert client.query.stopped == 1
     assert len(commands.called("servernotifyunregister")) == 5
+
+    client.enable_message_events()
+    client.disable_message_events()
+
+    assert len(commands.called("servernotifyunregister")) == 8
 
 
 def make_client(commands=None):

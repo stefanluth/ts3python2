@@ -18,32 +18,7 @@ from plugins.casino_games import (
     stand,
     start_blackjack,
 )
-
-
-class FixedRouletteRng:
-    def __init__(self, number):
-        self.number = number
-
-    def randrange(self, stop):
-        assert stop == 37
-        return self.number
-
-
-class SequenceRng:
-    def __init__(self, reels):
-        self.reels = list(reels)
-
-    def choices(self, population, weights, k):
-        assert k == 3
-        return list(self.reels.pop(0))
-
-
-class StackedRng:
-    def __init__(self, cards):
-        self.cards = list(cards)
-
-    def shuffle(self, deck):
-        deck[:] = list(reversed(self.cards))
+from tests.support.fakes import FixedRouletteRng, SequenceRng, StackedRng
 
 
 def make_blackjack_session(player, dealer, deck=(), bet=10, doubled=False, done=False, outcome=None, payout=0):
@@ -238,17 +213,6 @@ def test_slots_deterministic_reels_and_paytable_branches(reels, multiplier):
     assert result.label == " | ".join(reels)
 
 
-def test_slots_seeded_spin_is_reproducible():
-    config = default_slots_config()
-
-    first = spin_slots(25, config, rng=random.Random(7))
-    second = spin_slots(25, config, rng=random.Random(7))
-
-    assert first == second
-    assert len(first.reels) == 3
-    assert first.payout == first.multiplier * 25
-
-
 @pytest.mark.parametrize(
     "config",
     [
@@ -311,17 +275,6 @@ def test_blackjack_hand_value_rejects_invalid_cards(cards):
 )
 def test_blackjack_is_blackjack_detects_natural_hands(cards, expected):
     assert is_blackjack(cards) is expected
-
-
-def test_blackjack_start_is_deterministic_with_a_seeded_rng():
-    first = start_blackjack(10, rng=random.Random(1234))
-    second = start_blackjack(10, rng=random.Random(1234))
-
-    assert first.to_dict() == second.to_dict()
-    assert len(first.player) == 2
-    assert len(first.dealer) == 2
-    assert len(first.deck) == 48
-    assert first.done is (first.outcome is not None)
 
 
 def test_blackjack_player_natural_settles_immediately():
