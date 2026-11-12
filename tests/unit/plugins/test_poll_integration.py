@@ -5,8 +5,7 @@ import pytest
 
 import plugins.commands.poll as poll_module
 from plugins.plugins.command_handler import CommandHandler
-from tests.support.fakes import FakeClient, FakeLogger, FakeMessage, FakeStopEvent
-from ts3client.user import User
+from tests.support.fakes import FakeClient, FakeLogger, FakeMessage, FakeStopEvent, make_user
 
 NOW = datetime(2026, 11, 12, 12, 0, tzinfo=timezone.utc)
 
@@ -14,16 +13,6 @@ NOW = datetime(2026, 11, 12, 12, 0, tzinfo=timezone.utc)
 @pytest.fixture(autouse=True)
 def deterministic_poll_ids(monkeypatch):
     monkeypatch.setattr("plugins.poll_store.random.choice", lambda alphabet: "a")
-
-
-def make_user(clid, uid, name="User", cid=10, client_type=0):
-    return User(
-        clid=clid,
-        client_nickname=name,
-        cid=cid,
-        client_type=client_type,
-        client_unique_identifier=uid,
-    )
 
 
 def make_handler(client, stop):
@@ -46,8 +35,8 @@ def make_config(polls_dir):
 def test_command_handler_runs_poll_lifecycle_and_stops(tmp_path, monkeypatch):
     client = FakeClient()
     client.users = [
-        make_user(2, "creator-uid", "Creator"),
-        make_user(3, "uid-3", "Alice"),
+        make_user(2, "Creator", "creator-uid"),
+        make_user(3, "Alice", "uid-3"),
     ]
     handler = make_handler(client, FakeStopEvent(stop_after_waits=4))
     client.message_batches = [
@@ -85,8 +74,8 @@ def test_command_handler_tick_closes_timed_poll_and_stops_poll(tmp_path, monkeyp
 
     client = FakeClient()
     client.users = [
-        make_user(2, "creator-uid", "Creator"),
-        make_user(3, "uid-3", "Alice"),
+        make_user(2, "Creator", "creator-uid"),
+        make_user(3, "Alice", "uid-3"),
     ]
     handler = make_handler(client, FakeStopEvent(stop_after_waits=1))
     client.message_batches = [

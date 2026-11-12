@@ -5,7 +5,7 @@ import pytest
 import plugins.plugins.time_tracker as time_tracker_module
 from plugins.plugins.time_tracker import TimeTracker
 from plugins.time_tracker_store import get_store, reset_stores
-from tests.support.fakes import FakeClient, FakeLogger, FakeStopEvent
+from tests.support.fakes import FakeClient, FakeLogger, FakeStopEvent, use_clock
 from ts3client.user import User, UserInfo
 
 NOW = datetime(2026, 11, 12, 12, 0, tzinfo=timezone.utc)
@@ -30,17 +30,6 @@ def make_client(users, user_infos, bot_id=1):
 
 def make_plugin(client, stop):
     return TimeTracker(client, stop)
-
-
-def use_clock(monkeypatch, *values):
-    remaining = list(values)
-
-    def monotonic():
-        if len(remaining) > 1:
-            return remaining.pop(0)
-        return remaining[0]
-
-    monkeypatch.setattr(time_tracker_module, "_monotonic", monotonic)
 
 
 def test_two_samples_accumulate_total_idle_and_afk_time(tmp_path, monkeypatch):

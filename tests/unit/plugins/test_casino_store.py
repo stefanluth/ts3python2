@@ -7,6 +7,7 @@ import pytest
 
 from plugins.casino_store import CasinoError, CasinoStore
 from tests.support.fakes import FakeLogger
+from tests.support.paths import hashed_path
 
 NOW = datetime(2026, 11, 12, 12, 0, tzinfo=timezone.utc)
 LATER = NOW + timedelta(hours=1)
@@ -21,8 +22,7 @@ def create_player(store, uid="uid-1", name="Alice", now=NOW):
 
 
 def player_path(players_dir, uid):
-    digest = hashlib.sha256(uid.encode("utf-8")).hexdigest()
-    return players_dir / f"{digest}.json"
+    return hashed_path(players_dir, uid)
 
 
 def test_creation_sets_starting_balance_and_ledger(tmp_path):

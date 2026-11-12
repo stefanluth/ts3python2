@@ -3,8 +3,58 @@ import re
 import socket
 
 from ts3client.ts3query.ts3query_response import TS3QueryResponse
+from ts3client.user import User
 
 _EMPTY_MATCH = re.match(b"", b"")
+
+
+class FixedRouletteRng:
+    def __init__(self, number):
+        self.number = number
+
+    def randrange(self, stop):
+        assert stop == 37
+        return self.number
+
+
+class SequenceRng:
+    def __init__(self, reels):
+        self.reels = list(reels)
+
+    def choices(self, population, weights, k):
+        assert k == 3
+        return list(self.reels.pop(0))
+
+
+class StackedRng:
+    def __init__(self, cards):
+        self.cards = list(cards)
+
+    def shuffle(self, deck):
+        deck[:] = list(reversed(self.cards))
+
+
+def use_clock(monkeypatch, *values):
+    import plugins.plugins.time_tracker as time_tracker_module
+
+    remaining = list(values)
+
+    def monotonic():
+        if len(remaining) > 1:
+            return remaining.pop(0)
+        return remaining[0]
+
+    monkeypatch.setattr(time_tracker_module, "_monotonic", monotonic)
+
+
+def make_user(clid, name="User", uid=None, cid=10, client_type=0):
+    return User(
+        clid=clid,
+        client_nickname=name,
+        cid=cid,
+        client_type=client_type,
+        client_unique_identifier=uid or f"uid-{clid}",
+    )
 
 
 class FakeLogger(logging.Logger):

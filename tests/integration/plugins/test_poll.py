@@ -11,8 +11,10 @@ from tests.support.integration import (
     enable_text_receive,
     open_used_query,
     running_plugins,
+    send_text,
     unique_name,
     wait_for_message,
+    wait_for_private,
     wait_until,
     whoami,
 )
@@ -38,14 +40,6 @@ def poll_config(polls_dir, check_interval=0.05):
     }
 
 
-def send(query, text, *, channel=False):
-    query.commands.sendtextmessage(
-        targetmode=TargetMode.CHANNEL if channel else TargetMode.SERVER,
-        target=0,
-        msg=text,
-    )
-
-
 def enable_events(query, *, channel=False):
     enable_text_receive(query, event=NotifyRegisterType.TEXT_SERVER)
     enable_text_receive(query, event=NotifyRegisterType.TEXT_PRIVATE)
@@ -62,7 +56,7 @@ def drain(*queries):
 def wait_for_poll_ready(query, timeout=15):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        send(query, "!poll help")
+        send_text(query, "!poll help")
         try:
             return wait_for_message(query, "Poll commands:", contains=True, timeout=0.5)
         except AssertionError:
@@ -81,20 +75,6 @@ def wait_for_created_poll(query, timeout=20):
     match = CREATED_POLL_PATTERN.search(message.content)
     assert match is not None
     return match.group(1), message.content
-
-
-def wait_for_private(query, text, timeout=20):
-    def find():
-        return next(
-            (
-                message
-                for message in query.unread_messages
-                if message.source == TargetMode.CLIENT and text in message.content
-            ),
-            None,
-        )
-
-    return wait_until(find, timeout=timeout, message="did not receive the poll private message")
 
 
 def wait_for_source(query, text, source, timeout=20):
@@ -119,22 +99,22 @@ def test_server_poll_lifecycle(server, fresh_client, fresh_query, tmp_path):
         with running_plugins(fresh_client, {"CommandHandler": poll_config(tmp_path)}):
             wait_for_poll_ready(fresh_query)
             drain(fresh_query, voter)
-            send(fresh_query, f"!poll create {question}|{alpha}|{beta} --server")
+            send_text(fresh_query, f"!poll create {question}|{alpha}|{beta} --server")
             poll_id, confirmation = wait_for_created_poll(fresh_query)
             assert "server poll" in confirmation.lower()
 
             wait_for_source(voter, f"[server poll {poll_id}]", TargetMode.SERVER)
-            wait_for_private(voter, question)
+            wait_for_private(voter, question, mark_used=False)
 
-            send(voter, f"!poll vote {poll_id} a")
+            send_text(voter, f"!poll vote {poll_id} a")
             wait_for_message(voter, f"Vote recorded for {poll_id}: a.", timeout=20)
 
-            send(fresh_query, f"!poll results {poll_id}")
+            send_text(fresh_query, f"!poll results {poll_id}")
             wait_for_message(fresh_query, "Total voters: 1", contains=True, timeout=20)
 
-            send(fresh_query, f"!poll end {poll_id}")
+            send_text(fresh_query, f"!poll end {poll_id}")
             wait_for_source(voter, "Status: ended", TargetMode.SERVER)
-            wait_for_private(voter, "Status: ended")
+            wait_for_private(voter, "Status: ended", mark_used=False)
 
         path = tmp_path / f"{poll_id}.json"
         assert path.exists()
@@ -169,28 +149,28 @@ def test_channel_poll_filters_membership_and_notifies(server, fresh_client, fres
         with running_plugins(fresh_client, {"CommandHandler": poll_config(tmp_path)}):
             wait_for_poll_ready(fresh_query)
             drain(fresh_query, voter, outsider)
-            send(fresh_query, f"!poll create {question}|{alpha}|{beta}", channel=True)
+            send_text(fresh_query, f"!poll create {question}|{alpha}|{beta}", channel=True)
             poll_id, confirmation = wait_for_created_poll(fresh_query)
             assert "channel poll" in confirmation.lower()
 
             wait_for_source(voter, f"[channel poll {poll_id}", TargetMode.CHANNEL)
-            wait_for_private(voter, question)
+            wait_for_private(voter, question, mark_used=False)
             time.sleep(0.2)
             assert not any(
                 message.source == TargetMode.CLIENT and question in message.content
                 for message in outsider.unread_messages
             )
 
-            send(outsider, f"!poll vote {poll_id} a")
+            send_text(outsider, f"!poll vote {poll_id} a")
             wait_for_message(outsider, "only", contains=True, timeout=10)
 
-            send(voter, f"!poll vote {poll_id} a")
+            send_text(voter, f"!poll vote {poll_id} a")
             wait_for_message(voter, f"Vote recorded for {poll_id}: a.", timeout=10)
 
-            send(fresh_query, f"!poll results {poll_id}")
+            send_text(fresh_query, f"!poll results {poll_id}")
             wait_for_message(fresh_query, "Total voters: 1", contains=True, timeout=10)
 
-            send(fresh_query, f"!poll end {poll_id}")
+            send_text(fresh_query, f"!poll end {poll_id}")
             wait_for_source(voter, "Status: ended", TargetMode.CHANNEL)
 
         path = tmp_path / f"{poll_id}.json"
@@ -218,7 +198,7 @@ def test_multi_choice_anonymous_and_timed_poll(server, fresh_client, fresh_query
         with running_plugins(fresh_client, {"CommandHandler": poll_config(tmp_path)}):
             wait_for_poll_ready(fresh_query)
             drain(fresh_query, voter)
-            send(
+            send_text(
                 fresh_query,
                 f"!poll create {question}|{alpha}|{beta}|{gamma} --multi --anonymous --duration 2s",
             )
@@ -226,10 +206,10 @@ def test_multi_choice_anonymous_and_timed_poll(server, fresh_client, fresh_query
             assert "anonymous" in confirmation.lower()
             assert "multiple choices" in confirmation.lower()
 
-            wait_for_private(voter, question)
+            wait_for_private(voter, question, mark_used=False)
 
-            send(voter, f"!poll vote {poll_id} a")
-            send(voter, f"!poll vote {poll_id} ac")
+            send_text(voter, f"!poll vote {poll_id} a")
+            send_text(voter, f"!poll vote {poll_id} ac")
             wait_until(
                 lambda: (
                     sum(1 for message in voter.unread_messages if f"Vote recorded for {poll_id}" in message.content)
@@ -239,7 +219,7 @@ def test_multi_choice_anonymous_and_timed_poll(server, fresh_client, fresh_query
                 message="did not receive both vote confirmations",
             )
 
-            send(fresh_query, f"!poll results {poll_id}")
+            send_text(fresh_query, f"!poll results {poll_id}")
             results = wait_for_message(fresh_query, "Total selections: 2", contains=True, timeout=10)
             assert "Total voters: 1" in results.content
             assert f"a) {alpha}: 1" in results.content
@@ -279,16 +259,16 @@ def test_poll_survives_plugin_restart(server, fresh_client, fresh_query, tmp_pat
         with running_plugins(fresh_client, config):
             wait_for_poll_ready(fresh_query)
             drain(fresh_query, voter)
-            send(fresh_query, f"!poll create {question}|{alpha}|{beta} --server")
+            send_text(fresh_query, f"!poll create {question}|{alpha}|{beta} --server")
             poll_id, _ = wait_for_created_poll(fresh_query)
-            wait_for_private(voter, question)
-            send(voter, f"!poll vote {poll_id} b")
+            wait_for_private(voter, question, mark_used=False)
+            send_text(voter, f"!poll vote {poll_id} b")
             wait_for_message(voter, f"Vote recorded for {poll_id}: b.", timeout=10)
 
         with running_plugins(fresh_client, config):
             wait_for_poll_ready(fresh_query)
             drain(fresh_query, voter)
-            send(fresh_query, f"!poll results {poll_id}")
+            send_text(fresh_query, f"!poll results {poll_id}")
             results = wait_for_message(fresh_query, "Total voters: 1", contains=True, timeout=10)
             assert f"b) {beta}: 1" in results.content
 

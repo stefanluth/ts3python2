@@ -5,35 +5,9 @@ import pytest
 import plugins.casino_store as casino_store_module
 from plugins.commands.casino import Casino
 from plugins.errors import ConfigurationError
-from tests.support.fakes import FakeClient, FakeLogger, FakeMessage
+from tests.support.fakes import FakeClient, FakeLogger, FakeMessage, FixedRouletteRng, SequenceRng, StackedRng
 
 NOW = datetime(2026, 11, 12, 12, 0, tzinfo=timezone.utc)
-
-
-class FixedRouletteRng:
-    def __init__(self, number):
-        self.number = number
-
-    def randrange(self, stop):
-        assert stop == 37
-        return self.number
-
-
-class SlotsRng:
-    def __init__(self, *reels):
-        self.reels = [list(reels) for reels in reels]
-
-    def choices(self, population, weights, k):
-        assert k == 3
-        return self.reels.pop(0)
-
-
-class DeckRng:
-    def __init__(self, cards):
-        self.cards = list(cards)
-
-    def shuffle(self, deck):
-        deck[:] = list(reversed(self.cards))
 
 
 @pytest.fixture(autouse=True)
@@ -194,7 +168,7 @@ def test_roulette_loss_reply_privately(tmp_path):
 
 def test_slots_win_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, rng=SlotsRng(("cherry", "cherry", "cherry")))
+    casino = make_casino(tmp_path, client, rng=SequenceRng([("cherry", "cherry", "cherry")]))
 
     run(casino, "!casino slots 10")
     text = last_text(client)
@@ -209,7 +183,7 @@ def test_slots_win_reply_privately(tmp_path):
 
 def test_slots_loss_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, rng=SlotsRng(("cherry", "lemon", "bell")))
+    casino = make_casino(tmp_path, client, rng=SequenceRng([("cherry", "lemon", "bell")]))
 
     run(casino, "!casino slot 10")
     text = last_text(client)
@@ -226,7 +200,7 @@ def test_custom_slots_config_reply_privately(tmp_path):
     casino = make_casino(
         tmp_path,
         client,
-        rng=SlotsRng(("a", "a", "a")),
+        rng=SequenceRng([("a", "a", "a")]),
         slots_symbols=("a", "b"),
         slots_weights=(1, 1),
         slots_payouts={"a": 10, "b": 0},
@@ -245,7 +219,7 @@ def test_custom_slots_config_reply_privately(tmp_path):
 
 def test_blackjack_start_and_hit_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, rng=DeckRng(["10H", "7C", "9D", "8H", "2S"]))
+    casino = make_casino(tmp_path, client, rng=StackedRng(["10H", "7C", "9D", "8H", "2S"]))
 
     run(casino, "!casino blackjack 10")
     text = last_text(client)
@@ -268,7 +242,7 @@ def test_blackjack_start_and_hit_reply_privately(tmp_path):
 
 def test_blackjack_no_bet_shows_active_hand_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, rng=DeckRng(["10H", "7C", "9D", "8H", "2S"]))
+    casino = make_casino(tmp_path, client, rng=StackedRng(["10H", "7C", "9D", "8H", "2S"]))
 
     run(casino, "!casino blackjack 10")
     run(casino, "!casino blackjack")
@@ -282,7 +256,7 @@ def test_blackjack_no_bet_shows_active_hand_reply_privately(tmp_path):
 
 def test_blackjack_stand_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, rng=DeckRng(["10H", "10D", "9D", "8H"]))
+    casino = make_casino(tmp_path, client, rng=StackedRng(["10H", "10D", "9D", "8H"]))
 
     run(casino, "!casino bj 10")
     run(casino, "!casino s")
@@ -300,7 +274,7 @@ def test_blackjack_stand_reply_privately(tmp_path):
 
 def test_blackjack_natural_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, rng=DeckRng(["AS", "9H", "KH", "7C"]))
+    casino = make_casino(tmp_path, client, rng=StackedRng(["AS", "9H", "KH", "7C"]))
 
     run(casino, "!casino blackjack 10")
     text = last_text(client)
@@ -317,7 +291,7 @@ def test_blackjack_natural_reply_privately(tmp_path):
 
 def test_blackjack_hit_bust_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, rng=DeckRng(["10H", "7C", "9D", "8H", "KS"]))
+    casino = make_casino(tmp_path, client, rng=StackedRng(["10H", "7C", "9D", "8H", "KS"]))
 
     run(casino, "!casino blackjack 10")
     run(casino, "!casino hit")
@@ -334,7 +308,7 @@ def test_blackjack_hit_bust_reply_privately(tmp_path):
 
 def test_blackjack_double_flow_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, rng=DeckRng(["5H", "10H", "6D", "7D", "10C"]))
+    casino = make_casino(tmp_path, client, rng=StackedRng(["5H", "10H", "6D", "7D", "10C"]))
 
     run(casino, "!casino blackjack 10")
     assert casino.store.balance("uid-1") == 490
@@ -359,7 +333,7 @@ def test_blackjack_double_rejected_when_balance_low_reply_privately(tmp_path):
         tmp_path,
         client,
         starting_balance=15,
-        rng=DeckRng(["5H", "10H", "6D", "7D", "10C"]),
+        rng=StackedRng(["5H", "10H", "6D", "7D", "10C"]),
     )
 
     run(casino, "!casino blackjack 10")
@@ -387,7 +361,7 @@ def test_blackjack_actions_without_hand_reply_privately(tmp_path):
 
 def test_blackjack_second_game_rejected_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, rng=DeckRng(["10H", "7C", "9D", "8H", "2S"]))
+    casino = make_casino(tmp_path, client, rng=StackedRng(["10H", "7C", "9D", "8H", "2S"]))
 
     run(casino, "!casino blackjack 10")
     run(casino, "!casino bj 20")
@@ -422,7 +396,7 @@ def test_invalid_bets_reply_privately(tmp_path, content, message):
 
 def test_insufficient_balance_reply_privately(tmp_path):
     client = FakeClient()
-    casino = make_casino(tmp_path, client, starting_balance=5, rng=SlotsRng(("cherry", "cherry", "cherry")))
+    casino = make_casino(tmp_path, client, starting_balance=5, rng=SequenceRng([("cherry", "cherry", "cherry")]))
 
     run(casino, "!casino slots 10")
     assert "Not enough balance." in last_text(client)

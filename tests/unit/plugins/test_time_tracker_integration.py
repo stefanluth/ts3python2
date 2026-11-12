@@ -6,7 +6,7 @@ import plugins.plugins.time_tracker as time_tracker_module
 from plugins.commands.tracker import Tracker
 from plugins.plugins.time_tracker import TimeTracker
 from plugins.time_tracker_store import get_store, reset_stores
-from tests.support.fakes import FakeClient, FakeLogger, FakeMessage, FakeStopEvent
+from tests.support.fakes import FakeClient, FakeLogger, FakeMessage, FakeStopEvent, use_clock
 from ts3client.user import User, UserInfo
 
 NOW = datetime(2026, 11, 12, 12, 0, tzinfo=timezone.utc)
@@ -28,17 +28,6 @@ def make_client():
     client.users = [User(clid=10, client_nickname="Alice", cid=100, client_type=0, client_unique_identifier="uid-1")]
     client.user_infos = {10: UserInfo(client_idle_time=0, client_unique_identifier="uid-1")}
     return client
-
-
-def use_clock(monkeypatch, *values):
-    remaining = list(values)
-
-    def monotonic():
-        if len(remaining) > 1:
-            return remaining.pop(0)
-        return remaining[0]
-
-    monkeypatch.setattr(time_tracker_module, "_monotonic", monotonic)
 
 
 def make_tracker(client, data_dir):

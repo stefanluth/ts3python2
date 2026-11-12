@@ -1,4 +1,3 @@
-import hashlib
 import json
 import re
 import time
@@ -13,10 +12,13 @@ from tests.support.integration import (
     drain_messages,
     enable_text_receive,
     running_plugins,
+    send_text,
     unique_name,
+    wait_for_private,
     wait_until,
     whoami,
 )
+from tests.support.paths import hashed_path
 from ts3client.constants import NotifyRegisterType, TargetMode
 
 pytestmark = pytest.mark.integration
@@ -75,8 +77,7 @@ def tracker_config(
 
 
 def profile_file(data_dir, uid):
-    digest = hashlib.sha256(uid.encode("utf-8")).hexdigest()
-    return data_dir / "profiles" / f"{digest}.json"
+    return hashed_path(data_dir / "profiles", uid)
 
 
 def profile_data(data_dir, uid):
@@ -130,30 +131,10 @@ def seed_profile(data_dir, uid, name, *, total, idle=0, afk=0, do_not_track=Fals
         store.set_do_not_track(uid, True)
 
 
-def send_text(query, text):
-    query.commands.sendtextmessage(targetmode=TargetMode.SERVER, target=0, msg=text)
-
-
 def enable_tracker_events(query):
     enable_text_receive(query, event=NotifyRegisterType.TEXT_SERVER)
     enable_text_receive(query, event=NotifyRegisterType.TEXT_PRIVATE)
     drain_messages(query)
-
-
-def wait_for_private(query, text, timeout=20):
-    def find():
-        return next(
-            (
-                message
-                for message in query.unread_messages
-                if message.source == TargetMode.CLIENT and text in message.content
-            ),
-            None,
-        )
-
-    message = wait_until(find, timeout=timeout, message=f"did not receive a private message containing {text!r}")
-    message.mark_as_used()
-    return message
 
 
 def wait_for_server(query, text, timeout=20):

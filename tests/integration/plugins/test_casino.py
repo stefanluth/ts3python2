@@ -1,4 +1,3 @@
-import hashlib
 import json
 import time
 
@@ -9,10 +8,13 @@ from tests.support.integration import (
     drain_messages,
     enable_text_receive,
     running_plugins,
+    send_text,
     wait_for_message,
+    wait_for_private,
     wait_until,
     whoami,
 )
+from tests.support.paths import hashed_path
 from ts3client.constants import NotifyRegisterType, TargetMode
 
 pytestmark = pytest.mark.integration
@@ -59,12 +61,7 @@ def casino_config(data_dir, **overrides):
 
 
 def player_file(data_dir, uid):
-    digest = hashlib.sha256(uid.encode("utf-8")).hexdigest()
-    return data_dir / "players" / f"{digest}.json"
-
-
-def send_text(query, text):
-    query.commands.sendtextmessage(targetmode=TargetMode.SERVER, target=0, msg=text)
+    return hashed_path(data_dir / "players", uid)
 
 
 def wait_for_casino_ready(query, timeout=20):
@@ -76,22 +73,6 @@ def wait_for_casino_ready(query, timeout=20):
         except AssertionError:
             continue
     raise AssertionError("bot did not become ready to receive casino commands")
-
-
-def wait_for_private(query, text, timeout=20):
-    def find():
-        return next(
-            (
-                message
-                for message in query.unread_messages
-                if message.source == TargetMode.CLIENT and text in message.content
-            ),
-            None,
-        )
-
-    message = wait_until(find, timeout=timeout, message=f"did not receive a private message containing {text!r}")
-    message.mark_as_used()
-    return message
 
 
 def wait_for_private_any(query, texts, timeout=20):

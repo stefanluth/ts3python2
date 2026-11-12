@@ -5,10 +5,10 @@ import pytest
 
 import plugins.commands.poll as poll_module
 from plugins.commands.poll import Poll
-from tests.support.fakes import FakeClient, FakeLogger, FakeMessage
+from tests.support.fakes import FakeClient, FakeLogger, FakeMessage, make_user
 from ts3client.channel import Channel
 from ts3client.constants import TargetMode
-from ts3client.user import User, UserInfo
+from ts3client.user import UserInfo
 
 NOW = datetime(2026, 11, 12, 12, 0, tzinfo=timezone.utc)
 
@@ -33,16 +33,6 @@ def make_poll(tmp_path, client=None, **kwargs):
     poll.logger = FakeLogger()
     poll.store.logger = FakeLogger()
     return poll
-
-
-def make_user(clid, name="User", uid=None, cid=10, client_type=0):
-    return User(
-        clid=clid,
-        client_nickname=name,
-        cid=cid,
-        client_type=client_type,
-        client_unique_identifier=uid or f"uid-{clid}",
-    )
 
 
 def only_poll(command):

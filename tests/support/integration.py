@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import paramiko
 
 from plugins.plugin_manager import PluginManager
-from ts3client.constants import NotifyRegisterType
+from ts3client.constants import NotifyRegisterType, TargetMode
 from ts3client.ts3query import TS3Query
 
 TRANSIENT_ERRORS = (EOFError, ConnectionError, OSError, paramiko.SSHException)
@@ -52,6 +52,32 @@ def wait_for_message(query, text, timeout=15, contains=False):
 
 def unique_name(prefix="test"):
     return f"{prefix}-{time.time_ns()}"
+
+
+def send_text(query, text, *, channel=False):
+    query.commands.sendtextmessage(
+        targetmode=TargetMode.CHANNEL if channel else TargetMode.SERVER,
+        target=0,
+        msg=text,
+    )
+
+
+def wait_for_private(query, text, timeout=20, mark_used=True):
+    message = wait_until(
+        lambda: next(
+            (
+                message
+                for message in query.unread_messages
+                if message.source == TargetMode.CLIENT and text in message.content
+            ),
+            None,
+        ),
+        timeout=timeout,
+        message=f"did not receive a private message containing {text!r}",
+    )
+    if mark_used:
+        message.mark_as_used()
+    return message
 
 
 def ts3_date(day):
