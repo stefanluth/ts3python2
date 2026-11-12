@@ -27,6 +27,7 @@ Currently, the following plugins and commands are available:
 
 - [AFK Mover](./docs/plugins/afk_mover.md) - Moves users to a specified channel when they are inactive for a given amount of time.
 - [Doodler](./docs/plugins/doodler.md) - Replaces the server banner on given dates with custom images, similar to Google Doodles.
+- [Time Tracker](./docs/plugins/time_tracker.md) - Tracks total, idle, and AFK connection time for every user.
 - [Welcomer](./docs/plugins/welcomer.md) - Sends a welcome message to users when they join the server.
 
 ### Commands
@@ -35,6 +36,7 @@ Currently, the following plugins and commands are available:
 - [Weather](./docs/commands/weather.md) - Displays the current weather for a given location.
 - [Poll](./docs/commands/poll.md) - Create single- or multi-choice polls with timed, anonymous, server-wide, or channel voting.
 - [Casino](./docs/commands/casino.md) - Play blackjack, roulette, and slots with virtual currency.
+- [Tracker](./docs/commands/tracker.md) - Show your connection time, the time leaderboard, and opt out of tracking.
 
 ### Planned Plugins
 
